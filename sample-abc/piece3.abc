@@ -1,10 +1,11 @@
-X: 1
+X: 3
 T:Piece No.3
+T:Amazing Grace
 M:3/4
 L:1/8
 Q:1/8=100
-K:C
-z2 D1 | G2 BG | B2 A1 | G2 E1 |
+K:G
+z2 D2 | G4 BG | B4 A2 | G4 E2 |
 w: A-ma-zing grace! How sweet the
- D2 D1 | G2 BG | B2 A1 | D3 |
+ D4 D2 | G4 BG | B4 A2 | D6 |
 w: sound That saved a wretch like me.

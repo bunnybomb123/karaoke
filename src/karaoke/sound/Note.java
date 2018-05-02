@@ -1,5 +1,8 @@
 package karaoke.sound;
 
+import java.util.Optional;
+import java.util.function.Consumer;
+
 /**
  * Note represents a note played by an instrument.
  */
@@ -8,6 +11,7 @@ public class Note implements Music {
     private final double duration;
     private final Pitch pitch;
     private final Instrument instrument;
+    private final Optional<String> lyric;
 
     private void checkRep() {
         assert duration >= 0;
@@ -21,10 +25,11 @@ public class Note implements Music {
      * @param pitch pitch to play
      * @param instrument instrument to use
      */
-    public Note(double duration, Pitch pitch, Instrument instrument) {
+    public Note(double duration, Pitch pitch, Instrument instrument, Optional<String> lyric) {
         this.duration = duration;
         this.pitch = pitch;
         this.instrument = instrument;
+        this.lyric = lyric;
         checkRep();
     }
 
@@ -54,8 +59,10 @@ public class Note implements Music {
      * Play this note.
      */
     @Override
-    public void play(SequencePlayer player, double atBeat) {
+    public void play(SequencePlayer player, double atBeat, Consumer<String> lyricConsumer) {
         player.addNote(instrument, pitch, atBeat, duration);
+        if (lyric.isPresent())
+            player.addEvent(atBeat, beat -> lyricConsumer.accept(lyric.get()));
     }
 
     @Override

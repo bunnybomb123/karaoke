@@ -1,5 +1,7 @@
 package karaoke.sound;
 
+import java.util.function.Consumer;
+
 /**
  * Concat represents two pieces of music played one after the other.
  */
@@ -50,9 +52,9 @@ public class Concat implements Music {
      * Play this concatenation.
      */
     @Override
-    public void play(SequencePlayer player, double atBeat) {
-        first.play(player, atBeat);
-        second.play(player, atBeat + first.duration());
+    public void play(SequencePlayer player, double atBeat, Consumer<String> lyricConsumer) {
+        first.play(player, atBeat, lyricConsumer);
+        second.play(player, atBeat + first.duration(), lyricConsumer);
     }
 
     @Override

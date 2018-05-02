@@ -75,15 +75,20 @@ middle-of-body-field ::= field-voice
 lyric ::= "w:" lyrical-element*
 lyrical-element ::= " "+ | "-" | "_" | "*" | "~" | "\-" | "|" | lyric-text
 ; lyric-text should be defined appropriately
+lyric-text ::= word
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; General
 
 comment ::= space-or-tab* "%" comment-text newline
 ; comment-text should be defined appropriately
+comment-text ::= text
 
 end-of-line ::= comment | newline
 
+text = .+
+
+word ::= [^\s-_*~\-|]+
 digit ::= [0-9]
 newline ::= "\n" | "\r" "\n"?
 space-or-tab ::= " " | "\t"

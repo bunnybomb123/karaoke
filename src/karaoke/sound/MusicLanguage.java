@@ -1,6 +1,6 @@
 package karaoke.sound;
 
-import static music.Pitch.OCTAVE;
+import static karaoke.sound.Pitch.OCTAVE;
 
 import java.util.function.Function;
 import java.util.regex.Matcher;

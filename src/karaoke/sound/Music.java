@@ -6,6 +6,13 @@ import java.util.function.Consumer;
  * Music represents a piece of music played by multiple instruments.
  */
 public interface Music {
+    
+    /*
+     * Datatype Definition
+     * Music = Rest(duration: double)
+     *          + Note(duration: double, pitch: Pitch, instrument: Instrument, lyric: Optional<String>)
+     *          + Concat(first: Music, second: Music)
+     */
 
     /**
      * A function from Music to R, defined by cases for each variant.

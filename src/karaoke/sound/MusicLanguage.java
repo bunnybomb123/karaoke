@@ -2,6 +2,7 @@ package karaoke.sound;
 
 import static karaoke.sound.Pitch.OCTAVE;
 
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -76,7 +77,7 @@ public class MusicLanguage {
         if (m.group("denominator") != null) duration /= Integer.valueOf(m.group("denominator").substring(1));
 
         if (pitchSymbol.equals(".")) return rest(duration);
-        else return note(duration, parsePitch(pitchSymbol), instr);
+        else return note(duration, parsePitch(pitchSymbol), instr, Optional.empty());
     }
 
     /* Parse a symbol into a Pitch. */
@@ -99,10 +100,11 @@ public class MusicLanguage {
      * @param duration duration in beats, must be >= 0
      * @param pitch pitch to play
      * @param instrument instrument to use
-     * @return pitch played by instrument for duration beats
+     * @param lyric optional lyric to play
+     * @return pitch played by instrument for duration beats, with optional lyric
      */
-    public static Music note(double duration, Pitch pitch, Instrument instrument) {
-        return new Note(duration, pitch, instrument);
+    public static Music note(double duration, Pitch pitch, Instrument instrument, Optional<String> lyric) {
+        return new Note(duration, pitch, instrument, lyric);
     }
 
     /**
@@ -154,7 +156,8 @@ public class MusicLanguage {
      *         otherwise identical to m
      */
     public static Music transpose(Music m, int semitonesUp) {
-        return m.accept(new TransposeVisitor(semitonesUp)); // TODO
+        throw new UnsupportedOperationException();
+        //return m.accept(new TransposeVisitor(semitonesUp)); // TODO
     }
 
     public static Music together(Music m1, Music m2) {
@@ -184,7 +187,7 @@ public class MusicLanguage {
      * 
      * @param m
      * @param times
-     * @return
+     * @return repeated music
      */
     public static Music repeat(Music m, int times, Function<Music, Music> f) {
         if (times == 0) {

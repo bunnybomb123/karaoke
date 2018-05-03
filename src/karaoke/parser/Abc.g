@@ -1,8 +1,7 @@
 // Grammar for ABC music notation 
-abc ::= 'not implemented yet';
 ; A subset of abc 2.1 in BNF format
 
-abc-tune ::= abc-header abc-body
+abc ::= ::= abc-header abc-body
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Header

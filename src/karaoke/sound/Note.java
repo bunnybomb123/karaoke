@@ -7,6 +7,22 @@ import java.util.function.Consumer;
  * Note represents a note played by an instrument.
  */
 public class Note implements Music {
+    
+    /*
+     * Abstraction function:
+     *  AF(duration, pitch, instrument) = 
+     *      an immutable note that has a pitch, a duration (in beats),
+     *      and
+     * 
+     * Rep invariant:
+     * 
+     * 
+     * Safety from rep exposure:
+     * 
+     * Thread safety argument:
+     *  This object is immutable, and there is no beneficent mutation
+     * 
+     */
 
     private final double duration;
     private final Pitch pitch;

@@ -1,3 +1,5 @@
+package karaoke;
+
 import java.util.function.Consumer;
 
 import karaoke.sound.Music;
@@ -9,9 +11,9 @@ public class ABC {
     // Fields:
     private final Music music;
     private String composer;
-    private Pitch keySignature;
+    private String keySignature;
     private double meter;
-    
+    private double beatsPerMinute;
     
     /**
      * Representation of an ABC file
@@ -20,7 +22,8 @@ public class ABC {
      * @param keySignature keySignature of the music
      * @param meter meter of the music
      */
-    public ABC(Music music, Pitch keySignature, double meter) {
+    public ABC(Music music, String keySignature, double meter, 
+            double beatsPerMinute) {
         this.music = music;
         this.keySignature = keySignature;
         this.meter = meter;
@@ -36,6 +39,5 @@ public class ABC {
     public void play(SequencePlayer player, double atBeat, Consumer<String> lyricConsumer) {
         music.play(player, 0, lyricConsumer);
     }
-    
     
 }

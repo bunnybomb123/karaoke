@@ -1,3 +1,5 @@
+package karaoke;
+
 import java.util.function.Consumer;
 
 import karaoke.sound.Music;
@@ -29,11 +31,10 @@ public class ABC {
     /**
      * Plays the music that the ABC file represents
      * 
-     * @param player music player to play the music on
-     * @param atBeat 
-     * @param lyricConsumer
+     * @param player player to play on
+     * @param lyricConsumer function called when new lyrics are played
      */
-    public void play(SequencePlayer player, double atBeat, Consumer<String> lyricConsumer) {
+    public void play(SequencePlayer player, Consumer<String> lyricConsumer) {
         music.play(player, 0, lyricConsumer);
     }
     

@@ -19,17 +19,16 @@ public class SequencePlayerTest {
     
     /**
      * helper function that plays out a file as a sort of manual test.
-     * @param beatsPerMinute: beats per minute of the song to play. 
-     *      Q in abc notation.
-     * @param ticksPerBeat: I think it's usually 64
-     * @param beats: array of beat counts to play the song.
-     * @param pitches: array of pitches (in abc notation) in the song. 
-     *      length must be equal to that of beats.
-     *      chords are represented by strings of letters.
-     *      rests are represented by "z".
-     * @param lyrics: array of lyrics aligned to each note.
+     * @param beatsPerMinute tempo in quarter notes per minute
+     * @param ticksPerBeat allows up to 1/ticksPerBeat-beat notes to be played with fidelity
+     * @param beats array of beat counts to play the song
+     * @param pitches array of pitches (in abc notation) or chords in the song 
+     *      length must be equal to that of beats
+     *      chords are represented by strings of letters with optional accidentals
+     *      rests are represented by "z"
+     * @param lyrics array of lyrics aligned to each note
      *      if length is not equal to that of beats, empty lyrics are filled in
-     *      and excess lyrics are ignored.
+     *      and excess lyrics are ignored
      * @throws MidiUnavailableException
      * @throws InvalidMidiDataException
      */
@@ -47,7 +46,7 @@ public class SequencePlayerTest {
         
         for (int i = 0; i < pitches.length; i++) {
             final double numBeats = beats[i];
-            System.out.println("numbeats: " + numBeats);
+            System.out.println("beats: " + numBeats);
             
             for (char pitch : pitches[i].toCharArray())
                 if (pitch == 'z')
@@ -92,30 +91,32 @@ public class SequencePlayerTest {
     
     @Test
     public void testPiece1() throws MidiUnavailableException, InvalidMidiDataException {
-        final double [] beats = {1,1,3./4,1./4,1,3./4,1./4,3./4,1./4,2,1./3,1./3,1./3
-                ,1./3,1./3,1./3,1./3,1./3,1./3,1./3,1./3,1./3,3./4,1./4,3./4,1./4,2};
+        final double [] beats = {1,1,3./4,1./4,1,3./4,1./4,3./4,1./4,2,1./3,1./3,1./3,
+                1./3,1./3,1./3,1./3,1./3,1./3,1./3,1./3,1./3,3./4,1./4,3./4,1./4,2};
         final String [] pitches = {"C", "C", "C", "D", "E", "E", "D", "E", "F",
                 "G", "c", "c", "c", "G", "G", "G", "E", "E", "E", "C", "C",
                 "C", "G", "F", "E", "D", "C"};
         final String [] lyrics = {};
-        helperPlayFile(120, 64, beats, pitches, lyrics);
+        helperPlayFile(140, 64, beats, pitches, lyrics);
     }
     
     @Test
     public void testPiece2() throws MidiUnavailableException, InvalidMidiDataException {
-        final double [] beats = {1./2,1./2,1./2,1./2,1./2,1./2,1,1,1,1,1,3./2,1./2,1,1
+        final double [] beats = {1./2,1./2,1./2,1./2,1./2,1./2,1,1,1,1,1,3./2,1./2,1,1,
                 1./2,1,1,1./2,1,2./3,2./3,2./3,1,1./2,1./2,1./2,1,1./2,1./2,3./4,3./4};
-        final char [] pitches = {"Fe"};
+        final String [] pitches = {"^Fe", "^Fe", "z", "^Fe", "z", "^Fc", "^Fe",
+                "GBg", "z", "G", "z", "c", "G", "z", "E", "E", "A", "B", "_B", "A",
+                "G", "e", "g", "a", "f", "g", "z", "e", "c", "d", "B", "z"};
         final String [] lyrics = {};
-        helperPlayFile(120 /*TODO*/, 64, beats, pitches, lyrics);
+        helperPlayFile(200, 64, beats, pitches, lyrics);
     }
     
     @Test
     public void testPiece3() throws MidiUnavailableException, InvalidMidiDataException {
         final double [] beats = {/*TODO*/};
-        final char [] pitches = {/*TODO*/};
+        final String [] pitches = {/*TODO*/};
         final String [] lyrics = {/*TODO*/};
-        helperPlayFile(120 /*TODO*/, 64, beats, pitches, lyrics);
+        helperPlayFile(50, 64, beats, pitches, lyrics);
     }
     
 }

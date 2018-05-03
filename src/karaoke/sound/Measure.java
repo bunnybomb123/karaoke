@@ -1,22 +1,25 @@
+package karaoke.sound;
 
-import java.util.List;
 import java.util.function.Consumer;
 
 public class Measure implements Music {
     
+    private final double duration;
     private final Music music;
     
     /**
      * Constructs a Measure object to wrap around the given Music object
-     * @param music
+     * @param duration duration in beats, must be >= 0
+     * @param music music in measure, must satisfy music.duration() <= duration
      */
-    public Measure(Music music) {
+    public Measure(double duration, Music music) {
+        this.duration = duration;
         this.music = music;
     }
 
     @Override
     public double duration() {
-        return music.duration();
+        return duration;
     }
 
     @Override

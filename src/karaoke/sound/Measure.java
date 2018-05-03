@@ -1,5 +1,4 @@
 
-import java.util.List;
 import java.util.function.Consumer;
 
 public class Measure implements Music {
@@ -8,7 +7,7 @@ public class Measure implements Music {
     
     /**
      * Constructs a Measure object to wrap around the given Music object
-     * @param music
+     * @param music in the measure
      */
     public Measure(Music music) {
         this.music = music;

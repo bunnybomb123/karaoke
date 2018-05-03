@@ -137,7 +137,7 @@ public class SequencePlayerTest {
         final String [] pitches = {"z", "D", "G", "B", "G", "B", "A", "G", "E", "D",
                 "D", "G", "B", "G", "B", "A", "d"};
         final String [] lyrics = {
-                "A-ma-zing_ grace! How sweet the sound",
+                "rest",
                 "*A*-ma-zing_ grace! How sweet the sound",
                 "A-*ma*-zing_ grace! How sweet the sound",
                 "A-ma-*zing_* grace! How sweet the sound",

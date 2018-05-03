@@ -27,28 +27,33 @@ public class ABC {
      */
     
     private final Music music;
-
-    private final String composer;
+    private final String title;
     private final String keySignature;
-    private final double meter;
-    private final double beatsPerMinute;
+//    private final Meter meter;
+//    private final double beatsPerMinute;
     
     /**
      * creates a new ABC file
      * 
      * @param music Musical representation of the ABC file
+     * @param title title of this abc piece
      * @param keySignature keySignature of the music
-     * @param meter meter of the music
      */
-    public ABC(Music music, String keySignature, double meter, 
-            double beatsPerMinute, String composer) {
+    public ABC(Music music, String title, String keySignature) {
         this.music = music;
+        this.title = title;
         this.keySignature = keySignature;
-        this.meter = meter;
-        this.composer = composer;
-        this.beatsPerMinute = beatsPerMinute;
+        fillInTheRest();
     }
     
+    private void fillInTheRest() {
+//        if (meter =! null )
+//        if (beatsPerMinute != null)
+//        this.beatsPerMinute = beatsPerMinute;
+//        this.keySignature = keySignature;
+//        this.meter = meter;
+    }
+
     /**
      * Plays the music that the ABC file represents
      * 
@@ -70,7 +75,7 @@ public class ABC {
      * @return this piece's composer
      */
     public String getComposer() {
-        return composer;
+        return title;
     }
 
     /**
@@ -78,20 +83,6 @@ public class ABC {
      */
     public String getKeySignature() {
         return keySignature;
-    }
-
-    /**
-     * @return this piece's meter
-     */
-    public double getMeter() {
-        return meter;
-    }
-
-    /**
-     * @return the number of beats per minute in this piece
-     */
-    public double getBeatsPerMinute() {
-        return beatsPerMinute;
     }
     
 }

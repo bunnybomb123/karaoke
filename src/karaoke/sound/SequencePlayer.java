@@ -34,6 +34,5 @@ public interface SequencePlayer {
      * Play the scheduled music.
      */
     public void play();
-    
 
 }

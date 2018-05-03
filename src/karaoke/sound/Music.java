@@ -35,7 +35,7 @@ public interface Music {
      * Play this piece.
      * @param player player to play on
      * @param atBeat when to play
-     * @param lyricConsumer function called for each new lyric
+     * @param lyricConsumer function called when new lyrics are played
      */
     void play(SequencePlayer player, double atBeat, Consumer<String> lyricConsumer);
 

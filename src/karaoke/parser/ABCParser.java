@@ -53,7 +53,7 @@ public class ABCParser {
         try {
             // read the grammar as a file, relative to the project root.
             final File grammarFile = new File("src/karaoke.parser/Abc.g");
-            return Parser.compile(grammarFile, ABCGrammar.EXPRESSION);
+            return Parser.compile(grammarFile, ABCGrammar.ABC);
 
         // Parser.compile() throws two checked exceptions.
         // Translate these checked exceptions into unchecked RuntimeExceptions,
@@ -92,24 +92,57 @@ public class ABCParser {
      * @param parseTree constructed according to the grammar in Exression.g
      * @return abstract syntax tree corresponding to parseTree
      */
-    private static Expression makeAbstractSyntaxTree(final ParseTree<ABCGrammar> parseTree) {
+    private static ABC makeAbstractSyntaxTree(final ParseTree<ABCGrammar> parseTree) {
         switch (parseTree.name()) {
+         
         
-        
-        case EXPRESSION: // expression ::= topToBottom;
+        case ABC: // expression ::= topToBottom;
             {
                 return makeAbstractSyntaxTree(parseTree.children().get(0));
             }
         
-        case TOPTOBOTTOM: // topToBottom ::= sideBySide (topToBottomOperator sideBySide)*;
+        case ABC_HEADER: // topToBottom ::= sideBySide (topToBottomOperator sideBySide)*;
             {
-                final List<ParseTree<ABCGrammar>> children = parseTree.children();
-                Expression expression = makeAbstractSyntaxTree(children.get(0));
-                for(int i = 2; i < children.size(); i += 2)
-                    expression = new TopToBottom(expression, makeAbstractSyntaxTree(children.get(i)));
-                return expression;
+                System.out.println("hey");
+//                final List<ParseTree<ABCGrammar>> children = parseTree.children();
+//                Expression expression = makeAbstractSyntaxTree(children.get(0));
+//                for(int i = 2; i < children.size(); i += 2)
+//                    expression = new TopToBottom(expression, makeAbstractSyntaxTree(children.get(i)));
+//                return expression;
             }    
         
+        case FIELD_NUMBER: {
+            System.out.println("hey");
+
+        }
+        case FIELD_TITLE: {
+            System.out.println("hey");
+
+        }
+        case OTHER_FIELDS: {
+            System.out.println("hey");
+
+        }
+        case FIELD_COMPOSER: {
+            System.out.println("hey");
+
+        }
+        case FIELD_DEFAULT_LENGTH: {
+            System.out.println("hey");
+
+        }
+        case FIELD_METER: {
+            System.out.println("hey");
+
+        }
+        case FIELD_TEMPO:  {
+            System.out.println("hey");
+
+        }
+        case FIELD_VOICE: {
+            System.out.println("hey");
+
+        }
         default:
             throw new AssertionError("should never get here");
         }

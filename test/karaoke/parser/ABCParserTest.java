@@ -12,7 +12,7 @@ import org.junit.Test;
 import edu.mit.eecs.parserlib.UnableToParseException;
 import karaoke.ABC;
 import karaoke.sound.Music;
-import karaoke.sound.MusicLanguage;
+import karaoke.sound.MusicLanguage.*;
 
 /**
  * Test that ABCParser creates the correct ADT.
@@ -45,6 +45,8 @@ public class ABCParserTest {
         String abcFile = new Scanner(new File("sample-abc/sample1.abc")).useDelimiter("\\Z").next();
         ABC actual = ABCParser.parse(abcFile);
         
+        Music m1 = note(2, );
+        Music m2 = note();
         Music music = MusicLanguage.concat(m1, m2);
         ABC expected = new ABC(music, "sample 1", "C");
         assertEquals(expected, actual);

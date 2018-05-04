@@ -1,93 +1,93 @@
 // Grammar for ABC music notation 
-; A subset of abc 2.1 in BNF format
+// A subset of abc 2.1 in BNF format
 
-abc ::= ::= abc-header abc-body
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Header
-
-; ignore space-or-tab between terminals in the header
-
-abc-header ::= field-number comment* field-title other-fields* field-key
-
-field-number ::= "X:" digit+ end-of-line
-field-title ::= "T:" text end-of-line
-other-fields ::= field-composer | field-default-length | field-meter | field-tempo | field-voice | comment
-field-composer ::= "C:" text end-of-line
-field-default-length ::= "L:" note-length-strict end-of-line
-field-meter ::= "M:" meter end-of-line
-field-tempo ::= "Q:" tempo end-of-line
-field-voice ::= "V:" text end-of-line
-field-key ::= "K:" key end-of-line
-
-key ::= keynote mode-minor?
-keynote ::= basenote key-accidental?
-key-accidental ::= "#" | "b"
-mode-minor ::= "m"
-
-meter ::= "C" | "C|" | meter-fraction
-meter-fraction ::= digit+ "/" digit+
-
-tempo ::= meter-fraction "=" digit+
+abc ::= abc_header abc_body;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Body
+// Header
 
-; spaces and tabs have explicit meaning in the body, don't automatically ignore them
+// ignore space_or_tab between terminals in the header
 
-abc-body ::= abc-line+
-abc-line ::= element+ end-of-line (lyric end-of-line)?  | middle-of-body-field | comment
-element ::= note-element | rest-element | tuplet-element | barline | nth-repeat | space-or-tab 
+abc_header ::= field_number comment* field_title other_fields* field_key;
 
-;; notes
-note-element ::= note | chord
+field_number ::= "X:" digit+ end_of_line;
+field_title ::= "T:" text end_of_line;
+other_fields ::= field_composer | field_default_length | field_meter | field_tempo | field_voice | comment;
+field_composer ::= "C:" text end_of_line;
+field_default_length ::= "L:" note_length_strict end_of_line;
+field_meter ::= "M:" meter end_of_line;
+field_tempo ::= "Q:" tempo end_of_line;
+field_voice ::= "V:" text end_of_line;
+field_key ::= "K:" key end_of_line;
 
-note ::= pitch note-length?
-pitch ::= accidental? basenote octave?
+key ::= keynote mode_minor?;
+keynote ::= basenote key_accidental?;
+key_accidental ::= "#" | "b";
+mode_minor ::= "m";
+
+meter ::= "C" | "C|" | meter_fraction;
+meter_fraction ::= digit+ "/" digit+;
+
+tempo ::= meter_fraction "=" digit+;
+
+//;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+// Body
+
+//; spaces and tabs have explicit meaning in the body, don't automatically ignore them
+
+abc_body ::= abc_line+;
+abc_line ::= element+ end_of_line (lyric end_of_line)?  | middle_of_body_field | comment;
+element ::= note_element | rest_element | tuplet_element | barline | nth_repeat | space_or_tab;
+
+//;; notes
+note_element ::= note | chord;
+
+note ::= pitch note_length?;
+pitch ::= accidental? basenote octave?;
 octave ::= "'"+ | ","+
-note-length ::= (digit+)? ("/" (digit+)?)?
-note-length-strict ::= digit+ "/" digit+
+note_length ::= (digit+)? ("/" (digit+)?)?;
+note_length_strict ::= digit+ "/" digit+;
 
-;; "^" is sharp, "_" is flat, and "=" is neutral
-accidental ::= "^" | "^^" | "_" | "__" | "="
+//;; "^" is sharp, "_" is flat, and "=" is neutral
+accidental ::= "^" | "^^" | "_" | "__" | "=";
 
 basenote ::= "C" | "D" | "E" | "F" | "G" | "A" | "B"
-        | "c" | "d" | "e" | "f" | "g" | "a" | "b"
+        | "c" | "d" | "e" | "f" | "g" | "a" | "b";
 
-;; rests
-rest-element ::= "z" note-length?
+//;; rests
+rest_element ::= "z" note_length?;
 
-;; tuplets
-tuplet-element ::= tuplet-spec note-element+
-tuplet-spec ::= "(" digit 
+//;; tuplets
+tuplet_element ::= tuplet_spec note_element+;
+tuplet_spec ::= "(" digit ;
 
-;; chords
-chord ::= "[" note+ "]"
+//;; chords
+chord ::= "[" note+ "]";
 
-barline ::= "|" | "||" | "[|" | "|]" | ":|" | "|:"
-nth-repeat ::= "[1" | "[2"
+barline ::= "|" | "||" | "[|" | "|]" | ":|" | "|:";
+nth_repeat ::= "[1" | "[2";
 
-; A voice field might reappear in the middle of a piece
-; to indicate the change of a voice
-middle-of-body-field ::= field-voice
+//; A voice field might reappear in the middle of a piece
+//; to indicate the change of a voice
+middle_of_body_field ::= field_voice;
 
-lyric ::= "w:" lyrical-element*
-lyrical-element ::= " "+ | "-" | "_" | "*" | "~" | "\-" | "|" | lyric-text
-; lyric-text should be defined appropriately
-lyric-text ::= word
+lyric ::= "w:" lyrical_element*;
+lyrical_element ::= " "+ | "_" | "_" | "*" | "~" | "\_" | "|" | lyric_text;
+//; lyric_text should be defined appropriately
+lyric_text ::= word;
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; General
+//;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+//;; General
 
-comment ::= space-or-tab* "%" comment-text newline
-; comment-text should be defined appropriately
-comment-text ::= text
+comment ::= space_or_tab* "%" comment_text newline;
+//; comment_text should be defined appropriately;
+comment_text ::= text;
 
-end-of-line ::= comment | newline
+end_of_line ::= comment | newline;
 
-text = .+
+text = .+;
 
-word ::= [^\s-_*~\-|]+
-digit ::= [0-9]
-newline ::= "\n" | "\r" "\n"?
-space-or-tab ::= " " | "\t"
+word ::= [^\s__*~\_|]+;
+digit ::= [0_9];
+newline ::= "\n" | "\r" "\n"?;
+space_or_tab ::= " " | "\t";

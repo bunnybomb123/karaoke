@@ -29,9 +29,12 @@ public class ABCParser {
     
     // the nonterminals of the grammar
     private static enum ABCGrammar {
-        EXPRESSION, TOPTOBOTTOM, SIDEBYSIDE, BOTTOMOVERLAY, TOPOVERLAY, RESIZE, PRIMITIVE,
-        TOPTOBOTTOMOPERATOR, LABEL, FILENAME, NUMBER, WHITESPACE,
+        ABC, ABC_HEADER, FIELD_NUMBER, FIELD_TITLE, OTHER_FIELDS, FIELD_COMPOSER, FIELD_DEFAULT_LENGTH, FIELD_METER, FIELD_TEMPO, FIELD_VOICE,
+        FIELD_KEY, KEY, KEYNOTE, KEY_ACCIDENTAL, MADE_MINOR, METER, METER_FRACTION, TEMPO, ABC_BODY, ABC_LINE, ELEMENT, NOTE_ELEMENT, NOTE, PITCH,
+        OCTAVE, NOTE_LENGTH, NOTE_LENGTH_STRICT, ACCIDENTAL, BASENOTE, REST_ELEMENT, TUPLET_ELEMENT, TUPLET_SPEC, CHORD, BARLINE, NTH_REPEAT, LYRIC, 
+        LYRICAL_ELEMENT, LYRIC_TEXT, COMMENT, COMMENT_TEXT, END_OF_LINE, TEXT, WORD, DIGIT, NEWLINE, SPACE_OR_TAB,
     }
+    
 
     private static Parser<ABCGrammar> parser = makeParser();
     
@@ -84,8 +87,10 @@ public class ABCParser {
      * @param parseTree constructed according to the grammar in Exression.g
      * @return abstract syntax tree corresponding to parseTree
      */
-    private static Expression makeAbstractSyntaxTree(final ParseTree<ExpressionGrammar> parseTree) {
+    private static Expression makeAbstractSyntaxTree(final ParseTree<ABCGrammar> parseTree) {
         switch (parseTree.name()) {
+        
+        
         case EXPRESSION: // expression ::= topToBottom;
             {
                 return makeAbstractSyntaxTree(parseTree.children().get(0));
@@ -93,66 +98,12 @@ public class ABCParser {
         
         case TOPTOBOTTOM: // topToBottom ::= sideBySide (topToBottomOperator sideBySide)*;
             {
-                final List<ParseTree<ExpressionGrammar>> children = parseTree.children();
+                final List<ParseTree<ABCGrammar>> children = parseTree.children();
                 Expression expression = makeAbstractSyntaxTree(children.get(0));
                 for(int i = 2; i < children.size(); i += 2)
                     expression = new TopToBottom(expression, makeAbstractSyntaxTree(children.get(i)));
                 return expression;
             }    
-            
-        case SIDEBYSIDE: // sideBySide ::= bottomOverlay ('|' bottomOverlay)*;
-            {
-                final List<ParseTree<ExpressionGrammar>> children = parseTree.children();
-                Expression expression = makeAbstractSyntaxTree(children.get(0));
-                for(int i = 1; i < children.size(); ++i)
-                    expression = new SideBySide(expression, makeAbstractSyntaxTree(children.get(i)));
-                return expression;
-            }    
-            
-        case BOTTOMOVERLAY: // bottomOverlay ::= topOverlay ('_' topOverlay)*;
-            {
-                final List<ParseTree<ExpressionGrammar>> children = parseTree.children();
-                Expression expression = makeAbstractSyntaxTree(children.get(0));
-                for(int i = 1; i < children.size(); ++i)
-                    expression = new BottomOverlay(expression, makeAbstractSyntaxTree(children.get(i)));
-                return expression;
-            }    
-            
-        case TOPOVERLAY: // topOverlay ::= resize ('^' resize)*;
-            {
-                final List<ParseTree<ExpressionGrammar>> children = parseTree.children();
-                Expression expression = makeAbstractSyntaxTree(children.get(0));
-                for(int i = 1; i < children.size(); ++i)
-                    expression = new TopOverlay(expression, makeAbstractSyntaxTree(children.get(i)));
-                return expression;
-            }
-        
-        case RESIZE: // resize ::= primitive ('@' number 'x' number)*;
-            {
-                final List<ParseTree<ExpressionGrammar>> children = parseTree.children();
-                Expression expression = makeAbstractSyntaxTree(children.get(0));
-                for(int i = 1; i < children.size(); i += 2)
-                    expression = new Resize(expression,
-                            Integer.parseInt(children.get(i).text()),
-                            Integer.parseInt(children.get(i + 1).text()));
-                return expression;
-            }
-            
-        case PRIMITIVE: // primitive ::= filename | label | '(' expression ')';
-            {
-                return makeAbstractSyntaxTree(parseTree.children().get(0));
-            }
-            
-        case LABEL: // label ::= '"' [^"]* '"';
-            {
-                String labelWithQuotes = parseTree.text();
-                return new Label(labelWithQuotes.substring(1, labelWithQuotes.length() - 1));
-            }
-            
-        case FILENAME: // filename ::= [A-Za-z0-9./][A-Za-z0-9./_-]*;
-            {
-                return new Filename(parseTree.text());
-            }
         
         default:
             throw new AssertionError("should never get here");

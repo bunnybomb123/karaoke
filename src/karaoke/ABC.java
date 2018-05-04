@@ -42,6 +42,7 @@ public class ABC {
      * creates a new ABC file
      * 
      * @param parts Musical representation of the ABC file, split up into voice parts
+     *              "" is a key reserved for music without a voice part
      * @param other other fields in the ABC file header. must include
      *      a 'T' field (for title) and a 'K' field (for key signature)
      */
@@ -75,7 +76,7 @@ public class ABC {
     }
     
     /**
-     * @param part name of voice part, or "" for music without voice part
+     * @param part name of voice part, or "" for music without a voice part
      * @return the Music associated with the specified voice part
      */
     public Music getVoicePart(String part) {

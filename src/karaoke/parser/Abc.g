@@ -8,27 +8,29 @@ abc ::= ::= abc-header abc-body
 
 ; ignore space-or-tab between terminals in the header
 
-abc-header ::= field-number comment* field-title other-fields* field-key
-
-field-number ::= "X:" digit+ end-of-line
-field-title ::= "T:" text end-of-line
-other-fields ::= field-composer | field-default-length | field-meter | field-tempo | field-voice | comment
-field-composer ::= "C:" text end-of-line
-field-default-length ::= "L:" note-length-strict end-of-line
-field-meter ::= "M:" meter end-of-line
-field-tempo ::= "Q:" tempo end-of-line
-field-voice ::= "V:" text end-of-line
-field-key ::= "K:" key end-of-line
-
-key ::= keynote mode-minor?
-keynote ::= basenote key-accidental?
-key-accidental ::= "#" | "b"
-mode-minor ::= "m"
-
-meter ::= "C" | "C|" | meter-fraction
-meter-fraction ::= digit+ "/" digit+
-
-tempo ::= meter-fraction "=" digit+
+@skip space-or-tab {
+	abc-header ::= field-number comment* field-title other-fields* field-key
+	
+	field-number ::= "X:" digit+ end-of-line
+	field-title ::= "T:" text end-of-line
+	other-fields ::= field-composer | field-default-length | field-meter | field-tempo | field-voice | comment
+	field-composer ::= "C:" text end-of-line
+	field-default-length ::= "L:" note-length-strict end-of-line
+	field-meter ::= "M:" meter end-of-line
+	field-tempo ::= "Q:" tempo end-of-line
+	field-voice ::= "V:" text end-of-line
+	field-key ::= "K:" key end-of-line
+	
+	key ::= keynote mode-minor?
+	keynote ::= basenote key-accidental?
+	key-accidental ::= "#" | "b"
+	mode-minor ::= "m"
+	
+	meter ::= "C" | "C|" | meter-fraction
+	meter-fraction ::= digit+ "/" digit+
+	
+	tempo ::= meter-fraction "=" digit+
+}
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Body
@@ -72,22 +74,19 @@ nth-repeat ::= "[1" | "[2"
 middle-of-body-field ::= field-voice
 
 lyric ::= "w:" lyrical-element*
-lyrical-element ::= " "+ | "-" | "_" | "*" | "~" | "\-" | "|" | lyric-text
+lyrical-element ::= " "+ | "-" | "_" | "*" | "|" | lyric-text
 ; lyric-text should be defined appropriately
-lyric-text ::= word
+lyric-text ::= [^ -_*|]+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; General
 
 comment ::= space-or-tab* "%" comment-text newline
 ; comment-text should be defined appropriately
-comment-text ::= text
+comment-text ::= .*
 
 end-of-line ::= comment | newline
 
-text = .+
-
-word ::= [^\s-_*~\-|]+
 digit ::= [0-9]
 newline ::= "\n" | "\r" "\n"?
 space-or-tab ::= " " | "\t"

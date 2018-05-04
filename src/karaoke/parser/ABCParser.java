@@ -1,5 +1,8 @@
 package karaoke.parser;
 
+import java.util.Map;
+import karaoke.sound.Concat;
+import karaoke.sound.Music;
 import java.awt.Label;
 import java.beans.Expression;
 import java.io.File;
@@ -12,7 +15,10 @@ import edu.mit.eecs.parserlib.Parser;
 import edu.mit.eecs.parserlib.UnableToParseException;
 //import edu.mit.eecs.parserlib.Visualizer;
 import karaoke.ABC;
-
+import karaoke.sound.Lyric;
+import karaoke.sound.Rest;
+import karaoke.sound.Together;
+import karaoke.sound.Measure;
 public class ABCParser {
     /**
      * Main method. Parses and then reprints an example expression.
@@ -81,6 +87,12 @@ public class ABCParser {
         return abc;
     }
     
+    
+    private static Map<String, Music> makeAbstractSyntaxTree(final ParseTree<ABCGrammar> parseTree) {
+        
+    }
+    
+    
     /**
      * Convert a parse tree into an abstract syntax tree.
      * 
@@ -93,7 +105,12 @@ public class ABCParser {
         
         case ABC: // expression ::= topToBottom;
             {
-                return makeAbstractSyntaxTree(parseTree.children().get(0));
+                // First element is going to be a header, second element is going to be the body
+                ABC finalABC = makeAbstractSyntaxTree(parseTree.children().get(0));
+                Map<String,Music> finalMusic = makeAbstractSyntaxTree(parseTree.children().get(1));
+                
+                
+                
             }
         
         case ABC_HEADER: // topToBottom ::= sideBySide (topToBottomOperator sideBySide)*;
@@ -107,7 +124,7 @@ public class ABCParser {
             }    
         
         case FIELD_NUMBER: {
-            System.out.println("hey");
+            
 
         }
         case FIELD_TITLE: {

@@ -1,5 +1,6 @@
 package karaoke;
 
+import java.util.Map;
 import java.util.function.Consumer;
 
 import karaoke.sound.Lyric;
@@ -30,20 +31,29 @@ public class ABC {
     private final Music music;
     private final String title;
     private final String keySignature;
-//    private final Meter meter;
-//    private final double beatsPerMinute;
+    private final Meter meter;
+    private final double beatsPerMinute;
+    private final double defaultNote;
+    private final String composer;
     
     /**
      * creates a new ABC file
      * 
      * @param music Musical representation of the ABC file
-     * @param title title of this abc piece
-     * @param keySignature keySignature of the music
+     * @param other other fields in the ABC file header. must include
+     *      a 'T' field (for title) and a 'K' field (for key signature)
      */
-    public ABC(Music music, String title, String keySignature) {
+    public ABC(Music music, Map<Character, Object> other) {
         this.music = music;
-        this.title = title;
-        this.keySignature = keySignature;
+        this.title = (String) other.get('T');
+        this.keySignature = (String) other.get('K');
+        this.meter = (Meter) other.getOrDefault('M', new Meter(4, 4));
+        this.defaultNote = (double) other.getOrDefault('L', 
+                this.meter.toDecimal() < .75 ? 1./16 : 1./8);
+        
+        // must fix; look at spec. if Q is specified it depends on its own L
+        this.beatsPerMinute = (int) other.getOrDefault('Q', 100);
+        this.composer = (String) other.getOrDefault('C', "Unknown");
     }
     
     /**
@@ -56,25 +66,40 @@ public class ABC {
         music.play(player, 0, lyricConsumer);
     }
     
-    /**
-     * @return this piece's music object
-     */
+    /** @return the Music associated with this abc piece */
     public Music getMusic() {
         return music;
     }
 
-    /**
-     * @return this piece's composer
-     */
+    /** @return this piece's composer */
     public String getTitle() {
         return title;
     }
 
-    /**
-     * @return this piece's key signature
-     */
+    /** @return this piece's key signature */
     public String getKeySignature() {
         return keySignature;
+    }
+
+    /** @return this piece's meter */
+    public Meter getMeter() {
+        return meter;
+    }
+
+    /** @return the # of beats per minute in this piece, based on the
+     * default note */
+    public double getBeatsPerMinute() {
+        return beatsPerMinute;
+    }
+
+    /** @return this piece's default note length */
+    public double getDefaultNote() {
+        return defaultNote;
+    }
+
+    /** @return this piece's composer */
+    public String getComposer() {
+        return composer;
     }
     
     @Override

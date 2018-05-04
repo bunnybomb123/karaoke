@@ -10,8 +10,9 @@ public interface Music {
     /*
      * Datatype Definition
      * Music = Rest(duration: double)
-     *          + Note(duration: double, pitch: Pitch, instrument: Instrument, lyric: Optional<String>)
+     *          + Note(duration: double, pitch: Pitch, instrument: Instrument, lyric: Optional<Lyric>)
      *          + Concat(first: Music, second: Music)
+     *          + Together(first: Music, second: Music)
      */
 
     /**

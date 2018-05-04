@@ -6,6 +6,7 @@ import java.util.function.Consumer;
 import karaoke.sound.Lyric;
 import karaoke.sound.Music;
 import karaoke.sound.SequencePlayer;
+import karaoke.sound.Together;
 
 /**
  * An immutable representation of an abc file.
@@ -28,6 +29,7 @@ public class ABC {
      *  This object is immutable, and there is no beneficent mutation
      */
     
+    private final Map<String, Music> parts;
     private final Music music;
     private final String title;
     private final String keySignature;
@@ -39,12 +41,13 @@ public class ABC {
     /**
      * creates a new ABC file
      * 
-     * @param music Musical representation of the ABC file
+     * @param parts Musical representation of the ABC file, split up into voice parts
      * @param other other fields in the ABC file header. must include
      *      a 'T' field (for title) and a 'K' field (for key signature)
      */
-    public ABC(Music music, Map<Character, Object> other) {
-        this.music = music;
+    public ABC(Map<String, Music> parts, Map<Character, Object> other) {
+        this.parts = parts;
+        this.music = parts.values().stream().reduce((part1, part2) -> new Together(part1, part2)).get();
         this.title = (String) other.get('T');
         this.keySignature = (String) other.get('K');
         this.meter = (Meter) other.getOrDefault('M', new Meter(4, 4));
@@ -69,6 +72,14 @@ public class ABC {
     /** @return the Music associated with this abc piece */
     public Music getMusic() {
         return music;
+    }
+    
+    /**
+     * @param part name of voice part, or "" for music without voice part
+     * @return the Music associated with the specified voice part
+     */
+    public Music getVoicePart(String part) {
+        return parts.get(part);
     }
 
     /** @return this piece's composer */

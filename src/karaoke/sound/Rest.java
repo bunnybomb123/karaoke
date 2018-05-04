@@ -7,6 +7,21 @@ import java.util.function.Consumer;
  */
 public class Rest implements Music {
 
+    /* Abstraction function:
+     *  AF(duration, pitch, instrument) = 
+     *      an immutable note that has a pitch, a duration (in beats),
+     *      and
+     * 
+     * Rep invariant:
+     * 
+     * 
+     * Safety from rep exposure:
+     * 
+     * Thread safety argument:
+     *  This object is immutable, and there is no beneficent mutation
+     * 
+     */
+    
     private final double duration;
 
     private void checkRep() {

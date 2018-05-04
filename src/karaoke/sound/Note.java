@@ -8,8 +8,7 @@ import java.util.function.Consumer;
  */
 public class Note implements Music {
     
-    /*
-     * Abstraction function:
+    /* Abstraction function:
      *  AF(duration, pitch, instrument) = 
      *      an immutable note that has a pitch, a duration (in beats),
      *      and
@@ -20,8 +19,8 @@ public class Note implements Music {
      * Safety from rep exposure:
      * 
      * Thread safety argument:
-     *  This object is immutable, and there is no beneficent mutation
-     * 
+     *  This object and its field are all immutable, and there is no 
+     *  beneficent mutation
      */
 
     private final double duration;

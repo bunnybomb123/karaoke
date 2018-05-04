@@ -43,17 +43,8 @@ public class ABC {
         this.music = music;
         this.title = title;
         this.keySignature = keySignature;
-        fillInTheRest();
     }
     
-    private void fillInTheRest() {
-//        if (meter =! null )
-//        if (beatsPerMinute != null)
-//        this.beatsPerMinute = beatsPerMinute;
-//        this.keySignature = keySignature;
-//        this.meter = meter;
-    }
-
     /**
      * Plays the music that the ABC file represents
      * 
@@ -74,7 +65,7 @@ public class ABC {
     /**
      * @return this piece's composer
      */
-    public String getComposer() {
+    public String getTitle() {
         return title;
     }
 
@@ -83,6 +74,30 @@ public class ABC {
      */
     public String getKeySignature() {
         return keySignature;
+    }
+    
+    @Override
+    public String toString() {
+        return "title: " + title + "key: " + keySignature 
+                + "music: " + music.toString();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+        return that instanceof ABC && sameValue((ABC) that);
+    }
+
+    // returns true if that ABC object has same value as this;
+    // for use in equals()
+    private boolean sameValue(ABC that) {
+        return music.equals(that.getMusic()) 
+                && title.equals(that.getTitle())
+                && keySignature.equals(that.getKeySignature());
+    }
+
+    @Override
+    public int hashCode() {
+        return music.hashCode() + title.hashCode() + keySignature.hashCode();
     }
     
 }

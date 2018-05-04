@@ -2,6 +2,7 @@ package karaoke;
 
 import java.util.function.Consumer;
 
+import karaoke.sound.Lyric;
 import karaoke.sound.Music;
 import karaoke.sound.SequencePlayer;
 
@@ -51,7 +52,7 @@ public class ABC {
      * @param player player to play on
      * @param lyricConsumer function called when new lyrics are played
      */
-    public void play(SequencePlayer player, Consumer<String> lyricConsumer) {
+    public void play(SequencePlayer player, Consumer<Lyric> lyricConsumer) {
         music.play(player, 0, lyricConsumer);
     }
     

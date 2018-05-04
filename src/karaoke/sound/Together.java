@@ -19,10 +19,10 @@ public class Together implements Music {
 
     public double duration() {
         // TODO Auto-generated method stub
-        return Math.max(m1.duration(), m2.duration());
+        return m1.duration();
     }
 
-    public void play(SequencePlayer player, double atBeat, Consumer<String> lyricConsumer) {
+    public void play(SequencePlayer player, double atBeat, Consumer<Lyric> lyricConsumer) {
         // TODO Auto-generated method stub
 
     }

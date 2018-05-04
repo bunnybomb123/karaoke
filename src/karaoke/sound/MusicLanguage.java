@@ -103,7 +103,7 @@ public class MusicLanguage {
      * @param lyric optional lyric to play
      * @return pitch played by instrument for duration beats, with optional lyric
      */
-    public static Music note(double duration, Pitch pitch, Instrument instrument, Optional<String> lyric) {
+    public static Music note(double duration, Pitch pitch, Instrument instrument, Optional<Lyric> lyric) {
         return new Note(duration, pitch, instrument, lyric);
     }
 

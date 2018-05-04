@@ -23,7 +23,7 @@ public class Measure implements Music {
     }
 
     @Override
-    public void play(SequencePlayer player, double atBeat, Consumer<String> lyricConsumer) {
+    public void play(SequencePlayer player, double atBeat, Consumer<Lyric> lyricConsumer) {
         music.play(player, atBeat, lyricConsumer);
     }
     

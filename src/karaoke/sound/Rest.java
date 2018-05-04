@@ -49,7 +49,7 @@ public class Rest implements Music {
      * Play this rest.
      */
     @Override
-    public void play(SequencePlayer player, double atBeat, Consumer<String> lyricConsumer) {
+    public void play(SequencePlayer player, double atBeat, Consumer<Lyric> lyricConsumer) {
         return;
     }
 

@@ -52,7 +52,7 @@ public class Concat implements Music {
      * Play this concatenation.
      */
     @Override
-    public void play(SequencePlayer player, double atBeat, Consumer<String> lyricConsumer) {
+    public void play(SequencePlayer player, double atBeat, Consumer<Lyric> lyricConsumer) {
         first.play(player, atBeat, lyricConsumer);
         second.play(player, atBeat + first.duration(), lyricConsumer);
     }

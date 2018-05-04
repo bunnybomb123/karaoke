@@ -26,7 +26,7 @@ public class Note implements Music {
     private final double duration;
     private final Pitch pitch;
     private final Instrument instrument;
-    private final Optional<String> lyric;
+    private final Optional<Lyric> lyric;
 
     private void checkRep() {
         assert duration >= 0;
@@ -41,7 +41,7 @@ public class Note implements Music {
      * @param instrument instrument to use
      * @param lyric optional lyric to play
      */
-    public Note(double duration, Pitch pitch, Instrument instrument, Optional<String> lyric) {
+    public Note(double duration, Pitch pitch, Instrument instrument, Optional<Lyric> lyric) {
         this.duration = duration;
         this.pitch = pitch;
         this.instrument = instrument;
@@ -75,7 +75,7 @@ public class Note implements Music {
      * Play this note.
      */
     @Override
-    public void play(SequencePlayer player, double atBeat, Consumer<String> lyricConsumer) {
+    public void play(SequencePlayer player, double atBeat, Consumer<Lyric> lyricConsumer) {
         player.addNote(instrument, pitch, atBeat, duration);
         if (lyric.isPresent())
             player.addEvent(atBeat, beat -> lyricConsumer.accept(lyric.get()));

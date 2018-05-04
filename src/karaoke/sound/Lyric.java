@@ -8,11 +8,9 @@ import java.util.Optional;
 public class Lyric {
 
     /**
-     * @return a Lyric representing the absence of a lyric during an instrumental
+     * Lyric constant representing the absence of a lyric during an instrumental.
      */
-    public static Lyric instrumental() {
-        return new Lyric();
-    }
+    public static final Lyric INSTRUMENTAL = new Lyric();
     
     private final Optional<String> syllable;
     private final String line;

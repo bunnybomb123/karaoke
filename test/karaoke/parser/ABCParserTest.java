@@ -14,9 +14,9 @@ import org.junit.Test;
 
 import edu.mit.eecs.parserlib.UnableToParseException;
 import karaoke.ABC;
+import karaoke.sound.Concat;
 import karaoke.sound.Instrument;
 import karaoke.sound.Music;
-import karaoke.sound.MusicLanguage;
 import karaoke.sound.Note;
 import karaoke.sound.Pitch;
 
@@ -43,16 +43,23 @@ public class ABCParserTest {
     
     @Test
     public void testSample1() throws FileNotFoundException, UnableToParseException {
-        String abcFile = new Scanner(new File("sample-abc/sample1.abc")).useDelimiter("\\Z").next();
+        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/sample1.abc")).useDelimiter("\\Z").next();
         ABC actual = ABCParser.parse(abcFile);
 
-        Music m1 = 
-        Music m2 = new Note(1, new Pitch('C'), Instrument.PIANO, Optional.empty());
-        Music music = MusicLanguage.concat(m1, m2);
+        Music m1 = new Note(2, new Pitch('C').transpose(-Pitch.OCTAVE), Instrument.PIANO, Optional.empty());
+        Music m2 = new Note(2, new Pitch('C'), Instrument.PIANO, Optional.empty());
+        Music m3 = new Note(1, new Pitch('C').transpose(Pitch.OCTAVE), Instrument.PIANO, Optional.empty());
+        Music m4 = new Note(1, new Pitch('C').transpose(2*Pitch.OCTAVE), Instrument.PIANO, Optional.empty());
+        Music music = new Concat(m1, new Concat(m2, new Concat(m3, m4)));
+        
+        final Map<String, Music> parts = new HashMap<>();
+        parts.put("", music);
+        
         final Map<Character, Object> fields = new HashMap<>();
         fields.put('T', "sample 1");
         fields.put('K', "C");
-        ABC expected = new ABC(music, fields);
+        
+        ABC expected = new ABC(parts, fields);
         assertEquals(expected, actual);
     }
 }

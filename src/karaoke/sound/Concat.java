@@ -1,5 +1,6 @@
 package karaoke.sound;
 
+import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -16,13 +17,13 @@ public class Concat implements Music {
     }
 
     /**
-     * Make a Music sequence that plays m1 followed by m2.
-     * @param m1 music to play first
-     * @param m2 music to play second
+     * Make a Music sequence that plays first followed by second.
+     * @param first music to play first
+     * @param second music to play second
      */
-    public Concat(Music m1, Music m2) {
-        this.first = m1;
-        this.second = m2;
+    public Concat(Music first, Music second) {
+        this.first = first;
+        this.second = second;
         checkRep();
     }
 
@@ -38,6 +39,11 @@ public class Concat implements Music {
      */
     public Music second() {
         return second;
+    }
+    
+    @Override
+    public <R> R accept(Visitor<R> visitor) {
+        return visitor.on(this);
     }
 
     /**
@@ -59,8 +65,7 @@ public class Concat implements Music {
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        return first.hashCode() + prime * second.hashCode();
+        return Objects.hash(first, second);
     }
 
     @Override

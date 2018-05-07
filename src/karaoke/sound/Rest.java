@@ -1,5 +1,6 @@
 package karaoke.sound;
 
+import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -36,6 +37,11 @@ public class Rest implements Music {
         this.duration = duration;
         checkRep();
     }
+    
+    @Override
+    public <R> R accept(Visitor<R> visitor) {
+        return visitor.on(this);
+    }
 
     /**
      * @return duration of this rest
@@ -55,8 +61,7 @@ public class Rest implements Music {
 
     @Override
     public int hashCode() {
-        long durationBits = Double.doubleToLongBits(duration);
-        return (int) (durationBits ^ (durationBits >>> Integer.SIZE));
+        return Objects.hash(duration);
     }
 
     @Override
@@ -71,6 +76,6 @@ public class Rest implements Music {
 
     @Override
     public String toString() {
-        return "." + duration;
+        return "z" + duration;
     }
 }

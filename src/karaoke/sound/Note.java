@@ -1,5 +1,6 @@
 package karaoke.sound;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -32,6 +33,7 @@ public class Note implements Music {
         assert duration >= 0;
         assert pitch != null;
         assert instrument != null;
+        assert lyric != null;
     }
 
     /**
@@ -62,7 +64,19 @@ public class Note implements Music {
     public Instrument instrument() {
         return instrument;
     }
-
+    
+    /**
+     * @return lyric of this note
+     */
+    public Optional<Lyric> lyric() {
+        return lyric;
+    }
+    
+    @Override
+    public <R> R accept(Visitor<R> visitor) {
+        return visitor.on(this);
+    }
+    
     /**
      * @return duration of this note
      */
@@ -83,10 +97,7 @@ public class Note implements Music {
 
     @Override
     public int hashCode() {
-        long durationBits = Double.doubleToLongBits(duration);
-        return (int) (durationBits ^ (durationBits >>> Integer.SIZE))
-                + instrument.hashCode()
-                + pitch.hashCode();
+        return Objects.hash(duration, pitch, instrument, lyric);
     }
 
     @Override
@@ -98,7 +109,8 @@ public class Note implements Music {
         final Note other = (Note) obj;
         return duration == other.duration
                 && instrument.equals(other.instrument)
-                && pitch.equals(other.pitch);
+                && pitch.equals(other.pitch)
+                && lyric.equals(other.lyric);
     }
 
     @Override

@@ -39,14 +39,16 @@ public class SequencePlayerTest {
 
         SequencePlayer player = new MidiSequencePlayer(beatsPerMinute, ticksPerBeat);
         
-        // addNote(instr, pitch, startBeat, numBeats) schedules a note with pitch value 'pitch'
-        // played by 'instr' starting at 'startBeat' to be played for 'numBeats' beats.
+        // addNote(instr, pitch, startBeat, numBeats) schedules a note with 
+        // pitch value 'pitch' played by 'instr' starting at 'startBeat' 
+        // to be played for 'numBeats' beats.
         
         double startBeat = 0;
         
         for (int i = 0; i < pitches.length; i++) {
             final double numBeats = beats[i];
-            //System.out.println("Chord played at beat " + startBeat + " for " + numBeats + " beats.");
+            //System.out.println("Chord played at beat " + startBeat + 
+            // s" for " + numBeats + " beats.");
             
             int accidental = 0;
             boolean notePresent = false;

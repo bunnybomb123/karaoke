@@ -5,15 +5,10 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.concurrent.Executors;
 
-import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
-
-import karaoke.web.HeadersFilter;
-import karaoke.web.LogFilter;
 
 /**
  * HTTP web karaoke server.
@@ -54,23 +49,81 @@ public class WebServer {
         
         // handle concurrent requests with multiple threads
         server.setExecutor(Executors.newCachedThreadPool());
-        
-        LogFilter log = new LogFilter();
-        HeadersFilter headers = new HeadersFilter();
-        headers.add("Access-Control-Allow-Origin", "*");
-        headers.add("Content-Type", "text/html; charset=utf-8");
 
-        HttpContext look = server.createContext("/play/", this::handle);
-        look.getFilters().addAll(Arrays.asList(log, headers));
+        // register handlers
+//        server.createContext("/textStream", this::handleText);
+        server.createContext("/htmlStream", this::handleHtmlStream);
+        server.createContext("/htmlWaitReload", this::handleHtmlWaitReload);
+
+        // start the server
+        server.start();
+        System.out.println("server running");
     }
 
     // checks that rep invariant is maintained
     private void checkRep() {
         assert server != null;
-//        assert song != null;
+        assert song != null;
     }
 
-    private void handle(HttpExchange exchange) throws IOException {
+    /**
+     * This handler sends a stream of HTML to the web browser,
+     * pausing briefly between each line of output.
+     * Returns after the entire stream has been sent.
+     * 
+     * @param exchange request/reply object
+     * @throws IOException if network problem
+     */
+    private void handleHtmlStream(HttpExchange exchange) throws IOException {
+        final String path = exchange.getRequestURI().getPath();
+        System.err.println("received request " + path);
+    
+        final boolean autoscroll = true; //path.endsWith("/autoscroll");
+        
+        exchange.getResponseHeaders().add("Content-Type", "text/html; charset=utf-8");
+        exchange.sendResponseHeaders(SUCCESS_CODE, 0);
+
+        // get output stream to write to web browser
+        final boolean autoflushOnPrintln = true;
+        PrintWriter out = new PrintWriter(
+                              new OutputStreamWriter(
+                                  exchange.getResponseBody(), 
+                                  StandardCharsets.UTF_8), 
+                              autoflushOnPrintln);
+        
+        try {
+            final int enoughBytesToStartStreaming = 2048;
+            for (int i = 0; i < enoughBytesToStartStreaming; ++i) {
+                out.print(' ');
+            }
+            out.println(); // also flushes
+            
+            final int numberOfLinesToSend = 100;
+            final int millisecondsBetweenLines = 200;
+            for (int i = 0; i < numberOfLinesToSend; ++i) {
+                
+                // print a line of text
+                String lyric = ""; 
+                out.println(lyric + "<br>"); // also flushes
+                
+                if (autoscroll)
+                    out.println("<script>document.body.scrollIntoView(false)</script>");
+                
+                // wait a bit
+                try {
+                    Thread.sleep(millisecondsBetweenLines);
+                } catch (InterruptedException e) {
+                    return;
+                }
+            }
+            
+        } finally {
+            exchange.close();
+        }
+        System.err.println("done streaming request");
+    }
+
+    private void handleHtmlWaitReload(HttpExchange exchange) throws IOException {
         checkRep();
         
         final String path = exchange.getRequestURI().getPath();
@@ -153,16 +206,7 @@ class StreamingExample {
         final HttpServer server = HttpServer.create(new InetSocketAddress(serverPort), 0);
         
         // handle concurrent requests with multiple threads
-        server.setExecutor(Executors.newCachedThreadPool());
-
-        // register handlers
-        server.createContext("/textStream", StreamingExample::textStream);
-        server.createContext("/htmlStream", StreamingExample::htmlStream);
-        server.createContext("/htmlWaitReload", StreamingExample::htmlWaitReload);
-
-        // start the server
-        server.start();
-        System.out.println("server running, browse to one of these URLs:");
+        
         System.out.println("http://localhost:4567/textStream");
         System.out.println("http://localhost:4567/htmlStream");
         System.out.println("http://localhost:4567/htmlStream/autoscroll");
@@ -227,73 +271,7 @@ class StreamingExample {
         System.err.println("done streaming request");
     }
 
-    /**
-     * This handler sends a stream of HTML to the web browser,
-     * pausing briefly between each line of output.
-     * Returns after the entire stream has been sent.
-     * 
-     * @param exchange request/reply object
-     * @throws IOException if network problem
-     */
-    private static void htmlStream(HttpExchange exchange) throws IOException {
-        final String path = exchange.getRequestURI().getPath();
-        System.err.println("received request " + path);
     
-        final boolean autoscroll = path.endsWith("/autoscroll");
-        
-        // html response
-        exchange.getResponseHeaders().add("Content-Type", "text/html; charset=utf-8");
-        
-        // must call sendResponseHeaders() before calling getResponseBody()
-        final int successCode = 200;
-        final int lengthNotKnownYet = 0;
-        exchange.sendResponseHeaders(successCode, lengthNotKnownYet);
-
-        // get output stream to write to web browser
-        final boolean autoflushOnPrintln = true;
-        PrintWriter out = new PrintWriter(
-                              new OutputStreamWriter(
-                                  exchange.getResponseBody(), 
-                                  StandardCharsets.UTF_8), 
-                              autoflushOnPrintln);
-        
-        try {
-
-            // IMPORTANT: some web browsers don't start displaying a page until at least 2K bytes
-            // have been received.  So we'll send a line containing 2K spaces first.
-            final int enoughBytesToStartStreaming = 2048;
-            for (int i = 0; i < enoughBytesToStartStreaming; ++i) {
-                out.print(' ');
-            }
-            out.println(); // also flushes
-            
-            final int numberOfLinesToSend = 100;
-            final int millisecondsBetweenLines = 200;
-            for (int i = 0; i < numberOfLinesToSend; ++i) {
-                
-                // print a line of text
-                out.println(System.currentTimeMillis() + "<br>"); // also flushes
-                
-                if (autoscroll) {
-                    // send some Javascript to browser that makes it scroll down to the bottom of the page,
-                    // so that the last line sent is always in view
-                    out.println("<script>document.body.scrollIntoView(false)</script>");
-                }
-                
-                // wait a bit
-                try {
-                    Thread.sleep(millisecondsBetweenLines);
-                } catch (InterruptedException e) {
-                    return;
-                }
-            }
-            
-        } finally {
-            exchange.close();
-        }
-        System.err.println("done streaming request");
-    }
-
 
     /**
      * This handler waits for an event to occur in the server

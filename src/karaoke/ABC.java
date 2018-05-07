@@ -43,21 +43,27 @@ public class ABC {
      * 
      * @param parts Musical representation of the ABC file, split up into voice parts
      *              "" is a key reserved for music without a voice part
-     * @param other other fields in the ABC file header. must include
+     * @param fields other fields in the ABC file header. must include
      *      a 'T' field (for title) and a 'K' field (for key signature)
      */
-    public ABC(Map<String, Music> parts, Map<Character, Object> other) {
+    public ABC(Map<String, Music> parts, Map<Character, Object> fields) {
         this.parts = parts;
         this.music = parts.values().stream().reduce((part1, part2) -> new Together(part1, part2)).get();
-        this.title = (String) other.get('T');
-        this.keySignature = (String) other.get('K');
-        this.meter = (Meter) other.getOrDefault('M', new Meter(4, 4));
-        this.defaultNote = (double) other.getOrDefault('L', 
-                this.meter.toDecimal() < .75 ? 1./16 : 1./8);
+        this.title = (String) fields.get('T');
+        this.keySignature = (String) fields.get('K');
+        
+        final Meter defaultMeter = new Meter(4, 4);
+        this.meter = (Meter) fields.getOrDefault('M', defaultMeter);
+        
+        final double baseline = .75;
+        final double defaultNote1 = 1./16;
+        final double defaultNote2 = 1./8;
+        this.defaultNote = (double) fields.getOrDefault('L', 
+                this.meter.toDecimal() < baseline ? defaultNote1 : defaultNote2);
         
         // must fix; look at spec. if Q is specified it depends on its own L
-        this.beatsPerMinute = (int) other.getOrDefault('Q', 100);
-        this.composer = (String) other.getOrDefault('C', "Unknown");
+        this.beatsPerMinute = (int) fields.getOrDefault('Q', 100);
+        this.composer = (String) fields.getOrDefault('C', "Unknown");
     }
     
     /**
@@ -130,12 +136,19 @@ public class ABC {
     private boolean sameValue(ABC that) {
         return music.equals(that.getMusic()) 
                 && title.equals(that.getTitle())
-                && keySignature.equals(that.getKeySignature());
+                && keySignature.equals(that.getKeySignature())
+                && meter.equals(that.getMeter())
+                && beatsPerMinute == beatsPerMinute
+                && defaultNote == defaultNote
+                && composer.equals(that.getComposer())
+                && parts.equals(that.parts);
     }
 
     @Override
     public int hashCode() {
-        return music.hashCode() + title.hashCode() + keySignature.hashCode();
+        return (int) (music.hashCode() + title.hashCode() + keySignature.hashCode()
+        + meter.hashCode() + beatsPerMinute + defaultNote + composer.hashCode())
+        + parts.hashCode();
     }
     
 }

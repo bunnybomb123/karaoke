@@ -27,6 +27,7 @@ public class Main {
         final int port;
         final String abcFileContents;
         final ABC song;
+
         
         try {
             port = Integer.parseInt(arguments.remove());
@@ -34,23 +35,25 @@ public class Main {
             throw new IllegalArgumentException("missing or invalid PORT", e);
         }
         
-        try (Scanner scanner = new Scanner(new File(arguments.remove()))) {
-            abcFileContents = scanner.useDelimiter("\\Z").next();
-        } catch (FileNotFoundException e) {
-            throw new IllegalArgumentException("file not found", e);
-        }
-        
         try {
-            song = ABCParser.parse(abcFileContents);
-        } catch (UnableToParseException e) {
-            throw new RuntimeException("Unable to parse abc file", e);
-        }
-        
-        try {
-            new WebServer(song, port).start();
+            new WebServer("hi", port).start();
         } catch (IOException e) {
             throw new RuntimeException("Unable start webserver", e);
         }
+        return;
+//        
+//        try (Scanner scanner = new Scanner(new File(arguments.remove()))) {
+//            abcFileContents = scanner.useDelimiter("\\Z").next();
+//        } catch (FileNotFoundException e) {
+//            throw new IllegalArgumentException("file not found", e);
+//        }
+//        
+//        try {
+//            song = ABCParser.parse(abcFileContents);
+//        } catch (UnableToParseException e) {
+//            throw new RuntimeException("Unable to parse abc file", e);
+//        }
+//        
         
     }
 }

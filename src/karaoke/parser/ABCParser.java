@@ -20,8 +20,20 @@ import karaoke.ABC;
 import karaoke.sound.Lyric;
 import karaoke.sound.Rest;
 import karaoke.sound.Together;
-import karaoke.sound.Measure;
+import org.apache.commons.io.FileUtils;
 public class ABCParser {
+    
+    /*
+     * Abstraction Function:
+     * AF() = a function that maps the contents of an abc file into an ABC object. 
+     * Rep Invariant:
+     * true
+     * Safety from Rep Exposure:
+     * There are no fields, so nothing can be mutated.
+     * Thread Safety: 
+     * parse is a static method, which is threadsafe.
+     */
+    
     /**
      * Main method. Parses and then reprints an example expression.
      * 
@@ -52,7 +64,7 @@ public class ABCParser {
     private static Parser<ABCGrammar> parser = makeParser();
     
     /**
-     * Compile the grammar into a parser.
+     * Compile the grammar into a parser. 
      * 
      * @return parser for the grammar
      * @throws RuntimeException if grammar file can't be read or has syntax errors
@@ -74,16 +86,23 @@ public class ABCParser {
     }
 
     /**
-     * Parse a string into an expression.
-     * @param string string to parse
-     * @return Expression parsed from the string
-     * @throws UnableToParseException if the string doesn't match the Expression grammar
+     * Parse the contents of an abc formatted string, and create an ABC object from these contents.
+     * 
+     * @param string string in abc format which will have its contents parsed
+     * @return ABC the object representing the parsed abc string
+     * @throws UnableToParseException exception raised if the parser can't parse the given string
      */
     public static ABC parse(final String string) throws UnableToParseException {
-        // parse the example into a parse tree
+ 
+        // Create a parsetree from the string
         final ParseTree<ABCGrammar> parseTree = parser.parse(string);
+        
+        // Get the header and body of the parseTree
         ParseTree<ABCGrammar> abcHeaderTree = parseTree.children().get(0);
         ParseTree<ABCGrammar> abcBodyTree = parseTree.children().get(1);
+        assert abcHeaderTree.name().equals(ABCGrammar.ABC_HEADER);
+        assert abcBodyTree.name().equals(ABCGrammar.ABC_BODY);
+
 
         // display the parse tree in various ways, for debugging only
         // System.out.println("parse tree " + parseTree);
@@ -100,10 +119,13 @@ public class ABCParser {
         return abc;
     }
     
+    
+    
     /**
+     * Creates multiple AST representations for each voice present in the parsetree representation of the body portion of an abc file
      * 
-     * @param parseTree
-     * @return
+     * @param parseTree parsetree representation of an abc file
+     * @return map which maps voices, represented by strings, to their Music AST representations
      */
     private static Map<String, Music> makeAbstractSyntaxTree(final ParseTree<ABCGrammar> parseTree) {
         switch (parseTree.name()) {
@@ -115,10 +137,10 @@ public class ABCParser {
     
     
     /**
-     * Convert a parse tree into an abstract syntax tree.
+     * Extracts the information stored in a parsetree representation of the header of an abc file
      * 
-     * @param parseTree constructed according to the grammar in Exression.g
-     * @return abstract syntax tree corresponding to parseTree
+     * @param parseTree constructed according to the grammar in Abc.g
+     * @param currentHeaderInfo map containing information from the fields that have already been extracted from this abc file's header
      */
     private static void getHeaderInfo(final ParseTree<ABCGrammar> parseTree, Map<Character, Object> currentHeaderInfo) {
 
@@ -155,6 +177,7 @@ public class ABCParser {
         }
         case FIELD_METER: {
             ParseTree<ABCGrammar> meter = parseTree.children().get(0);
+            if (meter.name().equals(other))
             Meter meter = new Meter();
             currentHeaderInfo.put('M', parseTree.children().get(0).text());
         }

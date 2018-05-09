@@ -21,6 +21,7 @@ public class ABC {
      *      
      * Rep invariant:
      *  all fields not null
+     *  parts contains at least 1 key
      * 
      * Safety from rep exposure:
      *  all fields private, final, and of immutable data types.

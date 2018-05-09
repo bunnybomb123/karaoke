@@ -122,7 +122,8 @@ public class ABCParser {
     
     
     /**
-     * Creates multiple AST representations for each voice present in the parsetree representation of the body portion of an abc file
+     * For each voice part present in the abc file's ParseTree, creates an AST representation of the music associated with
+     * that voice part. 
      * 
      * @param parseTree parsetree representation of an abc file
      * @return map which maps voices, represented by strings, to their Music AST representations
@@ -137,7 +138,7 @@ public class ABCParser {
     
     
     /**
-     * Extracts the information stored in a parsetree representation of the header of an abc file
+     * Extracts the information stored in a ParseTree representation of the header of an abc file
      * 
      * @param parseTree constructed according to the grammar in Abc.g
      * @param currentHeaderInfo map containing information from the fields that have already been extracted from this abc file's header

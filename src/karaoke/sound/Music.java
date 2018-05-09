@@ -64,6 +64,6 @@ public interface Music {
      * @param atBeat when to play
      * @param lyricConsumer function called when new lyrics are played
      */
-    void load(SequencePlayer player, double atBeat, Consumer<Lyric> lyricConsumer);
+    void play(SequencePlayer player, double atBeat, Consumer<Lyric> lyricConsumer);
 
 }

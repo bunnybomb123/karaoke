@@ -91,7 +91,7 @@ public class Note implements Music {
      * Play this note.
      */
     @Override
-    public void load(SequencePlayer player, double atBeat, Consumer<Lyric> lyricConsumer) {
+    public void play(SequencePlayer player, double atBeat, Consumer<Lyric> lyricConsumer) {
         player.addNote(instrument, pitch, atBeat, duration);
         if (lyric.isPresent())
             player.addEvent(atBeat, beat -> lyricConsumer.accept(lyric.get()));

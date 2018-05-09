@@ -14,10 +14,10 @@ import karaoke.sound.Together;
 public class ABC {
     
     /* Abstraction function
-     *  AF(music, composer, keySignature, meter, beatsPerMinute) =
-     *      an ABC file representing the Music music, with composer composer,
-     *      key signature keySignature, meter meter, and beats per minute
-     *      beatsPerMinute.
+     *  AF(parts, music, title, keySignature, meter, beatsPerMinute, defaultNote, composer) =
+     *      an ABC file representing the Music music, with each voice mapped to a part by parts,
+     *      with key signature keySignature, meter meter, beats per minute beatsPerMinute,
+     *      default note length defaultNote, and composer composer.
      *      
      * Rep invariant:
      *  all fields not null

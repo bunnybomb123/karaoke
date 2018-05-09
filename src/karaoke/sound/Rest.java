@@ -15,7 +15,7 @@ public class Rest implements Music {
      *  duration >= 0
      * 
      * Safety from rep exposure:
-     *  all fields are final and immutable
+     *  all fields are private, final, and immutable
      * 
      * Thread safety argument:
      *  This object is immutable, and there is no beneficent mutation

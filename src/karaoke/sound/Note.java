@@ -19,7 +19,7 @@ public class Note implements Music {
      *  all fields are not null
      * 
      * Safety from rep exposure:
-     *  all fields are final and immutable
+     *  all fields are private, final, and immutable
      *  
      * Thread safety argument:
      *  This object and its field are all immutable, and there is no 

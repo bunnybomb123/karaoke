@@ -43,8 +43,8 @@ public class WebServer {
     //
     // Safety from rep exposure:
     //  No fields are passed in as parameters or returned by any methods
-    //  All fields except currentSong are final
-    //  currentSong is an immutable object
+    //  All fields except currentSong are private and final
+    //  currentSong is private and an immutable object
     //
     // Thread safety argument:
     //  Each exchange:HttpExchange is confined to a single thread

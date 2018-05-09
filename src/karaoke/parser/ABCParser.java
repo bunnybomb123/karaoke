@@ -23,6 +23,17 @@ import karaoke.sound.Together;
 import org.apache.commons.io.FileUtils;
 public class ABCParser {
     
+    /*
+     * Abstraction Function:
+     * AF() = a function that maps the contents of an abc file into an ABC object. 
+     * Rep Invariant:
+     * true
+     * Safety from Rep Exposure:
+     * There are no fields, so nothing can be mutated.
+     * Thread Safety: 
+     * parse is a static method, which is threadsafe.
+     */
+    
     /**
      * Main method. Parses and then reprints an example expression.
      * 
@@ -186,7 +197,7 @@ public class ABCParser {
         }
         case FIELD_VOICE: {
             // Voice will be stored as a Set of String objects, each representing a different voice
-            
+            // If there is no set of voices already in the currentHeading, set it to be a new dictionary.
             currentHeaderInfo.put('C', parseTree.children().get(0).text());
         }
         default:

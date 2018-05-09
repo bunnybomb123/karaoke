@@ -170,7 +170,7 @@ public class MidiSequencePlayer implements SequencePlayer {
     
     @Override
     public void load(Music music, Consumer<Lyric> lyricConsumer) {
-        music.load(this, 0, lyricConsumer);
+        music.play(this, 0, lyricConsumer);
     }
 
     @Override

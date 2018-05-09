@@ -1,6 +1,8 @@
 package karaoke.parser;
 
+import karaoke.Meter;
 import java.util.Map;
+import java.util.HashMap;
 import karaoke.sound.Concat;
 import karaoke.sound.Music;
 import java.awt.Label;
@@ -18,8 +20,9 @@ import karaoke.ABC;
 import karaoke.sound.Lyric;
 import karaoke.sound.Rest;
 import karaoke.sound.Together;
-import karaoke.sound.Measure;
+import org.apache.commons.io.FileUtils;
 public class ABCParser {
+    
     /**
      * Main method. Parses and then reprints an example expression.
      * 
@@ -50,7 +53,7 @@ public class ABCParser {
     private static Parser<ABCGrammar> parser = makeParser();
     
     /**
-     * Compile the grammar into a parser.
+     * Compile the grammar into a parser. 
      * 
      * @return parser for the grammar
      * @throws RuntimeException if grammar file can't be read or has syntax errors
@@ -72,93 +75,108 @@ public class ABCParser {
     }
 
     /**
-     * Parse a string into an expression.
-     * @param string string to parse
-     * @return Expression parsed from the string
-     * @throws UnableToParseException if the string doesn't match the Expression grammar
+     * Parse the contents of an abc formatted string, and create an ABC object from these contents.
+     * 
+     * @param string string in abc format which will have its contents parsed
+     * @return ABC the object representing the parsed abc string
+     * @throws UnableToParseException exception raised if the parser can't parse the given string
      */
     public static ABC parse(final String string) throws UnableToParseException {
-        // parse the example into a parse tree
+ 
+        // Create a parsetree from the string
         final ParseTree<ABCGrammar> parseTree = parser.parse(string);
+        
+        // Get the header and body of the parseTree
+        ParseTree<ABCGrammar> abcHeaderTree = parseTree.children().get(0);
+        ParseTree<ABCGrammar> abcBodyTree = parseTree.children().get(1);
+        assert abcHeaderTree.name().equals(ABCGrammar.ABC_HEADER);
+        assert abcBodyTree.name().equals(ABCGrammar.ABC_BODY);
+
 
         // display the parse tree in various ways, for debugging only
         // System.out.println("parse tree " + parseTree);
         // Visualizer.showInBrowser(parseTree);
 
         // make an AST from the parse tree
-        final ABC abc = makeAbstractSyntaxTree(parseTree);
+        final Map<Character, Object> abcHeaderInfo = new HashMap<Character, Object>();
+        getHeaderInfo(abcHeaderTree,abcHeaderInfo);
+        
+        final Map<String, Music> abcMusicParts = makeAbstractSyntaxTree(abcBodyTree);
+        final ABC abc = new ABC(abcMusicParts, abcHeaderInfo);
         // System.out.println("AST " + abc);
         
         return abc;
     }
     
     
+    
+    /**
+     * For each voice part present in the abc file's ParseTree, creates an AST representation of the music associated with
+     * that voice part. 
+     * 
+     * @param parseTree parsetree representation of an abc file
+     * @return map which maps voices, represented by strings, to their Music AST representations
+     */
     private static Map<String, Music> makeAbstractSyntaxTree(final ParseTree<ABCGrammar> parseTree) {
+        switch (parseTree.name()) {
+            
         
+        
+        }
     }
     
     
     /**
-     * Convert a parse tree into an abstract syntax tree.
+     * Extracts the information stored in a ParseTree representation of the header of an abc file
      * 
-     * @param parseTree constructed according to the grammar in Exression.g
-     * @return abstract syntax tree corresponding to parseTree
+     * @param parseTree constructed according to the grammar in Abc.g
+     * @param currentHeaderInfo map containing information from the fields that have already been extracted from this abc file's header
      */
-    private static ABC makeAbstractSyntaxTree(final ParseTree<ABCGrammar> parseTree) {
+    private static void getHeaderInfo(final ParseTree<ABCGrammar> parseTree, Map<Character, Object> currentHeaderInfo) {
+
         switch (parseTree.name()) {
-         
         
-        case ABC: // expression ::= topToBottom;
+        case ABC_HEADER: // Go through all of the children, and call the method on those
             {
-                // First element is going to be a header, second element is going to be the body
-                ABC finalABC = makeAbstractSyntaxTree(parseTree.children().get(0));
-                Map<String,Music> finalMusic = makeAbstractSyntaxTree(parseTree.children().get(1));
-                
-                
-                
-            }
-        
-        case ABC_HEADER: // topToBottom ::= sideBySide (topToBottomOperator sideBySide)*;
-            {
-                System.out.println("hey");
-//                final List<ParseTree<ABCGrammar>> children = parseTree.children();
-//                Expression expression = makeAbstractSyntaxTree(children.get(0));
-//                for(int i = 2; i < children.size(); i += 2)
-//                    expression = new TopToBottom(expression, makeAbstractSyntaxTree(children.get(i)));
-//                return expression;
+
+                for (ParseTree<ABCGrammar> t : parseTree.children()) {
+                    getHeaderInfo(t, currentHeaderInfo);
+                }
             }    
         
-        case FIELD_NUMBER: {
-            
+        case FIELD_NUMBER: { // Get the digit, and assign it to the "X" field in the map
+            currentHeaderInfo.put('X', Integer.parseInt(parseTree.children().get(0).text()));
 
         }
-        case FIELD_TITLE: {
-            System.out.println("hey");
+        case FIELD_TITLE: { // Get the title text, and assign it to the "T" field in the map
+            currentHeaderInfo.put('T', parseTree.children().get(0).text());
 
         }
-        case OTHER_FIELDS: {
-            System.out.println("hey");
-
+        case OTHER_FIELDS: { // Go through all the children, and populate the header info with the information obtained from each. 
+            for (ParseTree<ABCGrammar> t : parseTree.children()) {
+                getHeaderInfo(t,currentHeaderInfo);
+            }
         }
-        case FIELD_COMPOSER: {
-            System.out.println("hey");
-
+ 
+        case FIELD_COMPOSER: { // Go through all the children
+            currentHeaderInfo.put('C', parseTree.children().get(0).text());
         }
         case FIELD_DEFAULT_LENGTH: {
-            System.out.println("hey");
-
+            ParseTree<ABCGrammar> noteLengthStrict = parseTree.children().get(0);
+            currentHeaderInfo.put('L', parseTree.children().get(0).text());
         }
         case FIELD_METER: {
-            System.out.println("hey");
-
+            ParseTree<ABCGrammar> meter = parseTree.children().get(0);
+            if (meter.name().equals(other))
+            Meter meter = new Meter();
+            currentHeaderInfo.put('M', parseTree.children().get(0).text());
         }
         case FIELD_TEMPO:  {
-            System.out.println("hey");
+            currentHeaderInfo.put('C', parseTree.children().get(0).text());
 
         }
         case FIELD_VOICE: {
-            System.out.println("hey");
-
+            currentHeaderInfo.put('C', parseTree.children().get(0).text());
         }
         default:
             throw new AssertionError("should never get here");

@@ -10,15 +10,17 @@ import java.util.function.Consumer;
 public class Note implements Music {
     
     /* Abstraction function:
-     *  AF(duration, pitch, instrument) = 
-     *      an immutable note that has a pitch, a duration (in beats),
-     *      and
+     *  AF(duration, pitch, instrument, lyric) = 
+     *      a note with a duration (in beats), a pitch, an instrument it's played on,
+     *      and optionally a lyric sung on the note
      * 
      * Rep invariant:
-     * 
+     *  duration >= 0
+     *  all fields are not null
      * 
      * Safety from rep exposure:
-     * 
+     *  all fields are private, final, and immutable
+     *  
      * Thread safety argument:
      *  This object and its field are all immutable, and there is no 
      *  beneficent mutation

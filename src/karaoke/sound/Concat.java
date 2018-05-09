@@ -8,6 +8,22 @@ import java.util.function.Consumer;
  */
 public class Concat implements Music {
 
+    /* Abstraction function:
+     *  AF(first, second) = 
+     *      the concatenation of two pieces of music, first and second,
+     *      played one after the other
+     * 
+     * Rep invariant:
+     *  all fields are not null
+     * 
+     * Safety from rep exposure:
+     *  all fields are private, final, and immutable
+     *  
+     * Thread safety argument:
+     *  This object and its field are all immutable, and there is no 
+     *  beneficent mutation
+     */
+    
     private final Music first;
     private final Music second;
 

@@ -114,6 +114,13 @@ public class MusicLanguage {
     public static Music rest(double duration) {
         return new Rest(duration);
     }
+    
+    /**
+     * @return empty music, defined as a rest of duration 0
+     */
+    public static Music emptyMusic() {
+        return new Rest(0);
+    }
 
     ////////////////////////////////////////////////////
     // Functional objects

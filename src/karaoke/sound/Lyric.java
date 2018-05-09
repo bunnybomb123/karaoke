@@ -31,7 +31,8 @@ public class Lyric {
      *      the syllable in line is emphasized to be "*" + syllable + "*"
      * 
      * Safety from rep exposure:
-     * 
+     *  all fields are final and immutable
+     *  
      * Thread safety argument:
      *  This object and its field are all immutable, and there is no 
      *  beneficent mutation

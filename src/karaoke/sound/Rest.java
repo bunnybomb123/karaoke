@@ -9,14 +9,13 @@ import java.util.function.Consumer;
 public class Rest implements Music {
 
     /* Abstraction function:
-     *  AF(duration, pitch, instrument) = 
-     *      an immutable note that has a pitch, a duration (in beats),
-     *      and
+     *  AF(duration) = a rest with a duration (in beats)
      * 
      * Rep invariant:
-     * 
+     *  duration >= 0
      * 
      * Safety from rep exposure:
+     *  all fields are final and immutable
      * 
      * Thread safety argument:
      *  This object is immutable, and there is no beneficent mutation

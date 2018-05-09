@@ -18,8 +18,8 @@ import karaoke.parser.ABCParser;
 public class Main {
 
     /**
-     * TODO
-     * @param args TODO
+     * Starts a web server ready to play ABC songs.
+     * @param args list of .abc files to add to server's jukebox
      */
     public static void main(String[] args) {
         final Queue<String> arguments = new LinkedList<>(Arrays.asList(args));

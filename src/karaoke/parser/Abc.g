@@ -86,7 +86,7 @@ comment_text ::= .*;
 
 end_of_line ::= comment | newline;
 
-text = .+;
+//text = .*;
 
 // word ::= [^\s-_*~\-|]+;
 digit ::= [0_9];

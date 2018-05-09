@@ -155,7 +155,6 @@ public class WebServer {
             out.println(); // also flushes
            
             // TODO add song-is-over listener
-            
             if (currentSong.isPresent()) {
                 out.println("current song: " + currentSong.get().getTitle());
                 final int beatsPerMinute = currentSong.get().getBeatsPerMinute();
@@ -168,8 +167,13 @@ public class WebServer {
                 }
                 
                 // start song and play
-                currentSong.get().play(player, (line) -> out.println(line.getLine() + "<br>"));
+                currentSong.get().load(player, (line) -> out.println(line.getLine() + "<br>"));
                 player.play();
+                
+                Object lock = new Object();
+//                synchronized (lock) {
+//                    th
+//                }
                 
                 if (autoscroll)
                     out.println("<script>document.body.scrollIntoView(false)</script>");
@@ -178,6 +182,7 @@ public class WebServer {
             exchange.close();
         }
         System.err.println("done streaming request");
+
     }
 
     /**
@@ -253,7 +258,7 @@ public class WebServer {
      * @throws IOException if network problem
      */
     private void handlePlay(HttpExchange exchange) throws IOException {
-        // TODO
+       
     }
     
     /**

@@ -73,8 +73,8 @@ public class ABC {
      * @param player player to play on
      * @param lyricConsumer function called when new lyrics are played
      */
-    public void play(SequencePlayer player, Consumer<Lyric> lyricConsumer) {
-        music.play(player, 0, lyricConsumer);
+    public void load(SequencePlayer player, Consumer<Lyric> lyricConsumer) {
+        music.load(player, 0, lyricConsumer);
     }
     
     /** @return the Music associated with this abc piece */

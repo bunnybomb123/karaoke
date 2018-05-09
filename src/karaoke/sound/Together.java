@@ -74,9 +74,9 @@ public class Together implements Music {
      * Play this chord.
      */
     @Override
-    public void play(SequencePlayer player, double atBeat, Consumer<Lyric> lyricConsumer) {
-        first.play(player, atBeat, lyricConsumer);
-        second.play(player, atBeat, lyricConsumer);
+    public void load(SequencePlayer player, double atBeat, Consumer<Lyric> lyricConsumer) {
+        first.load(player, atBeat, lyricConsumer);
+        second.load(player, atBeat, lyricConsumer);
     }
     
     @Override

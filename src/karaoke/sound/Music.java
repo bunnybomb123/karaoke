@@ -59,11 +59,11 @@ public interface Music {
     double duration();
 
     /**
-     * Play this piece.
+     * Load this music into specified midi player
      * @param player player to play on
      * @param atBeat when to play
      * @param lyricConsumer function called when new lyrics are played
      */
-    void play(SequencePlayer player, double atBeat, Consumer<Lyric> lyricConsumer);
+    void load(SequencePlayer player, double atBeat, Consumer<Lyric> lyricConsumer);
 
 }

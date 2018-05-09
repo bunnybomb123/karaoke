@@ -305,7 +305,7 @@ public class WebServer {
     }
     
     /**
-     * Play the first song in the jukebox.
+     * Play the first song in the jukebox, or do nothing if there is no song to play.
      */
     public synchronized void play() {
         if (jukebox.isEmpty()) {

@@ -31,7 +31,7 @@ public class MusicTest {
             throw new RuntimeException("midi problems");
         }
         
-        music.load(player, 0, System.out::println);
+        music.play(player, 0, lyric -> System.out.println(lyric.getLine()));
         
         // add a listener at the end of the piece to tell main thread when it's done
         Object lock = new Object();
@@ -61,8 +61,13 @@ public class MusicTest {
     
     @Test
     public void testSample1() {
-        //Music music = new Concat(new Note(1, new Pitch('C'), Instrument.PIANO, Optional.of(new Lyric("bonono"))), new Note(2, new Pitch('E'), Instrument.PIANO, Optional.of(new Lyric("bananas"))));
         Music music = new Together(new Note(3, new Pitch('E'), Instrument.PIANO, Optional.of(new Lyric("bananas"))), new Concat(new Rest(0), new Note(3, new Pitch('G'), Instrument.PIANO, Optional.of(new Lyric("sausage")))));
         play(music);
+    }
+    
+    @Test
+    public void testSample2() {
+        Music music = new Concat(new Note(1, new Pitch('C'), Instrument.PIANO, Optional.of(new Lyric("bonono"))), new Note(2, new Pitch('E'), Instrument.PIANO, Optional.of(new Lyric("bananas"))));
+        play(music);  
     }
 }

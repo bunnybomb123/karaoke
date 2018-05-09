@@ -20,16 +20,9 @@ public class MusicTest {
         assert false; // make sure assertions are enabled with VM argument: -ea
     }
     
-    // helper function for testing expectedness of abc files
-    private void helperTest(ABC expected, ABC actual) {
-        
-    }
-    
-    @Test
-    public void testSample1() {
-        Music music = new Concat(new Note(1, new Pitch('C'), Instrument.PIANO, Optional.of(new Lyric("bonono"))), new Note(2, new Pitch('E'), Instrument.PIANO, Optional.of(new Lyric("bananas"))));
-        //Music music = new Concat(new Note(2, new Pitch('E'), Instrument.PIANO, Optional.of(new Lyric("bananas"))), new Concat(new Rest(2), new Note(1, new Pitch('C'), Instrument.PIANO, Optional.of(new Lyric("sausage")))));
-        final int beatsPerMinute = 180;
+    // helper function for testing expectedness of Music
+    private void play(Music music) {
+        final int beatsPerMinute = 50;
         final int ticksPerBeat = 64;
         SequencePlayer player;
         try {
@@ -38,15 +31,38 @@ public class MusicTest {
             throw new RuntimeException("midi problems");
         }
         
-        System.out.println("hi");
+        music.load(player, 0, System.out::println);
         
-        // start song and play
-        music.play(player, 0, lyric -> System.out.println(lyric.getLine()));
+        // add a listener at the end of the piece to tell main thread when it's done
+        Object lock = new Object();
+        player.addEvent(music.duration(), beat -> {
+            synchronized (lock) {
+                lock.notify();
+            }
+        });
+        
+        // print the configured player
+        System.out.println(player);
+
+        // play!
         player.play();
-//        Music m1 = note(2, );
-//        Music m2 = note();
-//        Music music = MusicLanguage.concat(m1, m2);
-//        ABC expected = new ABC(music, "sample 1", "C");
-//        assertEquals(expected, actual);
+        
+        // wait until player is done
+        // (not strictly needed here, but useful for JUnit tests)
+        synchronized (lock) {
+            try {
+                lock.wait();
+            } catch (InterruptedException e) {
+                return;
+            }
+        }
+        System.out.println("done playing");
+    }
+    
+    @Test
+    public void testSample1() {
+        //Music music = new Concat(new Note(1, new Pitch('C'), Instrument.PIANO, Optional.of(new Lyric("bonono"))), new Note(2, new Pitch('E'), Instrument.PIANO, Optional.of(new Lyric("bananas"))));
+        Music music = new Together(new Note(3, new Pitch('E'), Instrument.PIANO, Optional.of(new Lyric("bananas"))), new Concat(new Rest(0), new Note(3, new Pitch('G'), Instrument.PIANO, Optional.of(new Lyric("sausage")))));
+        play(music);
     }
 }

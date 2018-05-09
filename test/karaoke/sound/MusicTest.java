@@ -1,15 +1,12 @@
 package karaoke.sound;
 
-import static org.junit.Assert.fail;
+import java.util.Optional;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Scanner;
+import javax.sound.midi.InvalidMidiDataException;
+import javax.sound.midi.MidiUnavailableException;
 
 import org.junit.Test;
 
-import edu.mit.eecs.parserlib.UnableToParseException;
 import karaoke.ABC;
 
 /**
@@ -30,6 +27,22 @@ public class MusicTest {
     
     @Test
     public void testSample1() {
+        Music music = new Concat(new Note(1, new Pitch('C'), Instrument.PIANO, Optional.of(new Lyric("bonono"))), new Note(2, new Pitch('E'), Instrument.PIANO, Optional.of(new Lyric("bananas"))));
+        //Music music = new Concat(new Note(2, new Pitch('E'), Instrument.PIANO, Optional.of(new Lyric("bananas"))), new Concat(new Rest(2), new Note(1, new Pitch('C'), Instrument.PIANO, Optional.of(new Lyric("sausage")))));
+        final int beatsPerMinute = 180;
+        final int ticksPerBeat = 64;
+        SequencePlayer player;
+        try {
+            player = new MidiSequencePlayer(beatsPerMinute, ticksPerBeat);
+        } catch (InvalidMidiDataException | MidiUnavailableException e1) {
+            throw new RuntimeException("midi problems");
+        }
+        
+        System.out.println("hi");
+        
+        // start song and play
+        music.play(player, 0, lyric -> System.out.println(lyric.getLine()));
+        player.play();
 //        Music m1 = note(2, );
 //        Music m2 = note();
 //        Music music = MusicLanguage.concat(m1, m2);

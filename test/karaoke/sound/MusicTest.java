@@ -43,10 +43,5 @@ public class MusicTest {
         // start song and play
         music.play(player, 0, lyric -> System.out.println(lyric.getLine()));
         player.play();
-//        Music m1 = note(2, );
-//        Music m2 = note();
-//        Music music = MusicLanguage.concat(m1, m2);
-//        ABC expected = new ABC(music, "sample 1", "C");
-//        assertEquals(expected, actual);
     }
 }

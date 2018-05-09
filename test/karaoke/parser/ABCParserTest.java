@@ -83,7 +83,7 @@ public class ABCParserTest {
     // output: Note, Together
     @Test
     public void testSample2() throws FileNotFoundException, UnableToParseException {
-        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/sample1.abc")).useDelimiter("\\Z").next();
+        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/sample2.abc")).useDelimiter("\\Z").next();
         ABC actual = ABCParser.parse(abcFile);
 
         Music m1 = new Note(1, new Pitch('C'), Instrument.PIANO, Optional.empty());
@@ -104,7 +104,7 @@ public class ABCParserTest {
     // output: Together, Note
     @Test
     public void testSample3() throws FileNotFoundException, UnableToParseException {
-        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/sample1.abc")).useDelimiter("\\Z").next();
+        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/sample3.abc")).useDelimiter("\\Z").next();
         ABC actual = ABCParser.parse(abcFile);
 
         Music m1 = new Note(1, new Pitch('C'), Instrument.PIANO, Optional.empty());
@@ -131,7 +131,7 @@ public class ABCParserTest {
     // output: Together, Note
     @Test
     public void testLyricsParsing() throws FileNotFoundException, UnableToParseException {
-        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/sample1.abc")).useDelimiter("\\Z").next();
+        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/testLyrics.abc")).useDelimiter("\\Z").next();
         ABC actual = ABCParser.parse(abcFile);
 
         Music m1 = new Note(1, new Pitch('C'), Instrument.PIANO, Optional.empty());

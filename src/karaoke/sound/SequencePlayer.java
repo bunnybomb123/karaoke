@@ -31,6 +31,13 @@ public interface SequencePlayer {
     public void addEvent(double atBeat, Consumer<Double> callback);
 
     /**
+     * 
+     * @param music
+     * @param lyricConsumer
+     */
+    public void load(Music music, Consumer<Lyric> lyricConsumer);
+    
+    /**
      * Play the scheduled music.
      */
     public void play();

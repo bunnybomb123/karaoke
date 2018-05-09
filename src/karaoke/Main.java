@@ -1,16 +1,10 @@
 package karaoke;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import java.util.Queue;
-import java.util.Scanner;
-
-import edu.mit.eecs.parserlib.UnableToParseException;
-import karaoke.parser.ABCParser;
 
 /**
  * Main entry point of your application.
@@ -18,16 +12,13 @@ import karaoke.parser.ABCParser;
 public class Main {
 
     /**
-     * TODO
-     * @param args TODO
+     * Starts a web server ready to play ABC songs.
+     * @param args list of .abc files to add to server's jukebox
      */
     public static void main(String[] args) {
         final Queue<String> arguments = new LinkedList<>(Arrays.asList(args));
         
         final int port;
-        final String abcFileContents;
-        final ABC song;
-
         
         try {
             port = Integer.parseInt(arguments.remove());
@@ -36,7 +27,7 @@ public class Main {
         }
         
         try {
-            new WebServer("hi", port).start();
+            new WebServer(port).start();
         } catch (IOException e) {
             throw new RuntimeException("Unable start webserver", e);
         }

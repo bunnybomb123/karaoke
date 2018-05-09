@@ -167,6 +167,11 @@ public class MidiSequencePlayer implements SequencePlayer {
         this.track.add(new MidiEvent(msg, tick));
         this.track.add(new MidiEvent(keepalive, tick+1));
     }
+    
+    @Override
+    public void load(Music music, Consumer<Lyric> lyricConsumer) {
+        music.load(this, 0, lyricConsumer);
+    }
 
     @Override
     public void play() {

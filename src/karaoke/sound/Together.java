@@ -8,6 +8,22 @@ import java.util.function.Consumer;
  */
 public class Together implements Music {
 
+    /* Abstraction function:
+     *  AF(first, second) = 
+     *      the layering of two pieces of music, first and second,
+     *      played simultaneously
+     * 
+     * Rep invariant:
+     *  all fields are not null
+     * 
+     * Safety from rep exposure:
+     *  all fields are private, final, and immutable
+     *  
+     * Thread safety argument:
+     *  This object and its field are all immutable, and there is no 
+     *  beneficent mutation
+     */
+    
     private final Music first;
     private final Music second;
     
@@ -58,9 +74,9 @@ public class Together implements Music {
      * Play this chord.
      */
     @Override
-    public void play(SequencePlayer player, double atBeat, Consumer<Lyric> lyricConsumer) {
-        first.play(player, atBeat, lyricConsumer);
-        second.play(player, atBeat, lyricConsumer);
+    public void load(SequencePlayer player, double atBeat, Consumer<Lyric> lyricConsumer) {
+        first.load(player, atBeat, lyricConsumer);
+        second.load(player, atBeat, lyricConsumer);
     }
     
     @Override

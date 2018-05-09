@@ -23,17 +23,6 @@ import karaoke.sound.Together;
 import org.apache.commons.io.FileUtils;
 public class ABCParser {
     
-    /*
-     * Abstraction Function:
-     * AF() = a function that maps the contents of an abc file into an ABC object. 
-     * Rep Invariant:
-     * true
-     * Safety from Rep Exposure:
-     * There are no fields, so nothing can be mutated.
-     * Thread Safety: 
-     * parse is a static method, which is threadsafe.
-     */
-    
     /**
      * Main method. Parses and then reprints an example expression.
      * 

@@ -14,10 +14,10 @@ import karaoke.sound.Together;
 public class ABC {
     
     /* Abstraction function
-     *  AF(music, composer, keySignature, meter, beatsPerMinute) =
-     *      an ABC file representing the Music music, with composer composer,
-     *      key signature keySignature, meter meter, and beats per minute
-     *      beatsPerMinute.
+     *  AF(parts, music, title, keySignature, meter, beatsPerMinute, defaultNote, composer) =
+     *      an ABC file representing the Music music, with each voice mapped to a part by parts,
+     *      with key signature keySignature, meter meter, beats per minute beatsPerMinute,
+     *      default note length defaultNote, and composer composer.
      *      
      * Rep invariant:
      *  all fields not null
@@ -35,7 +35,7 @@ public class ABC {
     private final String title;
     private final String keySignature;
     private final Meter meter;
-    private final double beatsPerMinute;
+    private final int beatsPerMinute;
     private final double defaultNote;
     private final String composer;
     
@@ -60,7 +60,7 @@ public class ABC {
         final double defaultNote1 = 1./16;
         final double defaultNote2 = 1./8;
         this.defaultNote = (double) fields.getOrDefault('L', 
-                this.meter.toDecimal() < baseline ? defaultNote1 : defaultNote2);
+                this.meter.meter() < baseline ? defaultNote1 : defaultNote2);
         
         // must fix; look at spec. if Q is specified it depends on its own L
         this.beatsPerMinute = (int) fields.getOrDefault('Q', 100);
@@ -73,8 +73,8 @@ public class ABC {
      * @param player player to play on
      * @param lyricConsumer function called when new lyrics are played
      */
-    public void play(SequencePlayer player, Consumer<Lyric> lyricConsumer) {
-        music.play(player, 0, lyricConsumer);
+    public void load(SequencePlayer player, Consumer<Lyric> lyricConsumer) {
+        music.load(player, 0, lyricConsumer);
     }
     
     /** @return the Music associated with this abc piece */
@@ -107,7 +107,7 @@ public class ABC {
 
     /** @return the # of beats per minute in this piece, based on the
      * default note */
-    public double getBeatsPerMinute() {
+    public int getBeatsPerMinute() {
         return beatsPerMinute;
     }
 
@@ -139,17 +139,17 @@ public class ABC {
                 && title.equals(that.getTitle())
                 && keySignature.equals(that.getKeySignature())
                 && meter.equals(that.getMeter())
-                && beatsPerMinute == beatsPerMinute
-                && defaultNote == defaultNote
+                && beatsPerMinute == that.getBeatsPerMinute()
+                && defaultNote == that.getDefaultNote()
                 && composer.equals(that.getComposer())
                 && parts.equals(that.parts);
     }
 
     @Override
     public int hashCode() {
-        return (int) (music.hashCode() + title.hashCode() + keySignature.hashCode()
-        + meter.hashCode() + beatsPerMinute + defaultNote + composer.hashCode())
-        + parts.hashCode();
+        return (int) (music.hashCode() + title.hashCode() 
+        + keySignature.hashCode() + meter.hashCode() + beatsPerMinute 
+        + defaultNote + composer.hashCode() + parts.hashCode());
     }
     
 }

@@ -133,8 +133,6 @@ public class WebServer {
     private void handleHtmlStream(HttpExchange exchange) throws IOException {
         final String path = exchange.getRequestURI().getPath();
         System.err.println("received request " + path);
-    
-        final boolean autoscroll = true; //path.endsWith("/autoscroll");
         
         exchange.getResponseHeaders().add("Content-Type", "text/html; charset=utf-8");
         exchange.sendResponseHeaders(SUCCESS_CODE, 0);
@@ -153,36 +151,16 @@ public class WebServer {
                 out.print(' ');
             }
             out.println(); // also flushes
-           
+
+//            out.println(line.getLine() + "<br>";
+            
             // TODO add song-is-over listener
-            if (currentSong.isPresent()) {
-                out.println("current song: " + currentSong.get().getTitle());
-                final int beatsPerMinute = currentSong.get().getBeatsPerMinute();
-                final int ticksPerBeat = 64;
-                SequencePlayer player;
-                try {
-                    player = new MidiSequencePlayer(beatsPerMinute, ticksPerBeat);
-                } catch (InvalidMidiDataException | MidiUnavailableException e1) {
-                    throw new RuntimeException("midi problems");
-                }
-                
-                // start song and play
-                currentSong.get().load(player, (line) -> out.println(line.getLine() + "<br>"));
-                player.play();
-                
-                Object lock = new Object();
-//                synchronized (lock) {
-//                    th
-//                }
-                
-                if (autoscroll)
-                    out.println("<script>document.body.scrollIntoView(false)</script>");
-            }
+            play();
+            out.println("<script>document.body.scrollIntoView(false)</script>");
         } finally {
             exchange.close();
+            System.err.println("done streaming request");
         }
-        System.err.println("done streaming request");
-
     }
 
     /**
@@ -284,7 +262,20 @@ public class WebServer {
         }
         else {
             currentSong = Optional.of(jukebox.pop());
-            // TODO
+            out.println("current song: " + currentSong.get().getTitle());
+            final int beatsPerMinute = currentSong.get().getBeatsPerMinute();
+            final int ticksPerBeat = 64;
+            SequencePlayer player;
+            try {
+                player = new MidiSequencePlayer(beatsPerMinute, ticksPerBeat);
+            } catch (InvalidMidiDataException | MidiUnavailableException e1) {
+                throw new RuntimeException("midi problems");
+            }
+            
+            // start song and play
+            currentSong.get().load(player, (line) -> broadcast(new Signal(line)));
+            player.play();
+                
             System.err.println("Playing " + currentSong.get().getTitle());
         }
     }
@@ -312,7 +303,7 @@ public class WebServer {
      * @param signal signal to broadcast
      */
     private synchronized void broadcast(Signal signal) {
-        for(ServerListener listener : new ArrayList<>(listeners))
+        for (ServerListener listener : new ArrayList<>(listeners))
             listener.signalReceived(signal);
     }
     

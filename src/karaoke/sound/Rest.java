@@ -54,7 +54,7 @@ public class Rest implements Music {
      * Play this rest.
      */
     @Override
-    public void load(SequencePlayer player, double atBeat, Consumer<Lyric> lyricConsumer) {
+    public void play(SequencePlayer player, double atBeat, Consumer<Lyric> lyricConsumer) {
         return;
     }
 

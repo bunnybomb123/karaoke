@@ -7,8 +7,14 @@ import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Executors;
 
+import javax.sound.sampled.LineEvent;
+import javax.sound.sampled.LineListener;
+
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
+
+import karaoke.sound.MidiSequencePlayer;
+import karaoke.sound.SequencePlayer;
 
 /**
  * HTTP web karaoke server.
@@ -98,14 +104,20 @@ public class WebServer {
             }
             out.println(); // also flushes
             
-            final int numberOfLinesToSend = 100;
-            final int millisecondsBetweenLines = 200;
+            final int beatsPerMinute = song.getBeatsPerMinute();
+            final int ticksPerBeat = 64;
+            SequencePlayer player = new MidiSequencePlayer(beatsPerMinute, ticksPerBeat);
+           
+            player.addEvent(startBeat, (Double beat) -> {
+                synchronized (lock) {
+                    lock.notify();
+                }
+            });
             for (int i = 0; i < numberOfLinesToSend; ++i) {
                 
-                // print a line of text
-                String lyric = ""; 
-                out.println(lyric + "<br>"); // also flushes
-                
+                // start song and play
+                this.song.play(player, (lyric) -> out.println(lyric + "<br>"));
+
                 if (autoscroll)
                     out.println("<script>document.body.scrollIntoView(false)</script>");
                 
@@ -129,10 +141,8 @@ public class WebServer {
         final String path = exchange.getRequestURI().getPath();
         System.err.println("received request " + path);
 
-        // must call sendResponseHeaders() before calling getResponseBody()
-        final int successCode = 200;
-        final int lengthNotKnownYet = 0;
-        exchange.sendResponseHeaders(successCode, lengthNotKnownYet);
+        exchange.getResponseHeaders().add("Content-Type", "text/html; charset=utf-8");
+        exchange.sendResponseHeaders(SUCCESS_CODE, 0);
 
         // get output stream to write to web browser
         final boolean autoflushOnPrintln = true;
@@ -331,4 +341,3 @@ class StreamingExample {
     }
 
 }
-

@@ -34,7 +34,7 @@ public class ABC {
     private final String title;
     private final String keySignature;
     private final Meter meter;
-    private final double beatsPerMinute;
+    private final int beatsPerMinute;
     private final double defaultNote;
     private final String composer;
     
@@ -59,7 +59,7 @@ public class ABC {
         final double defaultNote1 = 1./16;
         final double defaultNote2 = 1./8;
         this.defaultNote = (double) fields.getOrDefault('L', 
-                this.meter.toDecimal() < baseline ? defaultNote1 : defaultNote2);
+                this.meter.meter() < baseline ? defaultNote1 : defaultNote2);
         
         // must fix; look at spec. if Q is specified it depends on its own L
         this.beatsPerMinute = (int) fields.getOrDefault('Q', 100);
@@ -106,7 +106,7 @@ public class ABC {
 
     /** @return the # of beats per minute in this piece, based on the
      * default note */
-    public double getBeatsPerMinute() {
+    public int getBeatsPerMinute() {
         return beatsPerMinute;
     }
 

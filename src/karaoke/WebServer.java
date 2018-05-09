@@ -319,7 +319,7 @@ public class WebServer {
     }
     
     /**
-     * Add a BoardListener for callback.
+     * Add a server listener for callback.
      * 
      * @param listener listener to add
      */
@@ -328,7 +328,7 @@ public class WebServer {
     }
     
     /**
-     * Remove a BoardListener from callback.
+     * Remove a server listener from callback.
      * 
      * @param listener listener to remove
      */

@@ -7,18 +7,28 @@ import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Executors;
+
+import javax.sound.midi.InvalidMidiDataException;
+import javax.sound.midi.MidiUnavailableException;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
 import edu.mit.eecs.parserlib.UnableToParseException;
 import karaoke.parser.ABCParser;
+import karaoke.sound.Concat;
+import karaoke.sound.Instrument;
 import karaoke.sound.Lyric;
 import karaoke.sound.MidiSequencePlayer;
+import karaoke.sound.Music;
+import karaoke.sound.Note;
+import karaoke.sound.Pitch;
 import karaoke.sound.SequencePlayer;
 
 /**
@@ -28,12 +38,29 @@ public class WebServer {
     
     private final HttpServer server;
     private final Deque<ABC> jukebox = new ConcurrentLinkedDeque<>();
-    private Optional<ABC> currentSong;
+    private Optional<ABC> currentSong = Optional.of(newABC());
     private final List<ServerListener> listeners = new ArrayList<>();
     
     private static final int SUCCESS_CODE = 200;
     private static final int ERROR_CODE = 404;
     
+    private static ABC newABC() {
+        Music m1 = new Note(2, new Pitch('C').transpose(-Pitch.OCTAVE), Instrument.PIANO, Optional.of(new Lyric("hey,")));
+        Music m2 = new Note(2, new Pitch('C'), Instrument.PIANO, Optional.of(new Lyric("babe")));
+        Music m3 = new Note(1, new Pitch('C').transpose(Pitch.OCTAVE), Instrument.PIANO, Optional.of(new Lyric("hey")));
+        Music m4 = new Note(1, new Pitch('C').transpose(2*Pitch.OCTAVE), Instrument.PIANO, Optional.of(new Lyric("hey!")));
+        Music music = new Concat(m1, new Concat(m2, new Concat(m3, m4)));
+        
+        final Map<String, Music> parts = new HashMap<>();
+        parts.put("", music);
+        
+        final Map<Character, Object> fields = new HashMap<>();
+        fields.put('T', "sample 1");
+        fields.put('K', "C");
+        
+        ABC expected = new ABC(parts, fields);
+        return expected;
+    }
     // Abstraction function:
     //  AF(server, jukebox, currentSong, listeners) =
     //      a web server that plays songs from a jukebox of ABC songs,
@@ -53,6 +80,10 @@ public class WebServer {
     //  All public methods are synchronized by this object's lock
     //  All non-synchronized private methods do not access any fields
     //  
+    
+    public static void main (String args[]) throws IOException {
+        new WebServer(8080).start();
+    }
     
     /**
      * Make a new karaoke server that listens for connections on port.
@@ -96,6 +127,8 @@ public class WebServer {
      * 
      * @param exchange request/reply object
      * @throws IOException if network problem
+     * @throws InvalidMidiDataException 
+     * @throws MidiUnavailableException 
      */
     private void handleHtmlStream(HttpExchange exchange) throws IOException {
         final String path = exchange.getRequestURI().getPath();
@@ -120,32 +153,27 @@ public class WebServer {
                 out.print(' ');
             }
             out.println(); // also flushes
-            
-            final int beatsPerMinute = currentSong.get().getBeatsPerMinute();
-            final int ticksPerBeat = 64;
-            SequencePlayer player = new MidiSequencePlayer(beatsPerMinute, ticksPerBeat);
            
-//            player.addEvent(startBeat, (Double beat) -> {
-//                synchronized (lock) {
-//                    lock.notify();
-//                }
-//            });
-            while (true) {
+            // TODO add song-is-over listener
+            
+            if (currentSong.isPresent()) {
+                out.println("current song: " + currentSong.get().getTitle());
+                final int beatsPerMinute = currentSong.get().getBeatsPerMinute();
+                final int ticksPerBeat = 64;
+                SequencePlayer player;
+                try {
+                    player = new MidiSequencePlayer(beatsPerMinute, ticksPerBeat);
+                } catch (InvalidMidiDataException | MidiUnavailableException e1) {
+                    throw new RuntimeException("midi problems");
+                }
                 
                 // start song and play
-                currentSong.get().play(player, (lyric) -> out.println(lyric + "<br>"));
-
+                currentSong.get().play(player, (line) -> out.println(line.getLine() + "<br>"));
+                player.play();
+                
                 if (autoscroll)
                     out.println("<script>document.body.scrollIntoView(false)</script>");
-
-                // wait a bit
-                try {
-                    Thread.sleep(10);
-                } catch (InterruptedException e) {
-                    return;
-                }
             }
-            
         } finally {
             exchange.close();
         }
@@ -226,28 +254,6 @@ public class WebServer {
      */
     private void handlePlay(HttpExchange exchange) throws IOException {
         // TODO
-    }
-    
-    /** @return the port on which this server is listening for connections */
-    public synchronized int port() {
-        checkRep();
-        return server.getAddress().getPort();
-    }
-    
-    /** Start this server in a new background thread. */
-    public synchronized void start() {
-        checkRep();
-        System.err.println("Server will listen on " + server.getAddress());
-        server.start();
-        checkRep();
-    }
-    
-    /** Stop this server. Once stopped, this server cannot be restarted. */
-    public synchronized void stop() {
-        checkRep();
-        System.err.println("Server will stop");
-        server.stop(0);
-        checkRep();
     }
     
     /**
@@ -389,4 +395,27 @@ public class WebServer {
         }
         
     }
+    
+    /** @return the port on which this server is listening for connections */
+    public synchronized int port() {
+        checkRep();
+        return server.getAddress().getPort();
+    }
+    
+    /** Start this server in a new background thread. */
+    public synchronized void start() {
+        checkRep();
+        System.err.println("Server will listen on " + server.getAddress());
+        server.start();
+        checkRep();
+    }
+    
+    /** Stop this server. Once stopped, this server cannot be restarted. */
+    public synchronized void stop() {
+        checkRep();
+        System.err.println("Server will stop");
+        server.stop(0);
+        checkRep();
+    }
+    
 }

@@ -139,17 +139,17 @@ public class ABC {
                 && title.equals(that.getTitle())
                 && keySignature.equals(that.getKeySignature())
                 && meter.equals(that.getMeter())
-                && beatsPerMinute == beatsPerMinute
-                && defaultNote == defaultNote
+                && beatsPerMinute == that.getBeatsPerMinute()
+                && defaultNote == that.getDefaultNote()
                 && composer.equals(that.getComposer())
                 && parts.equals(that.parts);
     }
 
     @Override
     public int hashCode() {
-        return (int) (music.hashCode() + title.hashCode() + keySignature.hashCode()
-        + meter.hashCode() + beatsPerMinute + defaultNote + composer.hashCode())
-        + parts.hashCode();
+        return (int) (music.hashCode() + title.hashCode() 
+        + keySignature.hashCode() + meter.hashCode() + beatsPerMinute 
+        + defaultNote + composer.hashCode() + parts.hashCode());
     }
     
 }

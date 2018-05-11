@@ -1,39 +1,76 @@
 package karaoke;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentLinkedDeque;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiUnavailableException;
 
-import edu.mit.eecs.parserlib.UnableToParseException;
-import karaoke.WebServer.ServerListener;
-import karaoke.WebServer.Signal;
-import karaoke.WebServer.Signal.Type;
-import karaoke.parser.ABCParser;
 import karaoke.sound.Lyric;
 import karaoke.sound.MidiSequencePlayer;
-import karaoke.sound.Note;
 import karaoke.sound.SequencePlayer;
 
 public class Jukebox {
     
-    // TODO does this need to be a ConcurrentLinkedDeque?
-    private final Deque<ABC> jukebox = new ConcurrentLinkedDeque<>();
     private Optional<ABC> currentSong = Optional.empty();
+    private final Deque<ABC> queuedSongs = new ArrayDeque<>();
+    private boolean isPlaying = false;
     private final List<Listener> listeners = new ArrayList<>();
+    
+    /**
+     * Create a new empty Jukebox.
+     */
+    public Jukebox() {
+        this.addListener(signal -> {
+            switch(signal.getType()) {
+            case SONG_START:
+                this.isPlaying = true;
+                break;
+            case SONG_END:
+                this.isPlaying = false;
+                updateCurrentSong();
+                break;
+            default:
+                break;
+            }
+        });
+    }
+    
+    /**
+     * @return song being played or next to be played if jukebox is not playing,
+     *         may not exist if jukebox is empty
+     */
+    public synchronized Optional<ABC> getCurrentSong() {
+        return currentSong;
+    }
+    
+    /**
+     * @return list of songs in queue
+     */
+    public synchronized List<ABC> getQueuedSongs() {
+        return new ArrayList<>(queuedSongs);
+    }
+    
+    /**
+     * @return whether jukebox is playing a song
+     */
+    public synchronized boolean isPlaying() {
+        return isPlaying;
+    }
     
     /**
      * Add a new song to the jukebox.
      * @param song song in ABC format
      */
     public synchronized void addSong(ABC song) {
-        jukebox.add(song);
-        System.err.println("Added " + song.getTitle() + " at position " + (jukebox.size() + 1) + " in queue");
+        queuedSongs.add(song);
+        if (!currentSong.isPresent())
+            updateCurrentSong();
+        System.err.println("Added " + song.getTitle() + " at position " + (queuedSongs.size() + 1) + " in queue");
     }
     
     /**
@@ -41,32 +78,39 @@ public class Jukebox {
      * @return whether play request succeeded
      */
     public synchronized boolean play() {
-        if (jukebox.isEmpty()) {
+        if (!currentSong.isPresent()) {
             System.err.println("No song to play");
             return false;
         }
-        else {
-            ABC song = jukebox.pop();
-            currentSong = Optional.of(song);
-            System.err.println("current song: " + song.getTitle());
-            final int beatsPerMinute = song.getBeatsPerMinute();
-            final int ticksPerBeat = 64;
-            SequencePlayer player;
-            try {
-                player = new MidiSequencePlayer(beatsPerMinute, ticksPerBeat);
-            } catch (InvalidMidiDataException | MidiUnavailableException e1) {
-                throw new RuntimeException("midi problems");
-            }
-            
-            // start song and play
-            song.load(player, lyric -> broadcast(Signal.lyric(lyric)));
-            player.addEvent(0, beat -> broadcast(Signal.SIGNAL_SONG_START));
-            player.addEvent(song.getMusic().duration(), beat -> broadcast(Signal.SIGNAL_SONG_END));
-            player.play();
-            
-            System.err.println("Playing " + song.getTitle());
-            return true;
+        
+        ABC song = currentSong.get();
+        final int beatsPerMinute = song.getBeatsPerMinute();
+        final int ticksPerBeat = 64;
+        SequencePlayer player;
+        try {
+            player = new MidiSequencePlayer(beatsPerMinute, ticksPerBeat);
+        } catch (InvalidMidiDataException | MidiUnavailableException e1) {
+            throw new RuntimeException("midi problems");
         }
+        
+        // start song and play
+        song.load(player, lyric -> broadcast(Signal.lyric(lyric)));
+        player.addEvent(0, beat -> broadcast(Signal.SIGNAL_SONG_START));
+        player.addEvent(song.getMusic().duration(), beat -> broadcast(Signal.SIGNAL_SONG_END));
+        player.play();
+        
+        System.err.println("Playing " + song.getTitle());
+        return true;
+    }
+    
+    /**
+     * Updates current song by taking from first song in queue, if it exists.
+     * Replaces current song if it exists.
+     */
+    private synchronized void updateCurrentSong() {
+        currentSong = queuedSongs.isEmpty() ? Optional.empty() :
+                                              Optional.of(queuedSongs.pop());
+        broadcast(Signal.SIGNAL_SONG_CHANGE);
     }
     
     /**

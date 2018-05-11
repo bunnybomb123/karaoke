@@ -5,13 +5,9 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Deque;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Executors;
 
 import javax.sound.midi.InvalidMidiDataException;
@@ -20,17 +16,12 @@ import javax.sound.midi.MidiUnavailableException;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
-import edu.mit.eecs.parserlib.UnableToParseException;
-import karaoke.Jukebox.Signal;
-import karaoke.parser.ABCParser;
 import karaoke.sound.Concat;
 import karaoke.sound.Instrument;
 import karaoke.sound.Lyric;
-import karaoke.sound.MidiSequencePlayer;
 import karaoke.sound.Music;
 import karaoke.sound.Note;
 import karaoke.sound.Pitch;
-import karaoke.sound.SequencePlayer;
 
 /**
  * HTTP web karaoke server.
@@ -41,7 +32,6 @@ public class WebServer {
     private final Jukebox jukebox = new Jukebox();
     
     private static final int SUCCESS_CODE = 200;
-    private static final int ERROR_CODE = 404;
     
     private static ABC newABC() {
         Music m1 = new Note(2, new Pitch('C').transpose(-Pitch.OCTAVE), Instrument.PIANO, Optional.of(new Lyric("hey,")));
@@ -80,6 +70,11 @@ public class WebServer {
     //  All non-synchronized private methods do not access any fields
     //  
     
+    /**
+     * for debuging use only
+     * @param args
+     * @throws IOException
+     */
     public static void main (String args[]) throws IOException {
         new WebServer(8080).start();
     }
@@ -120,15 +115,7 @@ public class WebServer {
         
     }
     
-    /**
-     * Sends an HTML stream to the web browser
-     * 
-     * @param exchange request/reply object
-     * @throws IOException if network problem
-     * @throws InvalidMidiDataException 
-     * @throws MidiUnavailableException 
-     */
-    private void handleHtmlStream(HttpExchange exchange) {
+    private PrintWriter helperExchanged(HttpExchange exchange) throws IOException {
         final String path = exchange.getRequestURI().getPath();
         System.err.println("received request " + path);
         
@@ -143,6 +130,19 @@ public class WebServer {
                                   exchange.getResponseBody(), 
                                   StandardCharsets.UTF_8), 
                               autoflushOnPrintln);
+        return out;
+    }
+    
+    /**
+     * Sends an HTML stream to the web browser
+     * 
+     * @param exchange request/reply object
+     * @throws IOException if network problem
+     * @throws InvalidMidiDataException 
+     * @throws MidiUnavailableException 
+     */
+    private void handleHtmlStream(HttpExchange exchange) {
+        PrintWriter out = helperExchanged(exchange);
         
         try {
             final int enoughBytesToStartStreaming = 2048;
@@ -176,9 +176,9 @@ public class WebServer {
                     out.println(jukebox.getCurrentSong());
                 }
             };
-            addListener(listener);
+            jukebox.addListener(listener);
             // TODO add song-is-over listener
-            play();
+            jukebox.play();
             out.println("<script>document.body.scrollIntoView(false)</script>");
         } finally {
             exchange.close();

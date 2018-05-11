@@ -157,7 +157,7 @@ public class ABCParserTest {
         Music EC = new Together(Echord, C);
 
         Music part1 = concatChain(Arrays.asList(C, CE, GnoLyric, G, rest );
-        Music part1 = concatChain(Arrays.asList(C, CE, );
+        Music part2 = concatChain(Arrays.asList(C, CE, );
 
         final Map<String, Music> parts = new HashMap<>();
         parts.put("1", part1);

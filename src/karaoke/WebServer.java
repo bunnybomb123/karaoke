@@ -130,7 +130,7 @@ public class WebServer {
      * @throws InvalidMidiDataException 
      * @throws MidiUnavailableException 
      */
-    private void handleHtmlStream(HttpExchange exchange) throws IOException {
+    private void handleHtmlStream(HttpExchange exchange) {
         final String path = exchange.getRequestURI().getPath();
         System.err.println("received request " + path);
         
@@ -152,8 +152,30 @@ public class WebServer {
             }
             out.println(); // also flushes
 
-//            out.println(line.getLine() + "<br>";
-            
+            ServerListener listener =  new ServerListener() {
+                @Override
+                public void signalReceived(Signal signal) {
+                    switch (signal.getType()) {
+                    case LYRIC:
+                        out.println(signal.getLyric());
+                        break;
+                    case SONG_CHANGE:
+                        out.println("Song changed!");
+                        printCurrentSongDetails();
+                        break;
+                    case SONG_END:
+                        break;
+                    case SONG_START:
+                        break;
+                    default:
+                        throw new RuntimeException("Should never get here");
+                    }
+                }
+                private void printCurrentSongDetails() {
+                    out.println(jukebox.getCurrentSong());
+                }
+            };
+            addListener(listener);
             // TODO add song-is-over listener
             play();
             out.println("<script>document.body.scrollIntoView(false)</script>");
@@ -262,7 +284,6 @@ public class WebServer {
         }
         else {
             currentSong = Optional.of(jukebox.pop());
-            out.println("current song: " + currentSong.get().getTitle());
             final int beatsPerMinute = currentSong.get().getBeatsPerMinute();
             final int ticksPerBeat = 64;
             SequencePlayer player;
@@ -276,7 +297,7 @@ public class WebServer {
             currentSong.get().load(player, (line) -> broadcast(new Signal(line)));
             player.play();
                 
-            System.err.println("Playing " + currentSong.get().getTitle());
+            System.err.println("Now playing " + currentSong.get().getTitle());
         }
     }
     
@@ -311,7 +332,6 @@ public class WebServer {
      * A listener for WebServer, called back whenever signal is received.
      */
     public interface ServerListener {
-        
         /**
          * Called back whenever signal is received.
          * @param signal signal broadcast from server
@@ -319,6 +339,7 @@ public class WebServer {
         public void signalReceived(Signal signal);
     
     }
+    
     
     /**
      * Represents a signal broadcast from a WebServer to any ServerListeners.

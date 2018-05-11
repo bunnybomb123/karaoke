@@ -22,13 +22,14 @@ import karaoke.sound.SequencePlayer;
 
 public class Jukebox {
     
+    // TODO does this need to be a ConcurrentLinkedDeque?
     private final Deque<ABC> jukebox = new ConcurrentLinkedDeque<>();
     private Optional<ABC> currentSong = Optional.empty();
-    private final List<ServerListener> listeners = new ArrayList<>();
+    private final List<Listener> listeners = new ArrayList<>();
     
     /**
      * Add a new song to the jukebox.
-     * @param songFile song filename
+     * @param song song in ABC format
      */
     public synchronized void addSong(ABC song) {
         jukebox.add(song);
@@ -37,6 +38,7 @@ public class Jukebox {
     
     /**
      * Play the first song in the jukebox, or do nothing if there is no song to play.
+     * @return whether play request succeeded
      */
     public synchronized boolean play() {
         if (jukebox.isEmpty()) {
@@ -57,9 +59,9 @@ public class Jukebox {
             }
             
             // start song and play
-            song.load(player, lyric -> broadcast(new Signal(lyric)));
-            player.addEvent(0, beat -> broadcast(new Signal(Signal.Type.SONG_START)));
-            player.addEvent(song.getMusic().duration(), beat -> broadcast(new Signal(Signal.Type.SONG_END)));
+            song.load(player, lyric -> broadcast(Signal.lyric(lyric)));
+            player.addEvent(0, beat -> broadcast(Signal.SIGNAL_SONG_START));
+            player.addEvent(song.getMusic().duration(), beat -> broadcast(Signal.SIGNAL_SONG_END));
             player.play();
             
             System.err.println("Playing " + song.getTitle());
@@ -72,7 +74,7 @@ public class Jukebox {
      * 
      * @param listener listener to add
      */
-    public synchronized void addListener(ServerListener listener) {
+    public synchronized void addListener(Listener listener) {
         listeners.add(listener);
     }
     
@@ -81,7 +83,7 @@ public class Jukebox {
      * 
      * @param listener listener to remove
      */
-    public synchronized void removeListener(ServerListener listener) {
+    public synchronized void removeListener(Listener listener) {
         listeners.remove(listener);
     }
     
@@ -90,14 +92,14 @@ public class Jukebox {
      * @param signal signal to broadcast
      */
     private synchronized void broadcast(Signal signal) {
-        for (ServerListener listener : new ArrayList<>(listeners))
+        for (Listener listener : new ArrayList<>(listeners))
             listener.signalReceived(signal);
     }
     
     /**
      * A listener for WebServer, called back whenever signal is received.
      */
-    public interface ServerListener {
+    public interface Listener {
         
         /**
          * Called back whenever signal is received.
@@ -108,13 +110,21 @@ public class Jukebox {
     }
     
     /**
-     * Represents a signal broadcast from a WebServer to any ServerListeners.
+     * Represents a signal broadcast from a Jukebox to any JukeboxListeners.
      */
     public static class Signal {
         
-        public static final Signal SONG_START = new Signal(Type.SONG_START);
-        public static final Signal SONG_END = new Signal(Type.SONG_END);
-        public static final Signal SONG_CHANGE = new Signal(Type.SONG_CHANGE);
+        public static final Signal SIGNAL_SONG_START = new Signal(Type.SONG_START);
+        public static final Signal SIGNAL_SONG_END = new Signal(Type.SONG_END);
+        public static final Signal SIGNAL_SONG_CHANGE = new Signal(Type.SONG_CHANGE);
+        
+        /**
+         * @param lyric lyric being broadcast
+         * @return Signal representing the lyric
+         */
+        public static Signal lyric(Lyric lyric) {
+            return new Signal(lyric);
+        }
         
         /**
          * Types of signals, can represent a song starting, a song ending, a new song being loaded, or a lyric being broadcast.
@@ -151,7 +161,7 @@ public class Jukebox {
          * Creates a Signal representing a lyric.
          * @param lyric lyric being broadcast
          */
-        public Signal(Lyric lyric) {
+        private Signal(Lyric lyric) {
             this.type = Type.LYRIC;
             this.lyric = Optional.of(lyric);
             checkRep();
@@ -199,7 +209,7 @@ public class Jukebox {
 
         @Override
         public String toString() {
-            return type.toString();
+            return type == Type.LYRIC ? lyric.get().getBoldedLine() : type.toString();
         }
         
     }

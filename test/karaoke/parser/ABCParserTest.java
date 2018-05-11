@@ -5,7 +5,9 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Scanner;
@@ -16,9 +18,11 @@ import edu.mit.eecs.parserlib.UnableToParseException;
 import karaoke.ABC;
 import karaoke.sound.Concat;
 import karaoke.sound.Instrument;
+import karaoke.sound.Lyric;
 import karaoke.sound.Music;
 import karaoke.sound.Note;
 import karaoke.sound.Pitch;
+import karaoke.sound.Rest;
 import karaoke.sound.Together;
 
 /**
@@ -138,10 +142,26 @@ public class ABCParserTest {
         Music m2 = new Note(1, new Pitch('E'), Instrument.PIANO, Optional.empty());
         Music m3 = new Note(1, new Pitch('G'), Instrument.PIANO, Optional.empty());
 
+        Music GnoLyric = new Note(1, new Pitch('G'), Instrument.PIANO, Optional.empty());
+
+        Music G = new Note(1, new Pitch('G'), Instrument.PIANO, Optional.of(new Lyric("Gee")));
+        Music E = new Note(1, new Pitch('E'), Instrument.PIANO, Optional.of(new Lyric("Gee")));
+        Music C = new Note(1, new Pitch('C'), Instrument.PIANO, Optional.of(new Lyric("Cee")));
+        
+        Music rest = new Rest(1);
+        
+        Music Cchord = new Note(1, new Pitch('C'), Instrument.PIANO, Optional.of(new Lyric("chord")));
+        Music Echord = new Note(1, new Pitch('E'), Instrument.PIANO, Optional.of(new Lyric("chord")));
+
+        Music CE = new Together(Cchord, E);
+        Music EC = new Together(Echord, C);
+
+        Music part1 = concatChain(Arrays.asList(C, CE, GnoLyric, G, rest );
+        Music part2 = concatChain(Arrays.asList(C, CE, );
+
         final Map<String, Music> parts = new HashMap<>();
-        parts.put("1", m1);
-        parts.put("2", m2);
-        parts.put("3", m3);
+        parts.put("1", part1);
+        parts.put("2", part2);
 
         final Map<Character, Object> fields = new HashMap<>();
         fields.put('T', "voices");
@@ -151,5 +171,12 @@ public class ABCParserTest {
         
         assertEquals(new Together(m1, new Together(m2, m3)), actual.getMusic());
         assertEquals(expected, actual);
+    }
+    
+    private Music concatChain(List<Music> musics) {
+        Music growing = new Rest(0); 
+        for (Music music : musics)
+            growing = new Concat(music, growing);
+        return growing;
     }
 }

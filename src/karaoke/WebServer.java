@@ -16,6 +16,7 @@ import javax.sound.midi.MidiUnavailableException;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
+import karaoke.Jukebox.Listener;
 import karaoke.sound.Concat;
 import karaoke.sound.Instrument;
 import karaoke.sound.Lyric;
@@ -112,14 +113,18 @@ public class WebServer {
      * @throws IOException if network problem
      */
     private void handleTextStream(HttpExchange exchange) throws IOException {
-        
+        exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=utf-8");
+
     }
     
-    private PrintWriter helperExchanged(HttpExchange exchange) throws IOException {
-        final String path = exchange.getRequestURI().getPath();
-        System.err.println("received request " + path);
-        
-        exchange.getResponseHeaders().add("Content-Type", "text/html; charset=utf-8");
+    /**
+     * given an HttpExchange, return a PrintWriter that prints to 
+     * this exchange
+     * @param exchange
+     * @return out
+     * @throws IOException
+     */
+    private static PrintWriter helperGetPrintWriter(HttpExchange exchange) throws IOException {
         final int lengthNotKnownYet = 0;
         exchange.sendResponseHeaders(SUCCESS_CODE, lengthNotKnownYet);
         
@@ -141,44 +146,18 @@ public class WebServer {
      * @throws InvalidMidiDataException 
      * @throws MidiUnavailableException 
      */
-    private void handleHtmlStream(HttpExchange exchange) {
-        PrintWriter out = helperExchanged(exchange);
-        
+    private void handleHtmlStream(HttpExchange exchange) throws IOException {
+        exchange.getResponseHeaders().add("Content-Type", "text/html; charset=utf-8");
+        PrintWriter out = helperGetPrintWriter(exchange);
         try {
             final int enoughBytesToStartStreaming = 2048;
             for (int i = 0; i < enoughBytesToStartStreaming; ++i) {
                 out.print(' ');
             }
             out.println(); // also flushes
-
-            Jukebox.ServerListener listener =  new Jukebox.ServerListener() {
-                
-                @Override
-                public void signalReceived(Jukebox.Signal signal) {
-                
-                    switch (signal.getType()) {
-                    case LYRIC:
-                        out.println(signal.getLyric());
-                        break;
-                    case SONG_CHANGE:
-                        out.println("Song changed!");
-                        printCurrentSongDetails();
-                        break;
-                    case SONG_END:
-                        break;
-                    case SONG_START:
-                        break;
-                    default:
-                        throw new RuntimeException("Should never get here");
-                    }
-                }
-                private void printCurrentSongDetails() {
-                    out.println(jukebox.getCurrentSong());
-                }
-            };
-            jukebox.addListener(listener);
-            // TODO add song-is-over listener
-            jukebox.play();
+            setUpLyricsStreaming(out);
+//            jukebox.play();
+            
             out.println("<script>document.body.scrollIntoView(false)</script>");
         } finally {
             exchange.close();
@@ -186,6 +165,32 @@ public class WebServer {
         }
     }
 
+    private void setUpLyricsStreaming(PrintWriter out) {
+        Listener listener =  new Listener() {
+            @Override
+            public void signalReceived(Jukebox.Signal signal) {
+                switch (signal.getType()) {
+                case LYRIC:
+                    out.println(signal.getLyric());
+                    break;
+                case SONG_CHANGE:
+                    out.println("Song changed!");
+                    printCurrentSongDetails();
+                    break;
+                case SONG_END:
+                    break;
+                case SONG_START:
+                    break;
+                default:
+                    throw new RuntimeException("Should never get here");
+                }
+            }
+            private void printCurrentSongDetails() {
+                out.println(jukebox.getCurrentSong());
+            }
+        };
+        jukebox.addListener(listener);
+    }
     /**
      * This handler waits for an event to occur in the server
      * before sending a complete HTML page to the web browser.
@@ -200,46 +205,26 @@ public class WebServer {
      */
     private void handleHtmlWaitReload(HttpExchange exchange) throws IOException {
         checkRep();
-        
-        final String path = exchange.getRequestURI().getPath();
-        System.err.println("received request " + path);
-
-        // must call sendResponseHeaders() before calling getResponseBody()
-        final int successCode = 200;
-        final int lengthNotKnownYet = 0;
-        exchange.sendResponseHeaders(successCode, lengthNotKnownYet);
-
-        // get output stream to write to web browser
-        final boolean autoflushOnPrintln = true;
-        PrintWriter out = new PrintWriter(
-                              new OutputStreamWriter(
-                                  exchange.getResponseBody(), 
-                                  StandardCharsets.UTF_8), 
-                              autoflushOnPrintln);
+        PrintWriter out = helperGetPrintWriter(exchange);
         
         try {
-
-            // Wait until an event occurs in the server.
-            // In this example, the event is just a brief fixed-length delay, but it
-            // could synchronize with another thread instead.
-            final int millisecondsToWait = 200;
-            try {
-                Thread.sleep(millisecondsToWait);
-            } catch (InterruptedException e) {
-                return;
-            }
-            
-            // Send a full HTML page to the web browser
-            out.println(System.currentTimeMillis() + "<br>");
-            
+            enoughBytesToStartStreaming(out);
+            setUpLyricsStreaming(out);
             out.println("<script>location.reload()</script>");
-            
         } finally {
             exchange.close();
         }
         System.err.println("done streaming request");
         
     }    
+    
+    private static void enoughBytesToStartStreaming(PrintWriter out) {
+        final int enoughBytesToStartStreaming = 2048;
+        for (int i = 0; i < enoughBytesToStartStreaming; ++i) {
+            out.print(' ');
+        }
+        out.println(); // also flushes
+    }
     
     /** @return the port on which this server is listening for connections */
     public synchronized int port() {

@@ -10,14 +10,8 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiUnavailableException;
 
-import edu.mit.eecs.parserlib.UnableToParseException;
-import karaoke.WebServer.ServerListener;
-import karaoke.WebServer.Signal;
-import karaoke.WebServer.Signal.Type;
-import karaoke.parser.ABCParser;
 import karaoke.sound.Lyric;
 import karaoke.sound.MidiSequencePlayer;
-import karaoke.sound.Note;
 import karaoke.sound.SequencePlayer;
 
 public class Jukebox {

@@ -21,6 +21,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
 import edu.mit.eecs.parserlib.UnableToParseException;
+import karaoke.Jukebox.Signal;
 import karaoke.parser.ABCParser;
 import karaoke.sound.Concat;
 import karaoke.sound.Instrument;
@@ -37,9 +38,7 @@ import karaoke.sound.SequencePlayer;
 public class WebServer {
     
     private final HttpServer server;
-    private final Deque<ABC> jukebox = new ConcurrentLinkedDeque<>();
-    private Optional<ABC> currentSong = Optional.of(newABC());
-    private final List<ServerListener> listeners = new ArrayList<>();
+    private final Jukebox jukebox = new Jukebox();
     
     private static final int SUCCESS_CODE = 200;
     private static final int ERROR_CODE = 404;
@@ -107,7 +106,6 @@ public class WebServer {
     private void checkRep() {
         assert server != null;
         assert jukebox != null;
-        assert listeners != null;
     }
     
     /**
@@ -135,8 +133,9 @@ public class WebServer {
         System.err.println("received request " + path);
         
         exchange.getResponseHeaders().add("Content-Type", "text/html; charset=utf-8");
-        exchange.sendResponseHeaders(SUCCESS_CODE, 0);
-
+        final int lengthNotKnownYet = 0;
+        exchange.sendResponseHeaders(SUCCESS_CODE, lengthNotKnownYet);
+        
         // get output stream to write to web browser
         final boolean autoflushOnPrintln = true;
         PrintWriter out = new PrintWriter(
@@ -152,9 +151,11 @@ public class WebServer {
             }
             out.println(); // also flushes
 
-            ServerListener listener =  new ServerListener() {
+            Jukebox.ServerListener listener =  new Jukebox.ServerListener() {
+                
                 @Override
-                public void signalReceived(Signal signal) {
+                public void signalReceived(Jukebox.Signal signal) {
+                
                     switch (signal.getType()) {
                     case LYRIC:
                         out.println(signal.getLyric());
@@ -238,180 +239,7 @@ public class WebServer {
         }
         System.err.println("done streaming request");
         
-    }
-    
-    /**
-     * This handler adds a song to the jukebox, or prints an error message
-     * if the song file does not exist.
-     * 
-     * @param exchange request/reply object
-     * @throws IOException if network problem
-     */
-    private void handleAddSong(HttpExchange exchange) throws IOException {
-        // TODO
-    }
-    
-    /**
-     * This handler plays the first song in the jukebox.
-     * 
-     * @param exchange request/reply object
-     * @throws IOException if network problem
-     */
-    private void handlePlay(HttpExchange exchange) throws IOException {
-       
-    }
-    
-    /**
-     * Add a new song to the jukebox.
-     * @param songFile song filename
-     */
-    public synchronized void addSong(String songFile) {
-        try {
-            ABC song = ABCParser.parse(songFile);
-            jukebox.add(song);
-            System.err.println("Added " + song.getTitle() + " at position " + (jukebox.size() + 1) + " in queue");
-        } catch (UnableToParseException e) {
-            System.err.println("Unable to add " + songFile);
-        }
-    }
-    
-    /**
-     * Play the first song in the jukebox, or do nothing if there is no song to play.
-     */
-    public synchronized void play() {
-        if (jukebox.isEmpty()) {
-            System.err.println("No song to play");
-        }
-        else {
-            currentSong = Optional.of(jukebox.pop());
-            final int beatsPerMinute = currentSong.get().getBeatsPerMinute();
-            final int ticksPerBeat = 64;
-            SequencePlayer player;
-            try {
-                player = new MidiSequencePlayer(beatsPerMinute, ticksPerBeat);
-            } catch (InvalidMidiDataException | MidiUnavailableException e1) {
-                throw new RuntimeException("midi problems");
-            }
-            
-            // start song and play
-            currentSong.get().load(player, (line) -> broadcast(new Signal(line)));
-            player.play();
-                
-            System.err.println("Now playing " + currentSong.get().getTitle());
-        }
-    }
-    
-    /**
-     * Add a server listener for callback.
-     * 
-     * @param listener listener to add
-     */
-    public synchronized void addListener(ServerListener listener) {
-        listeners.add(listener);
-    }
-    
-    /**
-     * Remove a server listener from callback.
-     * 
-     * @param listener listener to remove
-     */
-    public synchronized void removeListener(ServerListener listener) {
-        listeners.remove(listener);
-    }
-    
-    /**
-     * Broadcast a signal to all server listeners.
-     * @param signal signal to broadcast
-     */
-    private synchronized void broadcast(Signal signal) {
-        for (ServerListener listener : new ArrayList<>(listeners))
-            listener.signalReceived(signal);
-    }
-    
-    /**
-     * A listener for WebServer, called back whenever signal is received.
-     */
-    public interface ServerListener {
-        /**
-         * Called back whenever signal is received.
-         * @param signal signal broadcast from server
-         */
-        public void signalReceived(Signal signal);
-    
-    }
-    
-    
-    /**
-     * Represents a signal broadcast from a WebServer to any ServerListeners.
-     */
-    public static class Signal {
-        
-        /**
-         * Types of signals, can represent a song starting, a song ending, a new song being loaded, or a lyric being broadcast.
-         */
-        public static enum Type {
-            SONG_START, SONG_END, SONG_CHANGE, LYRIC
-        }
-        
-        private final Type type;
-        private final Optional<Lyric> lyric;
-        
-        // Abstraction function:
-        //  AF(type, lyric) = a signal broadcast from a web server to its listeners,
-        //      where the type of signal is type, and
-        //      if the signal is a lyric broadcast, lyric.get() is the lyric being broadcast
-        // Representation invariant:
-        //  fields are not null
-        //  type == Type.LYRIC implies lyric.isPresent()
-        // Safety from rep exposure:
-        //  the board that is passed into the constructor (in ServerMain)
-        //      is only intended to be used with this WebServer. Thus, no
-        //      inadvertent mutation will happen from outside this class.
-        // Thread safety argument:
-        //  intended to be a singleton server; thus no need to worry about
-        //      other threads accessing or mutating it.
-        
-        private void checkRep() {
-            assert type != null;
-            assert lyric != null;
-            assert type != Type.LYRIC || lyric.isPresent();
-        }
-        
-        /**
-         * Creates a Signal representing anything other than a lyric.
-         * @param type type of signal, must not be Type.LYRIC
-         */
-        public Signal(Type type) {
-            this.type = type;
-            this.lyric = Optional.empty();
-            checkRep();
-        }
-        
-        /**
-         * Creates a Signal representing a lyric.
-         * @param lyric lyric being broadcast
-         */
-        public Signal(Lyric lyric) {
-            this.type = Type.LYRIC;
-            this.lyric = Optional.of(lyric);
-            checkRep();
-        }
-        
-        /**
-         * @return type of signal
-         */
-        public Type getType() {
-            return type;
-        }
-        
-        /**
-         * @return lyric being broadcast, requires that this signal's type is Type.LYRIC
-         */
-        public Lyric getLyric() {
-            return lyric.get();
-        }
-        
-    }
+    }    
     
     /** @return the port on which this server is listening for connections */
     public synchronized int port() {

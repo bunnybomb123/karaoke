@@ -38,6 +38,9 @@ abc ::= abc_header abc_body;
 
 abc_body ::= abc_line+;
 abc_line ::= element+ end_of_line (lyric end_of_line)?  | middle_of_body_field | comment;
+// abc_line_with_lyrics ::= element+ end_of_line (lyric end_of_line)?  | middle_of_body_field | comment;
+// abc_line_without_lyrics ::= element+ end_of_line (lyric end_of_line)?  | middle_of_body_field | comment;
+
 element ::= note_element | rest_element | tuplet_element | barline | nth_repeat | space_or_tab;
 
 //;; notes

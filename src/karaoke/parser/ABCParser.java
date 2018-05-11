@@ -3,6 +3,8 @@ package karaoke.parser;
 import karaoke.Meter;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Set;
+import java.util.HashSet;
 import karaoke.sound.Concat;
 import karaoke.sound.Music;
 import java.awt.Label;
@@ -20,8 +22,10 @@ import karaoke.ABC;
 import karaoke.sound.Lyric;
 import karaoke.sound.Rest;
 import karaoke.sound.Together;
-import org.apache.commons.io.FileUtils;
+//import org.apache.commons.io.FileUtils;
 public class ABCParser {
+    
+    private static final char CURRENT_VOICE_CHAR = '.';
     
     /*
      * Abstraction Function:
@@ -112,7 +116,10 @@ public class ABCParser {
         final Map<Character, Object> abcHeaderInfo = new HashMap<Character, Object>();
         getHeaderInfo(abcHeaderTree,abcHeaderInfo);
         
-        final Map<String, Music> abcMusicParts = makeAbstractSyntaxTree(abcBodyTree);
+        // Make a new dictionary from the header
+        Map<Character, Object> headerCopy = new HashMap<>(abcHeaderInfo);
+        headerCopy.put(CURRENT_VOICE_CHAR, "");
+        final Map<String, Music> abcMusicParts = makeAbstractSyntaxTree(abcBodyTree, headerCopy);
         final ABC abc = new ABC(abcMusicParts, abcHeaderInfo);
         // System.out.println("AST " + abc);
         
@@ -126,10 +133,164 @@ public class ABCParser {
      * that voice part. 
      * 
      * @param parseTree parsetree representation of an abc file
+     * @param header copy of the header info, which also stores the currently used voice
      * @return map which maps voices, represented by strings, to their Music AST representations
      */
-    private static Map<String, Music> makeAbstractSyntaxTree(final ParseTree<ABCGrammar> parseTree) {
+    private static Map<String, Music> makeAbstractSyntaxTree(final ParseTree<ABCGrammar> parseTree, Map<Character, Object> header) {
         switch (parseTree.name()) {
+        
+        case ABC_BODY: { // abc_body ::= abc_line+;
+            // Contains a bunch of ABC_LINEs
+            
+            // What do we need?
+            //      List of voices
+            //      current voice (maybe need to make an empty voice as well, which is what the default will be 
+            Map<String, Music> returnMusic = makeAbstractSyntaxTree(parseTree.children().get(0));
+            for (ParseTree<ABCGrammar> t : parseTree.children()) {
+                
+            }
+        } 
+        
+        case ABC_LINE: { // abc_line ::= element+ end_of_line (lyric end_of_line)?  | middle_of_body_field | comment;
+
+            // Contains a bunch of elements 
+        } 
+        
+        case KEY: {
+            
+        }
+        
+        case KEYNOTE: {
+            
+        }
+        
+        case KEY_ACCIDENTAL: {
+            
+        }
+        
+        case MADE_MINOR: {
+            
+        }
+        
+        case METER: {
+            
+        } 
+        
+        case METER_FRACTION: {
+            
+        } 
+        
+        case TEMPO: {
+            
+        } 
+        
+        case ELEMENT: {
+            
+        }
+        
+        case NOTE_ELEMENT: {
+            
+        } 
+        
+        case NOTE: {
+            
+        } 
+        
+        case PITCH: {
+            
+        } 
+        
+        case OCTAVE: {
+            
+        }
+     
+        case NOTE_LENGTH: {
+            
+        } 
+        
+        case NOTE_LENGTH_STRICT: {
+            
+        } 
+        
+        case ACCIDENTAL: {
+            
+        }
+        
+        case BASENOTE: {
+            
+        } 
+        
+        case REST_ELEMENT: {
+            
+        } 
+        
+        case TUPLET_ELEMENT: {
+            
+        } 
+        
+        case TUPLET_SPEC: {
+            
+        } 
+        
+        case CHORD: {
+            
+        } 
+        
+        case BARLINE: {
+            
+        } 
+        
+        case NTH_REPEAT: {
+            
+        } 
+        
+        case LYRIC: {
+            
+        } 
+        
+        case LYRICAL_ELEMENT: {
+            
+        } 
+        
+        case LYRIC_TEXT: {
+            
+        } 
+        
+        case COMMENT: {
+            
+        }
+        
+        case COMMENT_TEXT: {
+            
+        }
+        
+        case END_OF_LINE: {
+            
+        } 
+        
+        case TEXT: {
+            
+        } 
+        
+        case WORD: {
+            
+        } 
+        
+        case DIGIT: {
+            
+        } 
+        
+        case NEWLINE: {
+            
+        }
+        
+        case SPACE_OR_TAB: {
+            
+        }
+        
+        default: {
+            throw new AssertionError("should never get here");
+        }
             
         
         
@@ -198,7 +359,15 @@ public class ABCParser {
         case FIELD_VOICE: {
             // Voice will be stored as a Set of String objects, each representing a different voice
             // If there is no set of voices already in the currentHeading, set it to be a new dictionary.
-            currentHeaderInfo.put('C', parseTree.children().get(0).text());
+            if (!currentHeaderInfo.containsKey('V')) {
+                currentHeaderInfo.put('V', new HashSet<String>());
+            }
+            Set<String> currentVoices = ((Set<String>)currentHeaderInfo.get('V'));
+            // Add the current voice's text into the set of voices.
+            currentVoices.add(parseTree.children().get(0).text());
+            
+//            ((HashMap<Character, Object>)currentHeaderInfo.get('V')).put('C', parseTree.children().get(0).text());
+            
         }
         default:
             throw new AssertionError("should never get here");

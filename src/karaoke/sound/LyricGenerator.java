@@ -1,14 +1,8 @@
 package karaoke.sound;
 
 import java.util.ArrayList;
-import java.util.Deque;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import karaoke.Jukebox.Signal;
 
 /**
  * Lyric represents either a lyrical line (including the syllable being sung, if any) or the absence of a lyric during an instrumental.
@@ -55,31 +49,51 @@ public class LyricGenerator {
     private void checkRep() {
         assert lyricalElements != null;
         assert line != null;
+        String prev = index > 0 ? lyricalElements.get(index - 1) : null;
+        String symbol = lyricalElements.get(index);
+        assert !isSuffix(symbol, prev);
+        String syllable = format(symbol);
+        int endIndex = beginIndex + syllable.length();
+        assert syllable.equals(line.substring(beginIndex, endIndex));
+        assert hold >= 0;
     }
     
+    /**
+     * @return new Lyric with next syllable being sung, or
+     *          an instrumental Lyric if at the end of a measure, or
+     *          no Lyric if previous Lyric is being held
+     */
     public Optional<Lyric> next() {
         if (hold > 0) {
             hold--;
             return Optional.empty();
         }
         
-        String symbol = lyricalElements.get(index);
-        if (symbol.equals("|"))
+        if (lyricalElements.get(index).equals("|"))
             return Optional.of(Lyric.INSTRUMENTAL);
         
-        String syllable = format(symbol);
+        return nextSyllable();
+    }
+    
+    /**
+     * Loads the next measure of lyrics if currently at the end of a measure,
+     * such that subsequent calls to next() will return new Lyrics
+     * instead of instrumental Lyrics.
+     */
+    public void loadNextMeasure() {
+        if (lyricalElements.get(index).equals("|")) {
+            hold = 0;
+            nextSyllable();
+        }
+    }
+    
+    private Optional<Lyric> nextSyllable() {
+        String syllable = format(lyricalElements.get(index));
         String suffix = removeSuffix();
         int endIndex = beginIndex + syllable.length() + suffix.lastIndexOf('_') + 1;
         Lyric lyric = new Lyric(line, beginIndex, endIndex);
         beginIndex += syllable.length() + suffix.length();
         return Optional.of(lyric);
-    }
-    
-    public void loadNextMeasure() {
-        if (lyricalElements.get(index).equals("|")) {
-            hold = 0;
-            removeSuffix();
-        }
     }
     
     private String removeSuffix() {

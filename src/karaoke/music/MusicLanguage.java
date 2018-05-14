@@ -1,13 +1,16 @@
 package karaoke.music;
 
 import static karaoke.music.Pitch.OCTAVE;
+import static karaoke.music.Music.empty;
+import static karaoke.music.Music.rest;
+import static karaoke.music.Music.note;
+import static karaoke.music.Music.concat;
+import static karaoke.music.Music.together;
 
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import karaoke.lyrics.Lyric;
 
 /**
  * MusicLanguage defines static methods for constructing and manipulating Music expressions.
@@ -57,7 +60,7 @@ public class MusicLanguage {
      * @return the music in notes played by instr
      */
     public static Music notes(String notes, Instrument instr) {
-        Music music = rest(0);
+        Music music = empty();
         for (String sym : notes.split("[\\s|]+")) {
             if (!sym.isEmpty()) {
                 music = concat(music, parseSymbol(sym, instr));
@@ -98,43 +101,17 @@ public class MusicLanguage {
             return new Pitch(symbol.charAt(0));
     }
 
-    /**
-     * @param duration duration in beats, must be >= 0
-     * @param pitch pitch to play
-     * @param instrument instrument to use
-     * @param lyric optional lyric to play
-     * @return pitch played by instrument for duration beats, with optional lyric
-     */
-    public static Music note(double duration, Pitch pitch, Instrument instrument, Optional<Lyric> lyric) {
-        return new Note(duration, pitch, instrument, lyric);
-    }
-
-    /**
-     * @param duration duration in beats, must be >= 0
-     * @return rest that lasts for duration beats
-     */
-    public static Music rest(double duration) {
-        return new Rest(duration);
-    }
-    
-    /**
-     * @return empty music, defined as a rest of duration 0
-     */
-    public static Music emptyMusic() {
-        return new Rest(0);
-    }
-
     ////////////////////////////////////////////////////
     // Functional objects
     ////////////////////////////////////////////////////
-
-    // TODO
+    
+    // none
 
     ////////////////////////////////////////////////////
     // Generic functions
     ////////////////////////////////////////////////////
 
-    // TODO compose : (T->U) x (U->V) -> (T->V)
+    // compose : (T->U) x (U->V) -> (T->V)
     public static <T,U,V> Function<T,V> compose(Function<T,U> f, Function<U,V> g) {
         return new Function<T,V>(){
             public V apply(T t) {
@@ -148,15 +125,6 @@ public class MusicLanguage {
     ////////////////////////////////////////////////////
 
     /**
-     * @param m1 first piece of music
-     * @param m2 second piece of music
-     * @return m1 followed by m2
-     */
-    public static Music concat(Music m1, Music m2) {
-        return new Concat(m1, m2);
-    }
-
-    /**
      * Transpose all notes upward or downward in pitch.
      * @param m music
      * @param semitonesUp semitones by which to transpose
@@ -166,25 +134,18 @@ public class MusicLanguage {
      */
     public static Music transpose(Music m, int semitonesUp) {
         throw new UnsupportedOperationException();
-        //return m.accept(new TransposeVisitor(semitonesUp)); // TODO
-    }
-
-    public static Music together(Music m1, Music m2) {
-        return new Together(m1, m2);
+        //return m.accept(new TransposeVisitor(semitonesUp));
     }
 
     public static Music delay(Music m, double delay) {
         return concat(rest(delay), m);
     }
 
-    //
-    // TODO round : Music x ??? -> Music
-    //
     public static Music round(Music m, double delay, int times) {
         // to implement Round using Canon, we should call Canon and pass 
         // in the identity function as the argument
         if (times == 0) {
-            return rest(0);
+            return empty();
         } else if (times == 1) {
             return m;
         } else {
@@ -192,15 +153,9 @@ public class MusicLanguage {
         }
     }
 
-    /**
-     * 
-     * @param m
-     * @param times
-     * @return repeated music
-     */
     public static Music repeat(Music m, int times, Function<Music, Music> f) {
         if (times == 0) {
-            return rest(0);
+            return empty();
         }
         if (times == 1) {
             return m;

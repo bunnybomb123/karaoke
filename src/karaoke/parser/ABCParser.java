@@ -7,6 +7,8 @@ import java.util.Set;
 import java.util.HashSet;
 import karaoke.sound.Concat;
 import karaoke.sound.Music;
+import karaoke.sound.MusicLanguage;
+
 import java.awt.Label;
 import java.beans.Expression;
 import java.io.File;
@@ -61,7 +63,7 @@ public class ABCParser {
         ACCIDENTAL, BASENOTE, REST_ELEMENT, TUPLET_ELEMENT, TUPLET_SPEC, 
         CHORD, BARLINE, NTH_REPEAT, LYRIC, LYRICAL_ELEMENT, LYRIC_TEXT, 
         COMMENT, COMMENT_TEXT, END_OF_LINE, TEXT, WORD, DIGIT, NEWLINE, 
-        SPACE_OR_TAB,
+        SPACE_OR_TAB, MIDDLE_OF_BODY_FIELD,
     }
     
 
@@ -119,14 +121,108 @@ public class ABCParser {
         // Make a new dictionary from the header
         Map<Character, Object> headerCopy = new HashMap<>(abcHeaderInfo);
         headerCopy.put(CURRENT_VOICE_CHAR, "");
-        final Map<String, Music> abcMusicParts = makeAbstractSyntaxTree(abcBodyTree, headerCopy);
+        final Map<String, Music> abcMusicParts = new HashMap<>();
+        // populates abcMusicParts
+        makeAbstractSyntaxTree(abcBodyTree, abcMusicParts, headerCopy, "");
         final ABC abc = new ABC(abcMusicParts, abcHeaderInfo);
         // System.out.println("AST " + abc);
         
         return abc;
     }
     
-    
+    private static Music makeMusic(ParseTree<ABCGrammar> parseTree, Map<Character, Object> header, Map<String,Integer> accidentalMap) {
+        
+        switch (parseTree.name()) {
+        
+        case ABC_LINE: {
+            
+            Music currentMusic = makeMusic(parseTree.children().get(0), header, accidentalMap);
+            int lyricsPresent = 0;
+            
+            // Instrumental Lyric Generator
+            LyricGenerator lyricGenerator = new LyricGenerator("");
+            // If the last element is a lyric, then we don't need to go through the last child of the parseTree,
+            // And we need to add all the elements of the parseTree to the thing
+            if (parseTree.children().get(parseTree.children().size()-1).name().equals(ABCGrammar.LYRIC)) {
+                lyricsPresent = 1;
+                lyricGenerator = new LyricGenerator(parseTree.children().get(parseTree.children().size()-1));
+            }
+            // Go through each parseTree element, and for each, make a concat with 
+            for (ParseTree<ABCGrammar> t : parseTree.children().subList(1, parseTree.children().size() - lyricsPresent)) {
+                Music newMusic = makeMusic(t, header, accidentalMap);
+                return new Concat(currentMusic, newMusic);
+            }
+        }
+        
+        // In this case, we need to just 
+        case NOTE_ELEMENT: { //note_element ::= note | chord;
+            // 
+            return makeMusic(parseTree.children().get(0), header, accidentalMap);
+        }
+        
+        
+        // In this case, we need to make a new note to return to the use
+        case NOTE: { // note ::= pitch note_length?;
+            // pitch ::= accidental? basenote octave?;
+            ParseTree<ABCGrammar> pitch = parseTree.children().get(0);
+            for (ParseTree<ABCGrammar> t : parseTree.children()) {
+//                String accidental = "";
+                String note;
+                int accidentalNumber = 0;
+                
+                switch (t.name()) {
+                
+                case ACCIDENTAL: { // accidental ::= "^" | "^^" | "_" | "__" | "=";
+                    String accidental = t.text();
+                    switch (accidental) {
+                    case "^": {
+                        accidentalNumber = 1;
+                    }
+                    case "^^": {
+                        accidentalNumber = 2;
+                    }
+                    case "_": {
+                        accidentalNumber = -1;
+                    }
+                    case "__": {
+                        accidentalNumber = -2;
+                    }
+                    case "=": {
+                        accidentalNumber = 0;
+                    }
+                    default:
+                        break;
+                    }
+                }
+                case BASENOTE: { // basenote ::= "C" | "D" | "E" | "F" | "G" | "A" | "B" | "c" | "d" | "e" | "f" | "g" | "a" | "b";
+                    note = t.text();
+                }
+                case OCTAVE: { // octave ::= "'"+ | ","+
+                    note = note + t.text();
+                }
+                default:
+                    break;
+                }
+                accidentalMap.put(note, accidental);
+//                Lyric nextLyric = LyricGenerator.next();
+                Pitch newPitch = new Pitch(note).transpose(accidentalNumber);
+            }
+        }
+        
+        // In this case, we need to go through each note present, add it to a list
+        case CHORD: { // chord ::= "[" note+ "]";
+            Music currentMusic = makeMusic(parseTree.children().get(0), header, accidentalMap);
+            // For each of the other children, create a together object with the notes in it
+            for (ParseTree<ABCGrammar> t : parseTree.children().subList(1, parseTree.children().size())) {
+                Music newNote = makeMusic(t, header, accidentalMap);
+                currentMusic = new Together(currentMusic, newNote);
+            }
+            return currentMusic;
+        }
+            
+        }
+        
+    }
     
     /**
      * For each voice part present in the abc file's ParseTree, creates an AST representation of the music associated with
@@ -136,164 +232,49 @@ public class ABCParser {
      * @param header copy of the header info, which also stores the currently used voice
      * @return map which maps voices, represented by strings, to their Music AST representations
      */
-    private static Map<String, Music> makeAbstractSyntaxTree(final ParseTree<ABCGrammar> parseTree, Map<Character, Object> header) {
+    private static Map<String, Music> makeAbstractSyntaxTree(final ParseTree<ABCGrammar> parseTree, Map<String, Music> currentMusic, Map<Character, Object> header, String voice) {
+        
+        String currentVoice = voice;
+        
         switch (parseTree.name()) {
         
         case ABC_BODY: { // abc_body ::= abc_line+;
             // Contains a bunch of ABC_LINEs
-            
             // What do we need?
             //      List of voices
             //      current voice (maybe need to make an empty voice as well, which is what the default will be 
-            Map<String, Music> returnMusic = makeAbstractSyntaxTree(parseTree.children().get(0));
+//            Map<String, Music> returnMusic = makeAbstractSyntaxTree(parseTree.children().get(0), currentMusic,  header, currentVoice);
             for (ParseTree<ABCGrammar> t : parseTree.children()) {
+                Map<String, Integer> accidentalMap = new HashMap<>();
+                // if t == voice section, then update the current voice
+                if(t.name().equals(ABCGrammar.MIDDLE_OF_BODY_FIELD)) {
+                    currentVoice = t.children().get(0).text();
+                } else if(t.name().equals(ABCGrammar.COMMENT)) {
+                    // Do nothing here, it's just a comment
+                }
+                
+                // If it's not an entry in the map, make the abstract syntax tree of the thing and put it in the map
+                else if (!currentMusic.containsKey(currentVoice)) {
+                    Music startMusic = makeMusic(t, header, accidentalMap);
+                    currentMusic.put(currentVoice, startMusic);
+                } else {
+                    Music leftMusic = currentMusic.get(currentVoice);
+                    Music rightMusic = makeMusic(t, header, accidentalMap);
+                    Music combinedMusic = new Concat(leftMusic, rightMusic);
+                    currentMusic.put(currentVoice, combinedMusic);
+                }
+                // If it is an entry already, then make a new concat with the right element being the new line's elements, and the 
+                // left element being the old music object. Then store the concat in the map for that voice
+                // If it's a new voice field, then set the new voice to be the given voice
                 
             }
+            return currentMusic;
         } 
-        
-        case ABC_LINE: { // abc_line ::= element+ end_of_line (lyric end_of_line)?  | middle_of_body_field | comment;
-
-            // Contains a bunch of elements 
-        } 
-        
-        case KEY: {
-            
-        }
-        
-        case KEYNOTE: {
-            
-        }
-        
-        case KEY_ACCIDENTAL: {
-            
-        }
-        
-        case MADE_MINOR: {
-            
-        }
-        
-        case METER: {
-            
-        } 
-        
-        case METER_FRACTION: {
-            
-        } 
-        
-        case TEMPO: {
-            
-        } 
-        
-        case ELEMENT: {
-            
-        }
-        
-        case NOTE_ELEMENT: {
-            
-        } 
-        
-        case NOTE: {
-            
-        } 
-        
-        case PITCH: {
-            
-        } 
-        
-        case OCTAVE: {
-            
-        }
-     
-        case NOTE_LENGTH: {
-            
-        } 
-        
-        case NOTE_LENGTH_STRICT: {
-            
-        } 
-        
-        case ACCIDENTAL: {
-            
-        }
-        
-        case BASENOTE: {
-            
-        } 
-        
-        case REST_ELEMENT: {
-            
-        } 
-        
-        case TUPLET_ELEMENT: {
-            
-        } 
-        
-        case TUPLET_SPEC: {
-            
-        } 
-        
-        case CHORD: {
-            
-        } 
-        
-        case BARLINE: {
-            
-        } 
-        
-        case NTH_REPEAT: {
-            
-        } 
-        
-        case LYRIC: {
-            
-        } 
-        
-        case LYRICAL_ELEMENT: {
-            
-        } 
-        
-        case LYRIC_TEXT: {
-            
-        } 
-        
-        case COMMENT: {
-            
-        }
-        
-        case COMMENT_TEXT: {
-            
-        }
-        
-        case END_OF_LINE: {
-            
-        } 
-        
-        case TEXT: {
-            
-        } 
-        
-        case WORD: {
-            
-        } 
-        
-        case DIGIT: {
-            
-        } 
-        
-        case NEWLINE: {
-            
-        }
-        
-        case SPACE_OR_TAB: {
-            
-        }
         
         default: {
             throw new AssertionError("should never get here");
         }
-            
-        
-        
+
         }
     }
     

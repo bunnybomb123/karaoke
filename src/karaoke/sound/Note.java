@@ -23,7 +23,7 @@ public class Note implements Music {
      *  
      * Thread safety argument:
      *  This object and its field are all immutable, and there is no 
-     *  beneficent mutation
+     *  beneficient mutation
      */
 
     private final double duration;

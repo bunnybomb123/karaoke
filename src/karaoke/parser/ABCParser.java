@@ -61,7 +61,7 @@ public class ABCParser {
         ACCIDENTAL, BASENOTE, REST_ELEMENT, TUPLET_ELEMENT, TUPLET_SPEC, 
         CHORD, BARLINE, NTH_REPEAT, LYRIC, LYRICAL_ELEMENT, LYRIC_TEXT, 
         COMMENT, COMMENT_TEXT, END_OF_LINE, TEXT, WORD, DIGIT, NEWLINE, 
-        SPACE_OR_TAB,
+        SPACE_OR_TAB, MIDDLE_OF_BODY_FIELD,
     }
     
 
@@ -119,14 +119,36 @@ public class ABCParser {
         // Make a new dictionary from the header
         Map<Character, Object> headerCopy = new HashMap<>(abcHeaderInfo);
         headerCopy.put(CURRENT_VOICE_CHAR, "");
-        final Map<String, Music> abcMusicParts = makeAbstractSyntaxTree(abcBodyTree, headerCopy);
+        final Map<String, Music> abcMusicParts = new HashMap<>();
+        // populate abcMusicParts
+        makeAbstractSyntaxTree(abcBodyTree, abcMusicParts, headerCopy,"");
         final ABC abc = new ABC(abcMusicParts, abcHeaderInfo);
         // System.out.println("AST " + abc);
         
         return abc;
     }
     
-    
+    private static Music makeMusic(ParseTree<ABCGrammar> parseTree, Map<Character, Object> header, String voice) {
+        
+        switch (parseTree.name()) {
+        
+        case ABC_LINE: {
+            if (parseTree.children().size() > 1) {
+                Music currentMusic = makeMusic(parseTree.children().get(0), header, voice);
+            }
+            for (ParseTree<ABCGrammar> t : parseTree.children()) {
+                
+            }
+        }
+        
+        case NOTE_ELEMENT: { //note_element ::= note | chord;
+            // 
+            return new Note();
+        }
+            
+        }
+        
+    }
     
     /**
      * For each voice part present in the abc file's ParseTree, creates an AST representation of the music associated with
@@ -136,17 +158,38 @@ public class ABCParser {
      * @param header copy of the header info, which also stores the currently used voice
      * @return map which maps voices, represented by strings, to their Music AST representations
      */
-    private static Map<String, Music> makeAbstractSyntaxTree(final ParseTree<ABCGrammar> parseTree, Map<Character, Object> header) {
+    private static void makeAbstractSyntaxTree(final ParseTree<ABCGrammar> parseTree, Map<String, Music> currentMusic, Map<Character, Object> header, String voice) {
+        
+        String currentVoice = voice;
+        
         switch (parseTree.name()) {
         
         case ABC_BODY: { // abc_body ::= abc_line+;
             // Contains a bunch of ABC_LINEs
-            
             // What do we need?
             //      List of voices
             //      current voice (maybe need to make an empty voice as well, which is what the default will be 
-            Map<String, Music> returnMusic = makeAbstractSyntaxTree(parseTree.children().get(0));
+//            Map<String, Music> returnMusic = makeAbstractSyntaxTree(parseTree.children().get(0), currentMusic,  header, currentVoice);
             for (ParseTree<ABCGrammar> t : parseTree.children()) {
+                // if t == voice section, then update the current voice
+                if(t.name().equals(ABCGrammar.MIDDLE_OF_BODY_FIELD)) {
+                    currentVoice = t.children().get(0).text();
+                } else if(t.name().equals(ABCGrammar.COMMENT)) {
+                    // Do nothing here, it's just a comment
+                }
+                // If it's not an entry in the map, make the abstract syntax tree of the thing and put it in the map
+                else if (!currentMusic.containsKey(currentVoice)) {
+                    Music startMusic = makeMusic(t, header, currentVoice);
+                    currentMusic.put(currentVoice, startMusic);
+                } else {
+                    Music leftMusic = currentMusic.get(currentVoice);
+                    Music rightMusic = makeMusic(t, header, currentVoice);
+                    Music combinedMusic = new Concat(leftMusic, rightMusic);
+                    currentMusic.put(currentVoice, combinedMusic);
+                }
+                // If it is an entry already, then make a new concat with the right element being the new line's elements, and the 
+                // left element being the old music object. Then store the concat in the map for that voice
+                // If it's a new voice field, then set the new voice to be the given voice
                 
             }
         } 
@@ -155,6 +198,10 @@ public class ABCParser {
 
             // Contains a bunch of elements 
         } 
+        
+        case MIDDLE_OF_BODY_FIELD: {
+            
+        }
         
         case KEY: {
             
@@ -256,18 +303,6 @@ public class ABCParser {
             
         } 
         
-        case COMMENT: {
-            
-        }
-        
-        case COMMENT_TEXT: {
-            
-        }
-        
-        case END_OF_LINE: {
-            
-        } 
-        
         case TEXT: {
             
         } 
@@ -280,20 +315,11 @@ public class ABCParser {
             
         } 
         
-        case NEWLINE: {
-            
-        }
-        
-        case SPACE_OR_TAB: {
-            
-        }
         
         default: {
             throw new AssertionError("should never get here");
         }
-            
-        
-        
+
         }
     }
     

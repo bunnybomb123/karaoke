@@ -17,9 +17,9 @@ public class LyricGenerator {
     
     private final List<String> lyricalElements;
     private final String line;
-    private final Deque<Optional<Lyric>> lyrics;
     private int index = 0;
     private int beginIndex = 0;
+    private int hold = 0;
     
     /* Abstraction function:
      *  AF(prefix, syllable, suffix, isInstrumental) =
@@ -41,153 +41,70 @@ public class LyricGenerator {
      */
     
     /**
-     * Creates a Lyric representing a lyrical line with no syllable being sung.
-     * @param line lyrical line
+     * Creates a LyricGenerator for the lyrical line specified by lyricalElements.
+     * @param lyricalElements lyrical line, represented by a list of lyrical elements
+     *          according to Abc grammar
      */
     public LyricGenerator(List<String> lyricalElements) {
-        this.line = "";
-        this.lyrics = extractLyrics(lyricalElements, this.line);
-    }
-    
-    private Deque<Optional<Lyric>> extractLyrics(List<String> lyricalElements, String line) {
-        int beginIndex = 0;
-        int endIndex = 0;
-        for (String lyric : lyricalElements) {
-            if (lyric.trim().isEmpty())
-                beginIndex++;
-            else if (lyric.equals("-"))
-        }
+        this.lyricalElements = new ArrayList<>(lyricalElements);
+        StringBuffer formattedLine = new StringBuffer();
+        lyricalElements.stream().map(LyricGenerator::format).forEach(formattedLine::append);
+        this.line = formattedLine.toString();
     }
     
     private void checkRep() {
+        assert lyricalElements != null;
         assert line != null;
     }
     
     public Optional<Lyric> next() {
-        String token = lyricalElements.get(index++);
-        if (token.trim().isEmpty() || token.equals("-")) {
-            beginIndex += token.length();
-            token = lyricalElements.get(index++);
-        }
-        if (token.trim().isEmpty()) {
-            beginIndex += token.length();
-            token = lyricalElements.get(index++);
+        if (hold > 0) {
+            hold--;
+            return Optional.empty();
         }
         
-        if (token.equals("-"))
+        String symbol = lyricalElements.get(index);
+        if (symbol.equals("|"))
+            return Optional.of(Lyric.INSTRUMENTAL);
+        
+        String syllable = format(symbol);
+        String suffix = removeSuffix();
+        int endIndex = beginIndex + syllable.length() + suffix.lastIndexOf('_') + 1;
+        Lyric lyric = new Lyric(line, beginIndex, endIndex);
+        beginIndex += syllable.length() + suffix.length();
+        return Optional.of(lyric);
     }
     
     public void loadNextMeasure() {
-        
+        if (lyricalElements.get(index).equals("|")) {
+            hold = 0;
+            removeSuffix();
+        }
     }
     
-    private String formatSyllable(String lyricalElement) {
-        return lyricalElement.replace("~", " ").replace("\\-", "-");
+    private String removeSuffix() {
+        String suffix = "";
+        String prev = lyricalElements.get(index);
+        String symbol = lyricalElements.get(++index);
+        while (isSuffix(symbol, prev)) {
+            suffix += symbol;
+            if (symbol.equals("_"))
+                hold++;
+            prev = symbol;
+            symbol = lyricalElements.get(++index);
+        }
+        return suffix;
     }
     
-    /**
-    * Represents a signal broadcast from a Jukebox to any JukeboxListeners.
-    */
-   private class LyricalElement {
-       
-       public static final Signal SIGNAL_SONG_START = new Signal(Type.SONG_START);
-       public static final Signal SIGNAL_SONG_END = new Signal(Type.SONG_END);
-       public static final Signal SIGNAL_SONG_CHANGE = new Signal(Type.SONG_CHANGE);
-       
-       /**
-        * @param lyric lyric being broadcast
-        * @return Signal representing the lyric
-        */
-       public static Signal lyric(Lyric lyric) {
-           return new Signal(lyric);
-       }
-       
-       /**
-        * Types of signals, can represent a song starting, a song ending, a new song being loaded, or a lyric being broadcast.
-        */
-       public static enum Type {
-           SONG_START, SONG_END, SONG_CHANGE, LYRIC
-       }
-       
-       private final Type type;
-       private final Optional<Lyric> lyric;
-       
-       // Abstraction function:
-       //  AF(type, lyric) = a signal broadcast from a web server to its listeners,
-       //      where the type of signal is type, and
-       //      if the signal is a lyric broadcast, lyric.get() is the lyric being broadcast
-       // Representation invariant:
-       //  fields are not null
-       //  type == Type.LYRIC implies lyric.isPresent()
-       // Safety from rep exposure:
-       //  the board that is passed into the constructor (in ServerMain)
-       //      is only intended to be used with this WebServer. Thus, no
-       //      inadvertent mutation will happen from outside this class.
-       // Thread safety argument:
-       //  intended to be a singleton server; thus no need to worry about
-       //      other threads accessing or mutating it.
-       
-       private void checkRep() {
-           assert type != null;
-           assert lyric != null;
-           assert type != Type.LYRIC || lyric.isPresent();
-       }
-       
-       /**
-        * Creates a Signal representing a lyric.
-        * @param lyric lyric being broadcast
-        */
-       private Signal(Lyric lyric) {
-           this.type = Type.LYRIC;
-           this.lyric = Optional.of(lyric);
-           checkRep();
-       }
-       
-       /**
-        * Creates a Signal representing anything other than a lyric.
-        * @param type type of signal, must not be Type.LYRIC
-        */
-       private Signal(Type type) {
-           this.type = type;
-           this.lyric = Optional.empty();
-           checkRep();
-       }
-       
-       /**
-        * @return type of signal
-        */
-       public Type getType() {
-           return type;
-       }
-       
-       /**
-        * @return lyric being broadcast, requires that this signal's type is Type.LYRIC
-        */
-       public Lyric getLyric() {
-           return lyric.get();
-       }
-       
-       @Override
-       public int hashCode() {
-           return Objects.hash(type, lyric);
-       }
-
-       @Override
-       public boolean equals(Object obj) {
-           if (this == obj) return true;
-           if (obj == null) return false;
-           if (getClass() != obj.getClass()) return false;
-           
-           final Signal other = (Signal) obj;
-           return type == other.type
-                   && lyric.equals(other.lyric);
-       }
-
-       @Override
-       public String toString() {
-           return type == Type.LYRIC ? lyric.get().toPlainText() : type.toString();
-       }
-       
-   }
+    private static boolean isSuffix(String symbol, String prev) {
+        return symbol.equals("-") && (prev == null ||
+                                      !prev.trim().isEmpty() && !prev.equals("-"))
+                || symbol.trim().isEmpty()
+                || symbol.equals("_");
+    }
+    
+    private static String format(String symbol) {
+        return symbol.replace("~", " ").replace("\\-", "-");
+    }
 
 }

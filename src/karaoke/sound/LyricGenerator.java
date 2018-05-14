@@ -1,193 +1,154 @@
 package karaoke.sound;
 
 import java.util.ArrayList;
-import java.util.Deque;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import karaoke.Jukebox.Signal;
 
 /**
- * Lyric represents either a lyrical line (including the syllable being sung, if any) or the absence of a lyric during an instrumental.
+ * LyricGenerator generates Lyrics from a provided lyrical line.
  */
 public class LyricGenerator {
     
     private final List<String> lyricalElements;
     private final String line;
-    private final Deque<Optional<Lyric>> lyrics;
-    private int index = 0;
+    private int index;
     private int beginIndex = 0;
+    private int hold = 0;
     
     /* Abstraction function:
-     *  AF(prefix, syllable, suffix, isInstrumental) =
-     *      a lyric if isInstrumental is false,
-     *          represented by the tuple (prefix, syllable, suffix)
-     *          denoting the lyrical line prefix + syllable.get() + suffix where
-     *          syllable is the syllable being sung, if any; or
-     *      the absence of a lyric if isInstrumental is true.
+     *  AF(lyricalElements, line, index, beginIndex, hold) =
+     *      a lyric generator that generates lyrics from the lyrical line
+     *          specified by lyricalElements and with formatted representation line,
+     *      where the syllable being sung by the next lyric (or the barline if at the end of a measure)
+     *          is represented by lyricalElements.get(index)
+     *          and found in the formatted lyrical line as line.substring(beginIndex, beginIndex + syllable.length()),
+     *          unless hold > 0 in which case the previous syllable should be held for hold more notes
      * 
      * Rep invariant:
      *  fields are not null
+     *  if index < lyricalElements.size():
+     *      symbol = lyricalElements.get(index) is either a syllable or a barline, and
+     *      syllable = format(symbol) is equal to line.substring(beginIndex, beginIndex + syllable.length())
+     *  hold >= 0
      * 
      * Safety from rep exposure:
-     *  all fields are final and immutable
-     *  
-     * Thread safety argument:
-     *  This object and its field are all immutable, and there is no 
-     *  beneficent mutation
+     *  defensive copying in constructor for lyricalElements
+     *  no other fields are passed in or returned by any methods
      */
     
     /**
-     * Creates a Lyric representing a lyrical line with no syllable being sung.
-     * @param line lyrical line
+     * Creates a LyricGenerator for the lyrical line specified by lyricalElements.
+     * @param lyricalElements lyrical line, represented by a list of lyrical elements
+     *          according to Abc grammar
      */
     public LyricGenerator(List<String> lyricalElements) {
-        this.line = "";
-        this.lyrics = extractLyrics(lyricalElements, this.line);
+        this.lyricalElements = new ArrayList<>(lyricalElements);
+        StringBuffer formattedLine = new StringBuffer();
+        lyricalElements.stream().map(LyricGenerator::format).forEach(formattedLine::append);
+        this.line = formattedLine.toString();
+        this.index = 0;
+        removeSuffix();
+        checkRep();
     }
     
-    private Deque<Optional<Lyric>> extractLyrics(List<String> lyricalElements, String line) {
-        int beginIndex = 0;
-        int endIndex = 0;
-        for (String lyric : lyricalElements) {
-            if (lyric.trim().isEmpty())
-                beginIndex++;
-            else if (lyric.equals("-"))
-        }
-    }
-    
+    /*
+     * Check rep invariant.
+     */
     private void checkRep() {
+        assert lyricalElements != null;
         assert line != null;
-    }
-    
-    public Optional<Lyric> next() {
-        String token = lyricalElements.get(index++);
-        if (token.trim().isEmpty() || token.equals("-")) {
-            beginIndex += token.length();
-            token = lyricalElements.get(index++);
+        if (index < lyricalElements.size()) {
+            String prev = index > 0 ? lyricalElements.get(index - 1) : null;
+            String symbol = lyricalElements.get(index);
+            assert !isSuffix(symbol, prev);
+            String syllable = format(symbol);
+            int endIndex = beginIndex + syllable.length();
+            assert syllable.equals(line.substring(beginIndex, endIndex));
         }
-        if (token.trim().isEmpty()) {
-            beginIndex += token.length();
-            token = lyricalElements.get(index++);
-        }
-        
-        if (token.equals("-"))
-    }
-    
-    public void loadNextMeasure() {
-        
-    }
-    
-    private String formatSyllable(String lyricalElement) {
-        return lyricalElement.replace("~", " ").replace("\\-", "-");
+        assert hold >= 0;
     }
     
     /**
-    * Represents a signal broadcast from a Jukebox to any JukeboxListeners.
-    */
-   private class LyricalElement {
-       
-       public static final Signal SIGNAL_SONG_START = new Signal(Type.SONG_START);
-       public static final Signal SIGNAL_SONG_END = new Signal(Type.SONG_END);
-       public static final Signal SIGNAL_SONG_CHANGE = new Signal(Type.SONG_CHANGE);
-       
-       /**
-        * @param lyric lyric being broadcast
-        * @return Signal representing the lyric
-        */
-       public static Signal lyric(Lyric lyric) {
-           return new Signal(lyric);
-       }
-       
-       /**
-        * Types of signals, can represent a song starting, a song ending, a new song being loaded, or a lyric being broadcast.
-        */
-       public static enum Type {
-           SONG_START, SONG_END, SONG_CHANGE, LYRIC
-       }
-       
-       private final Type type;
-       private final Optional<Lyric> lyric;
-       
-       // Abstraction function:
-       //  AF(type, lyric) = a signal broadcast from a web server to its listeners,
-       //      where the type of signal is type, and
-       //      if the signal is a lyric broadcast, lyric.get() is the lyric being broadcast
-       // Representation invariant:
-       //  fields are not null
-       //  type == Type.LYRIC implies lyric.isPresent()
-       // Safety from rep exposure:
-       //  the board that is passed into the constructor (in ServerMain)
-       //      is only intended to be used with this WebServer. Thus, no
-       //      inadvertent mutation will happen from outside this class.
-       // Thread safety argument:
-       //  intended to be a singleton server; thus no need to worry about
-       //      other threads accessing or mutating it.
-       
-       private void checkRep() {
-           assert type != null;
-           assert lyric != null;
-           assert type != Type.LYRIC || lyric.isPresent();
-       }
-       
-       /**
-        * Creates a Signal representing a lyric.
-        * @param lyric lyric being broadcast
-        */
-       private Signal(Lyric lyric) {
-           this.type = Type.LYRIC;
-           this.lyric = Optional.of(lyric);
-           checkRep();
-       }
-       
-       /**
-        * Creates a Signal representing anything other than a lyric.
-        * @param type type of signal, must not be Type.LYRIC
-        */
-       private Signal(Type type) {
-           this.type = type;
-           this.lyric = Optional.empty();
-           checkRep();
-       }
-       
-       /**
-        * @return type of signal
-        */
-       public Type getType() {
-           return type;
-       }
-       
-       /**
-        * @return lyric being broadcast, requires that this signal's type is Type.LYRIC
-        */
-       public Lyric getLyric() {
-           return lyric.get();
-       }
-       
-       @Override
-       public int hashCode() {
-           return Objects.hash(type, lyric);
-       }
-
-       @Override
-       public boolean equals(Object obj) {
-           if (this == obj) return true;
-           if (obj == null) return false;
-           if (getClass() != obj.getClass()) return false;
-           
-           final Signal other = (Signal) obj;
-           return type == other.type
-                   && lyric.equals(other.lyric);
-       }
-
-       @Override
-       public String toString() {
-           return type == Type.LYRIC ? lyric.get().toPlainText() : type.toString();
-       }
-       
-   }
+     * @return new Lyric with next syllable being sung, or
+     *          an instrumental Lyric if at the end of a measure, or
+     *          no Lyric if previous Lyric is being held
+     */
+    public Optional<Lyric> next() {
+        if (hold > 0) {
+            hold--;
+            checkRep();
+            return Optional.empty();
+        }
+        
+        if (index >= lyricalElements.size() || lyricalElements.get(index).equals("|"))
+            return Optional.of(Lyric.INSTRUMENTAL);
+        
+        return nextSyllable();
+    }
+    
+    /**
+     * Loads the next measure of lyrics if currently at the end of a measure,
+     * such that subsequent calls to next() will return new Lyrics
+     * instead of instrumental Lyrics.
+     */
+    public void loadNextMeasure() {
+        if (index < lyricalElements.size() && lyricalElements.get(index).equals("|")) {
+            hold = 0;
+            nextSyllable();
+            checkRep();
+        }
+    }
+    
+    /*
+     * Returns a new Lyric representing the extended syllable starting at lyricalElements.get(index) being sung.
+     * An extended syllable is a syllable extended to include all "_" characters following it.
+     * Updates index to point to next syllable or barline.
+     */
+    private Optional<Lyric> nextSyllable() {
+        String syllable = format(lyricalElements.get(index++));
+        String suffix = removeSuffix();
+        int endIndex = beginIndex + syllable.length() + suffix.lastIndexOf('_') + 1;
+        Lyric lyric = new Lyric(line, beginIndex, endIndex);
+        beginIndex += syllable.length() + suffix.length();
+        checkRep();
+        return Optional.of(lyric);
+    }
+    
+    /*
+     * Returns the suffix starting at lyricalElements.get(index).
+     * A suffix is a string of characters that could trail behind a syllable or barline before the next syllable or barline.
+     * Updates index to point to next syllable or barline.
+     */
+    private String removeSuffix() {
+        StringBuffer suffix = new StringBuffer();
+        String prev = index > 0 ? lyricalElements.get(index - 1) : null;
+        String symbol = lyricalElements.get(index);
+        while (isSuffix(symbol, prev)) {
+            suffix.append(symbol);
+            if (symbol.equals("_"))
+                hold++;
+            prev = symbol;
+            symbol = lyricalElements.get(++index);
+        }
+        return suffix.toString();
+    }
+    
+    /*
+     * Given a symbol and the symbol preceding it, return whether the symbol is part of a suffix.
+     */
+    private static boolean isSuffix(String symbol, String prev) {
+        return symbol.equals("-") && (prev == null ||
+                                      !prev.trim().isEmpty() && !prev.equals("-"))
+                || symbol.trim().isEmpty()
+                || symbol.equals("_");
+    }
+    
+    /**
+     * @param symbol lyrical element to parse
+     * @return formatted representation of symbol
+     */
+    private static String format(String symbol) {
+        return symbol.replace("~", " ").replace("\\-", "-");
+    }
 
 }

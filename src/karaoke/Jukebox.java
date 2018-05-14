@@ -24,21 +24,7 @@ public class Jukebox {
     /**
      * Create a new empty Jukebox.
      */
-    public Jukebox() {
-        this.addListener(signal -> {
-            switch(signal.getType()) {
-            case SONG_START:
-                this.isPlaying = true;
-                break;
-            case SONG_END:
-                this.isPlaying = false;
-                updateCurrentSong();
-                break;
-            default:
-                break;
-            }
-        });
-    }
+    public Jukebox() {}
     
     /**
      * @return song being played or next to be played if jukebox is not playing,
@@ -95,8 +81,15 @@ public class Jukebox {
         
         // start song and play
         song.load(player, lyric -> broadcast(Signal.lyric(lyric)));
-        player.addEvent(0, beat -> broadcast(Signal.SIGNAL_SONG_START));
-        player.addEvent(song.getMusic().duration(), beat -> broadcast(Signal.SIGNAL_SONG_END));
+        player.addEvent(0, beat -> {
+            isPlaying = true;
+            broadcast(Signal.SIGNAL_SONG_START);
+        });
+        player.addEvent(song.getMusic().duration(), beat -> {
+            isPlaying = false;
+            updateCurrentSong();
+            broadcast(Signal.SIGNAL_SONG_END);
+        });
         player.play();
         
         System.err.println("Playing " + song.getTitle());
@@ -109,7 +102,7 @@ public class Jukebox {
      */
     private synchronized void updateCurrentSong() {
         currentSong = queuedSongs.isEmpty() ? Optional.empty() :
-                                              Optional.of(queuedSongs.pop());
+                                              Optional.of(queuedSongs.remove());
         broadcast(Signal.SIGNAL_SONG_CHANGE);
     }
     

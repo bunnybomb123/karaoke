@@ -1,6 +1,7 @@
 package karaoke.sound;
 
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -16,7 +17,7 @@ public class LyricGenerator {
     
     private final List<String> lyricalElements;
     private final String line;
-    private final List<Integer> lyricLengths;
+    private final Deque<Optional<Lyric>> lyrics;
     private int index = 0;
     private int beginIndex = 0;
     
@@ -44,11 +45,18 @@ public class LyricGenerator {
      * @param line lyrical line
      */
     public LyricGenerator(List<String> lyricalElements) {
-        this.lyricalElements = new ArrayList<>(lyricalElements);
-        Stream<String> lyrics = lyricalElements.stream().map(text -> text.replace("~", " ").replace("\\-", "-"));
-        this.line = String.join("", lyrics.collect(Collectors.toList()));
-        this.lyricLengths = lyrics.map(String::length).collect(Collectors.toList());
-        checkRep();
+        this.line = "";
+        this.lyrics = extractLyrics(lyricalElements, this.line);
+    }
+    
+    private Deque<Optional<Lyric>> extractLyrics(List<String> lyricalElements, String line) {
+        int beginIndex = 0;
+        int endIndex = 0;
+        for (String lyric : lyricalElements) {
+            if (lyric.trim().isEmpty())
+                beginIndex++;
+            else if (lyric.equals("-"))
+        }
     }
     
     private void checkRep() {
@@ -56,8 +64,17 @@ public class LyricGenerator {
     }
     
     public Optional<Lyric> next() {
+        String token = lyricalElements.get(index++);
+        if (token.trim().isEmpty() || token.equals("-")) {
+            beginIndex += token.length();
+            token = lyricalElements.get(index++);
+        }
+        if (token.trim().isEmpty()) {
+            beginIndex += token.length();
+            token = lyricalElements.get(index++);
+        }
         
-        
+        if (token.equals("-"))
     }
     
     public void loadNextMeasure() {

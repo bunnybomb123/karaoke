@@ -76,16 +76,16 @@ nth_repeat ::= "[1" | "[2";
 middle_of_body_field ::= field_voice;
 
 lyric ::= "w:" lyrical-element*;
-lyrical_element ::= " "+ | "-" | "_" | "*" | "~" | "\-" | "|" | lyric-text;
+lyrical_element ::= " "+ | "-" | "_" | "*" | "|" | lyric-text;
 //; lyric_text should be defined appropriately
-lyric_text ::= [^ -_*~\|]+;
+lyric_text ::= ("\-" | [^ -_*|\n\r])+;
 
 //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 //;; General
 
 comment ::= space_or_tab* "%" comment_text newline;
 //; comment_text should be defined appropriately;
-comment_text ::= .*;
+comment_text ::= [^\n\r]*;
 
 end_of_line ::= comment | newline;
 

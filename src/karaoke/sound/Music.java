@@ -1,11 +1,56 @@
 package karaoke.sound;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
  * Music represents a piece of music played by multiple instruments.
  */
 public interface Music {
+    
+    /**
+     * @return an empty music sequence
+     */
+    public static Music empty() {
+        return new Rest(0);
+    }
+    
+    /**
+     * @param duration duration in beats, must be >= 0
+     * @return rest that lasts for duration beats
+     */
+    public static Music rest(double duration) {
+        return new Rest(duration);
+    }
+    
+    /**
+     * @param duration duration in beats, must be >= 0
+     * @param pitch pitch to play
+     * @param instrument instrument to use
+     * @param lyric optional lyric to play
+     * @return note played by instrument for duration beats, with optional lyric
+     */
+    public static Music note(double duration, Pitch pitch, Instrument instrument, Optional<Lyric> lyric) {
+        return new Note(duration, pitch, instrument, lyric);
+    }
+    
+    /**
+     * @param first music to play first
+     * @param second music to play second
+     * @return music sequence that plays first followed by second
+     */
+    public static Music concat(Music first, Music second) {
+        return new Concat(first, second);
+    }
+    
+    /**
+     * @param first first music to play, defines this Music's duration
+     * @param second second music to play
+     * @return music sequence that plays first at the same time as second
+     */
+    public static Music together(Music first, Music second) {
+        return new Together(first, second);
+    }
     
     /*
      * Datatype Definition

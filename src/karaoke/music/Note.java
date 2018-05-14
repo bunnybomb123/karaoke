@@ -1,8 +1,11 @@
-package karaoke.sound;
+package karaoke.music;
 
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
+
+import karaoke.lyrics.Lyric;
+import karaoke.playback.SequencePlayer;
 
 /**
  * Note represents a note played by an instrument.
@@ -88,10 +91,10 @@ public class Note implements Music {
     }
 
     /**
-     * Play this note.
+     * Load this note.
      */
     @Override
-    public void play(SequencePlayer player, double atBeat, Consumer<Lyric> lyricConsumer) {
+    public void load(SequencePlayer player, double atBeat, Consumer<Lyric> lyricConsumer) {
         player.addNote(instrument, pitch, atBeat, duration);
         if (lyric.isPresent())
             player.addEvent(atBeat, beat -> lyricConsumer.accept(lyric.get()));

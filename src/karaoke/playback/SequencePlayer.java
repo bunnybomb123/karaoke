@@ -1,6 +1,14 @@
-package karaoke.sound;
+package karaoke.playback;
 
 import java.util.function.Consumer;
+
+import javax.sound.midi.InvalidMidiDataException;
+import javax.sound.midi.MidiUnavailableException;
+
+import karaoke.lyrics.Lyric;
+import karaoke.music.Instrument;
+import karaoke.music.Pitch;
+import karaoke.songs.ABC;
 
 /**
  * Schedules and plays a sequence of notes at given times.
@@ -12,6 +20,27 @@ import java.util.function.Consumer;
  */
 public interface SequencePlayer {
 
+    /**
+     * Create a sequence player with a song loaded.
+     * @param song ABC song to load into sequence player
+     * @param lyricConsumer lyricConsumer function called when new lyrics are played
+     * @return new SequencePlayer with song loaded
+     */
+    public static SequencePlayer load(ABC song, Consumer<Lyric> lyricConsumer) {
+        final int beatsPerMinute = song.getBeatsPerMinute();
+        final int ticksPerBeat = 64;
+        
+        SequencePlayer player;
+        try {
+            player = new MidiSequencePlayer(beatsPerMinute, ticksPerBeat);
+        } catch (InvalidMidiDataException | MidiUnavailableException e1) {
+            throw new RuntimeException("midi problems");
+        }
+        
+        song.getMusic().load(player, 0, lyricConsumer);
+        return player;
+    }
+    
     /**
      * Schedule a note to be played starting at startBeat for the duration numBeats.
      * @param instr instrument for the note
@@ -29,13 +58,6 @@ public interface SequencePlayer {
      *              This time may be slightly different from atBeat because of rounding.
      */
     public void addEvent(double atBeat, Consumer<Double> callback);
-
-    /**
-     * 
-     * @param music
-     * @param lyricConsumer
-     */
-    public void load(Music music, Consumer<Lyric> lyricConsumer);
     
     /**
      * Play the scheduled music.

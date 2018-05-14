@@ -1,13 +1,10 @@
-package karaoke;
+package karaoke.web;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.Executors;
 
 import javax.sound.midi.InvalidMidiDataException;
@@ -16,13 +13,9 @@ import javax.sound.midi.MidiUnavailableException;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
-import karaoke.Jukebox.Listener;
-import karaoke.sound.Concat;
-import karaoke.sound.Instrument;
-import karaoke.sound.Lyric;
-import karaoke.sound.Music;
-import karaoke.sound.Note;
-import karaoke.sound.Pitch;
+import karaoke.playback.Jukebox;
+import karaoke.playback.Jukebox.Listener;
+import karaoke.playback.Jukebox.Signal;
 
 /**
  * HTTP web karaoke server.

@@ -1,6 +1,6 @@
-package karaoke.sound;
+package karaoke.music;
 
-import static karaoke.sound.Pitch.OCTAVE;
+import static karaoke.music.Pitch.OCTAVE;
 
 /**
  * Pitch is an immutable type representing the frequency of a musical note.

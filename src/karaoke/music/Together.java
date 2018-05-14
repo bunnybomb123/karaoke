@@ -1,7 +1,10 @@
-package karaoke.sound;
+package karaoke.music;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+
+import karaoke.lyrics.Lyric;
+import karaoke.playback.SequencePlayer;
 
 /**
  * Concat represents two pieces of music played simultaneously.
@@ -71,12 +74,12 @@ public class Together implements Music {
     }
 
     /**
-     * Play this chord.
+     * Load this chord.
      */
     @Override
-    public void play(SequencePlayer player, double atBeat, Consumer<Lyric> lyricConsumer) {
-        first.play(player, atBeat, lyricConsumer);
-        second.play(player, atBeat, lyricConsumer);
+    public void load(SequencePlayer player, double atBeat, Consumer<Lyric> lyricConsumer) {
+        first.load(player, atBeat, lyricConsumer);
+        second.load(player, atBeat, lyricConsumer);
     }
     
     @Override

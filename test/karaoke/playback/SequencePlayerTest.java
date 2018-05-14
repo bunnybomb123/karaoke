@@ -1,10 +1,15 @@
-package karaoke.sound;
+package karaoke.playback;
 
 import java.util.Optional;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiUnavailableException;
 
 import org.junit.Test;
+
+import karaoke.music.Instrument;
+import karaoke.music.Pitch;
+import karaoke.playback.MidiSequencePlayer;
+import karaoke.playback.SequencePlayer;
 /**
  * Test some super complicated stuff.
  * @category no_didit

@@ -1,7 +1,10 @@
-package karaoke.sound;
+package karaoke.music;
 
 import java.util.Optional;
 import java.util.function.Consumer;
+
+import karaoke.lyrics.Lyric;
+import karaoke.playback.SequencePlayer;
 
 /**
  * Music represents a piece of music played by multiple instruments.
@@ -104,11 +107,11 @@ public interface Music {
     double duration();
 
     /**
-     * Load this music into specified midi player
+     * Load this music into specified SequencePlayer.
      * @param player player to play on
      * @param atBeat when to play
      * @param lyricConsumer function called when new lyrics are played
      */
-    void play(SequencePlayer player, double atBeat, Consumer<Lyric> lyricConsumer);
+    void load(SequencePlayer player, double atBeat, Consumer<Lyric> lyricConsumer);
 
 }

@@ -1,12 +1,12 @@
-package karaoke;
+package karaoke.songs;
 
 import java.util.Map;
 import java.util.function.Consumer;
 
-import karaoke.sound.Lyric;
-import karaoke.sound.Music;
-import karaoke.sound.SequencePlayer;
-import karaoke.sound.Together;
+import karaoke.lyrics.Lyric;
+import karaoke.music.Music;
+import karaoke.music.Together;
+import karaoke.playback.SequencePlayer;
 
 /**
  * An immutable representation of an abc file.
@@ -65,16 +65,6 @@ public class ABC {
         // must fix; look at spec. if Q is specified it depends on its own L
         this.beatsPerMinute = (int) fields.getOrDefault('Q', 100);
         this.composer = (String) fields.getOrDefault('C', "Unknown");
-    }
-    
-    /**
-     * Plays the music that the ABC file represents
-     * 
-     * @param player player to play on
-     * @param lyricConsumer function called when new lyrics are played
-     */
-    public void load(SequencePlayer player, Consumer<Lyric> lyricConsumer) {
-        music.play(player, 0, lyricConsumer);
     }
     
     /** @return the Music associated with this abc piece */

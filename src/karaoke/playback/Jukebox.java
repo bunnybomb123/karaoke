@@ -1,4 +1,4 @@
-package karaoke;
+package karaoke.playback;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -9,17 +9,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import javax.sound.midi.InvalidMidiDataException;
-import javax.sound.midi.MidiUnavailableException;
-
-import karaoke.sound.Concat;
-import karaoke.sound.Instrument;
-import karaoke.sound.Lyric;
-import karaoke.sound.MidiSequencePlayer;
-import karaoke.sound.Music;
-import karaoke.sound.Note;
-import karaoke.sound.Pitch;
-import karaoke.sound.SequencePlayer;
+import karaoke.lyrics.Lyric;
+import karaoke.music.Concat;
+import karaoke.music.Instrument;
+import karaoke.music.Music;
+import karaoke.music.Note;
+import karaoke.music.Pitch;
+import karaoke.songs.ABC;
 
 public class Jukebox {
     
@@ -109,17 +105,7 @@ public class Jukebox {
         }
         
         ABC song = currentSong.get();
-        final int beatsPerMinute = song.getBeatsPerMinute();
-        final int ticksPerBeat = 64;
-        SequencePlayer player;
-        try {
-            player = new MidiSequencePlayer(beatsPerMinute, ticksPerBeat);
-        } catch (InvalidMidiDataException | MidiUnavailableException e1) {
-            throw new RuntimeException("midi problems");
-        }
-        
-        // start song and play
-        song.load(player, lyric -> broadcast(Signal.lyric(lyric)));
+        SequencePlayer player = SequencePlayer.load(song, lyric -> broadcast(Signal.lyric(lyric)));
         player.addEvent(0, beat -> {
             isPlaying = true;
             broadcast(Signal.SIGNAL_SONG_START);

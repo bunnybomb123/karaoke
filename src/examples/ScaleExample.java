@@ -3,10 +3,10 @@ package examples;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiUnavailableException;
 
-import karaoke.sound.Instrument;
-import karaoke.sound.MidiSequencePlayer;
-import karaoke.sound.Pitch;
-import karaoke.sound.SequencePlayer;
+import karaoke.music.Instrument;
+import karaoke.music.Pitch;
+import karaoke.playback.MidiSequencePlayer;
+import karaoke.playback.SequencePlayer;
 
 public class ScaleExample {
     

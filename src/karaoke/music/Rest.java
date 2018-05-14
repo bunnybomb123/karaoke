@@ -1,7 +1,10 @@
-package karaoke.sound;
+package karaoke.music;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+
+import karaoke.lyrics.Lyric;
+import karaoke.playback.SequencePlayer;
 
 /**
  * Rest represents a pause in a piece of music.
@@ -51,10 +54,10 @@ public class Rest implements Music {
     }
 
     /**
-     * Play this rest.
+     * Load this rest.
      */
     @Override
-    public void play(SequencePlayer player, double atBeat, Consumer<Lyric> lyricConsumer) {
+    public void load(SequencePlayer player, double atBeat, Consumer<Lyric> lyricConsumer) {
         return;
     }
 

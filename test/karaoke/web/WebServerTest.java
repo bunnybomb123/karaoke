@@ -14,12 +14,12 @@ import java.util.Scanner;
 import org.junit.Test;
 
 import edu.mit.eecs.parserlib.UnableToParseException;
-import karaoke.ABC;
-import karaoke.sound.Concat;
-import karaoke.sound.Instrument;
-import karaoke.sound.Music;
-import karaoke.sound.Note;
-import karaoke.sound.Pitch;
+import karaoke.music.Concat;
+import karaoke.music.Instrument;
+import karaoke.music.Music;
+import karaoke.music.Note;
+import karaoke.music.Pitch;
+import karaoke.songs.ABC;
 
 
 public class WebServerTest {
@@ -50,7 +50,7 @@ public class WebServerTest {
     @Test
     public void testStartServerNoError() throws IOException {
         // Tests to make sure 
-        karaoke.WebServer server = new karaoke.WebServer(PORT_NUMBER);
+        karaoke.web.WebServer server = new karaoke.web.WebServer(PORT_NUMBER);
         
     }
     
@@ -58,10 +58,10 @@ public class WebServerTest {
     public void testStartTwoServersSamePort() throws IOException {
         // Tests to make sure an error is thrown when two servers listen on the same port
         
-        karaoke.WebServer server = new karaoke.WebServer(PORT_NUMBER);
+        karaoke.web.WebServer server = new karaoke.web.WebServer(PORT_NUMBER);
         try {
             // Should fail here
-            karaoke.WebServer secondServer = new karaoke.WebServer(PORT_NUMBER);
+            karaoke.web.WebServer secondServer = new karaoke.web.WebServer(PORT_NUMBER);
             assert false;
         } catch (IOException e) {
             

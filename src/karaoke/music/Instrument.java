@@ -1,4 +1,4 @@
-package karaoke.sound;
+package karaoke.music;
 
 /**
  * Instrument represents a musical instrument.

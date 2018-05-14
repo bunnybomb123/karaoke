@@ -1,11 +1,13 @@
-package karaoke.sound;
+package karaoke.music;
 
-import static karaoke.sound.Pitch.OCTAVE;
+import static karaoke.music.Pitch.OCTAVE;
 
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import karaoke.lyrics.Lyric;
 
 /**
  * MusicLanguage defines static methods for constructing and manipulating Music expressions.

@@ -6,6 +6,8 @@ import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 
+import karaoke.web.WebServer;
+
 /**
  * Main entry point of your application.
  */

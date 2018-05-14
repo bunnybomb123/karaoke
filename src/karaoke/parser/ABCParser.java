@@ -1,15 +1,15 @@
 package karaoke.parser;
 
-import karaoke.Meter;
+import karaoke.lyrics.Lyric;
+import karaoke.music.*;
+import karaoke.songs.ABC;
+import karaoke.songs.Meter;
+
 import java.util.Map;
 import java.util.Optional;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.HashSet;
-import karaoke.sound.Concat;
-import karaoke.sound.Music;
-import karaoke.sound.MusicLanguage;
-
 import java.awt.Label;
 import java.beans.Expression;
 import java.io.File;
@@ -20,12 +20,6 @@ import java.util.List;
 import edu.mit.eecs.parserlib.ParseTree;
 import edu.mit.eecs.parserlib.Parser;
 import edu.mit.eecs.parserlib.UnableToParseException;
-//import edu.mit.eecs.parserlib.Visualizer;
-import karaoke.ABC;
-import karaoke.sound.Lyric;
-import karaoke.sound.Rest;
-import karaoke.sound.Together;
-import karaoke.sound.*;
 //import org.apache.commons.io.FileUtils;
 public class ABCParser {
     

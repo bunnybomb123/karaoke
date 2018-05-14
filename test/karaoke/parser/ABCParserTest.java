@@ -15,15 +15,15 @@ import java.util.Scanner;
 import org.junit.Test;
 
 import edu.mit.eecs.parserlib.UnableToParseException;
-import karaoke.ABC;
-import karaoke.sound.Concat;
-import karaoke.sound.Instrument;
-import karaoke.sound.Lyric;
-import karaoke.sound.Music;
-import karaoke.sound.Note;
-import karaoke.sound.Pitch;
-import karaoke.sound.Rest;
-import karaoke.sound.Together;
+import karaoke.lyrics.Lyric;
+import karaoke.music.Concat;
+import karaoke.music.Instrument;
+import karaoke.music.Music;
+import karaoke.music.Note;
+import karaoke.music.Pitch;
+import karaoke.music.Rest;
+import karaoke.music.Together;
+import karaoke.songs.ABC;
 
 /**
  * Test that ABCParser creates the correct ADT.

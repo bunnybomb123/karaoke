@@ -1,4 +1,4 @@
-package karaoke.sound;
+package karaoke.playback;
 
 import java.math.BigInteger;
 import java.text.MessageFormat;
@@ -9,7 +9,21 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 
-import javax.sound.midi.*;
+import javax.sound.midi.InvalidMidiDataException;
+import javax.sound.midi.MetaMessage;
+import javax.sound.midi.MidiChannel;
+import javax.sound.midi.MidiEvent;
+import javax.sound.midi.MidiMessage;
+import javax.sound.midi.MidiSystem;
+import javax.sound.midi.MidiUnavailableException;
+import javax.sound.midi.Sequence;
+import javax.sound.midi.Sequencer;
+import javax.sound.midi.ShortMessage;
+import javax.sound.midi.Synthesizer;
+import javax.sound.midi.Track;
+
+import karaoke.music.Instrument;
+import karaoke.music.Pitch;
 
 /**
  * Schedules and plays a sequence of notes using the MIDI synthesizer.
@@ -166,11 +180,6 @@ public class MidiSequencePlayer implements SequencePlayer {
         MetaMessage msg = new MetaMessage(META_MARKER, bytes, bytes.length);
         this.track.add(new MidiEvent(msg, tick));
         this.track.add(new MidiEvent(keepalive, tick+1));
-    }
-    
-    @Override
-    public void load(Music music, Consumer<Lyric> lyricConsumer) {
-        music.play(this, 0, lyricConsumer);
     }
 
     @Override

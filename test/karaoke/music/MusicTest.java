@@ -1,4 +1,4 @@
-package karaoke.sound;
+package karaoke.music;
 
 import java.util.Optional;
 
@@ -7,7 +7,16 @@ import javax.sound.midi.MidiUnavailableException;
 
 import org.junit.Test;
 
-import karaoke.ABC;
+import karaoke.lyrics.Lyric;
+import karaoke.music.Concat;
+import karaoke.music.Instrument;
+import karaoke.music.Music;
+import karaoke.music.Note;
+import karaoke.music.Pitch;
+import karaoke.music.Rest;
+import karaoke.music.Together;
+import karaoke.playback.MidiSequencePlayer;
+import karaoke.playback.SequencePlayer;
 
 /**
  * Test that Music is played correctly.
@@ -31,7 +40,7 @@ public class MusicTest {
             throw new RuntimeException("midi problems");
         }
         
-        music.play(player, 0, lyric -> System.out.println(lyric.getLine()));
+        music.load(player, 0, lyric -> System.out.println(lyric.getLine()));
         
         // add a listener at the end of the piece to tell main thread when it's done
         Object lock = new Object();

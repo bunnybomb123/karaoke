@@ -133,17 +133,35 @@ public class ABCParser {
         switch (parseTree.name()) {
         
         case ABC_LINE: {
-            if (parseTree.children().size() > 1) {
-                Music currentMusic = makeMusic(parseTree.children().get(0), header, voice);
-            }
-            for (ParseTree<ABCGrammar> t : parseTree.children()) {
+            
+            Music currentMusic = makeMusic(parseTree.children().get(0), header, voice);
+            int lyricsPresent = 0;
+            Lyric lyricGenerator = new LyricGenerator("");
+            // If the last element is a lyric, then we don't need to go through the last child of the parseTree,
+            // And we need to add all the elements of the parseTree to the thing
+            if (parseTree.children().get(parseTree.children().size()-1).name().equals(ABCGrammar.LYRIC)) {
+                lyricsPresent = 1;
+                lyricGenerator = new LyricGenerator(parseTree.children().get(parseTree.children().size()-1));
                 
+            }
+            // Go through each parseTree element, and for each, make a concat with 
+            for (ParseTree<ABCGrammar> t : parseTree.children().subList(1, parseTree.children().size() - lyricsPresent)) {
+                Music newMusic = makeMusic(t, header, voice);
+                return new Concat(currentMusic, newMusic);
             }
         }
         
         case NOTE_ELEMENT: { //note_element ::= note | chord;
             // 
-            return new Note();
+            return makeMusic(parseTree.children().get(0), header, voice);
+        }
+        
+        case NOTE: {
+            
+        }
+        
+        case CHORD: {
+            
         }
             
         }

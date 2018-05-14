@@ -12,23 +12,21 @@ public class Lyric {
      */
     public static final Lyric INSTRUMENTAL = new Lyric();
     
+    private final String prefix;
     private final Optional<String> syllable;
-    private final String line;
-    private final String boldedLine;
+    private final String suffix;
     private final boolean isInstrumental;
     
     /* Abstraction function:
-     *  AF(syllable, line, boldedLine, isInstrumental) =
-     *      a lyric if isInstrumental is false, represented by the pair (syllable, line) denoting
-     *      a lyrical line and the syllable being sung, if any; or
+     *  AF(prefix, syllable, suffix, isInstrumental) =
+     *      a lyric if isInstrumental is false,
+     *          represented by the tuple (prefix, syllable, suffix)
+     *          denoting the lyrical line prefix + syllable.get() + suffix where
+     *          syllable is the syllable being sung, if any; or
      *      the absence of a lyric if isInstrumental is true.
-     *      line and boldedLine are text representations of either the lyric or instrumental,
-     *      where the syllable being sung is highlighted in boldedLine, if any.
      * 
      * Rep invariant:
-     *  when syllable is not present, boldedLine and line are identical
-     *  when syllable is present, boldedLine is identical to line except that
-     *      the syllable in line is emphasized to be "*" + syllable + "*"
+     *  fields are not null
      * 
      * Safety from rep exposure:
      *  all fields are final and immutable
@@ -43,10 +41,11 @@ public class Lyric {
      * @param line lyrical line
      */
     public Lyric(String line) {
+        this.prefix = line;
         this.syllable = Optional.empty();
-        this.line = line;
-        this.boldedLine = line;
+        this.suffix = "";
         this.isInstrumental = false;
+        checkRep();
     }
     
     /**
@@ -56,22 +55,28 @@ public class Lyric {
      * @param endIndex end index of syllable being sung, exclusive
      */
     public Lyric(String line, int beginIndex, int endIndex) {
+        this.prefix = line.substring(0, beginIndex);
         this.syllable = Optional.of(line.substring(beginIndex, endIndex));
-        this.line = line;
-        this.boldedLine = line.substring(0, beginIndex) +
-                          "*" + syllable + "*" +
-                          line.substring(endIndex);
+        this.suffix = line.substring(endIndex);
         this.isInstrumental = false;
+        checkRep();
     }
     
     /*
      * Creates a Lyric representing the absence of a lyric during an instrumental, with text representation "***instrumental***"
      */
     private Lyric() {
+        this.prefix = "***instrumental***";
         this.syllable = Optional.empty();
-        this.line = "***instrumental***";
-        this.boldedLine = this.line;
+        this.suffix = "";
         this.isInstrumental = true;
+        checkRep();
+    }
+    
+    private void checkRep() {
+        assert prefix != null;
+        assert syllable != null;
+        assert suffix != null;
     }
     
     /**
@@ -82,17 +87,30 @@ public class Lyric {
     }
     
     /**
-     * @return lyrical line in plain-text
+     * @return unbolded lyrical line
      */
     public String getLine() {
-        return line;
+        return syllable.isPresent() ?
+                prefix + syllable.get() + suffix :
+                prefix + suffix;
     }
     
     /**
-     * @return lyrical line with syllable being sung bolded, if any
+     * @return lyrical line formatted for plain-text
      */
-    public String getBoldedLine() {
-        return boldedLine;
+    public String toPlainText() {
+        return syllable.isPresent() ?
+                prefix + "*" + syllable.get() + "*" + suffix :
+                prefix + suffix;
+    }
+    
+    /**
+     * @return lyrical line formatted for html-text
+     */
+    public String toHtmlText() {
+        return syllable.isPresent() ?
+                prefix + "<b>" + syllable.get() + "</b>" + suffix + "<br>" :
+                prefix + suffix + "<br>";
     }
     
     /**

@@ -253,7 +253,7 @@ public class Jukebox {
 
         @Override
         public String toString() {
-            return type == Type.LYRIC ? lyric.get().getBoldedLine() : type.toString();
+            return type == Type.LYRIC ? lyric.get().toPlainText() : type.toString();
         }
         
     }

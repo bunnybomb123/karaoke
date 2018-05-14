@@ -1,9 +1,11 @@
 // Grammar for ABC music notation 
-// A subset of abc 2.1 in BNF format
+// A subset of abc 2.1
 
 abc ::= abc_header abc_body;
 
+////////////////////////////////////////////////////
 // Header
+////////////////////////////////////////////////////
 
 // ignore space_or_tab between terminals in the header
 @skip space_or_tab {
@@ -30,14 +32,14 @@ abc ::= abc_header abc_body;
     tempo ::= meter_fraction "=" digit+;
 }
 
+////////////////////////////////////////////////////
 // Body
+////////////////////////////////////////////////////
 
 // spaces and tabs have explicit meaning in the body, don't automatically ignore them
 
 abc_body ::= abc_line+;
-abc_line ::= element+ end_of_line (lyric end_of_line)?  | middle_of_body_field | comment;
-// abc_line_with_lyrics ::= element+ end_of_line (lyric end_of_line)?  | middle_of_body_field | comment;
-// abc_line_without_lyrics ::= element+ end_of_line (lyric end_of_line)?  | middle_of_body_field | comment;
+abc_line ::= element+ end_of_line (lyric end_of_line)? | middle_of_body_field | comment;
 
 element ::= note_element | rest_element | tuplet_element | barline | nth_repeat | space_or_tab;
 
@@ -60,7 +62,7 @@ rest_element ::= "z" note_length?;
 
 // tuplets
 tuplet_element ::= tuplet_spec note_element+;
-tuplet_spec ::= "(" digit ;
+tuplet_spec ::= "(" digit;
 
 // chords
 chord ::= "[" note+ "]";
@@ -75,9 +77,11 @@ middle_of_body_field ::= field_voice;
 lyric ::= "w:" lyrical_element*;
 lyrical_element ::= " "+ | "-" | "_" | "*" | "|" | lyric_text;
 // lyric_text should be defined appropriately
-lyric_text ::= ("\-" | [^ -_*|\n\r])+;
+lyric_text ::= ("\-" | [^ -_*|%\n\r])+;
 
+////////////////////////////////////////////////////
 // General
+////////////////////////////////////////////////////
 
 comment ::= space_or_tab* "%" comment_text newline;
 // comment_text should be defined appropriately;
@@ -85,9 +89,7 @@ comment_text ::= [^\n\r]*;
 
 end_of_line ::= comment | newline;
 
-text ::= .*;
-
-// word ::= [^\s-_*~\-|]+;
+text ::= [^%\n\r]*;
 digit ::= [0-9];
 newline ::= "\n" | "\r" "\n"?;
 space_or_tab ::= " " | "\t";

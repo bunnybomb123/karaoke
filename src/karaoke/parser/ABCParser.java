@@ -2,6 +2,7 @@ package karaoke.parser;
 
 import karaoke.Meter;
 import java.util.Map;
+import java.util.Optional;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.HashSet;
@@ -24,6 +25,7 @@ import karaoke.ABC;
 import karaoke.sound.Lyric;
 import karaoke.sound.Rest;
 import karaoke.sound.Together;
+import karaoke.sound.*;
 //import org.apache.commons.io.FileUtils;
 public class ABCParser {
     
@@ -57,12 +59,12 @@ public class ABCParser {
     private static enum ABCGrammar {
         ABC, ABC_HEADER, FIELD_NUMBER, FIELD_TITLE, OTHER_FIELDS, 
         FIELD_COMPOSER, FIELD_DEFAULT_LENGTH, FIELD_METER, FIELD_TEMPO, 
-        FIELD_VOICE, FIELD_KEY, KEY, KEYNOTE, KEY_ACCIDENTAL, MADE_MINOR, 
+        FIELD_VOICE, FIELD_KEY, KEY, KEYNOTE, KEY_ACCIDENTAL, MODE_MINOR, 
         METER, METER_FRACTION, TEMPO, ABC_BODY, ABC_LINE, ELEMENT, 
         NOTE_ELEMENT, NOTE, PITCH, OCTAVE, NOTE_LENGTH, NOTE_LENGTH_STRICT, 
         ACCIDENTAL, BASENOTE, REST_ELEMENT, TUPLET_ELEMENT, TUPLET_SPEC, 
         CHORD, BARLINE, NTH_REPEAT, LYRIC, LYRICAL_ELEMENT, LYRIC_TEXT, 
-        COMMENT, COMMENT_TEXT, END_OF_LINE, TEXT, WORD, DIGIT, NEWLINE, 
+        COMMENT, COMMENT_TEXT, END_OF_LINE, TEXT, DIGIT, NEWLINE, 
         SPACE_OR_TAB, MIDDLE_OF_BODY_FIELD,
     }
     
@@ -78,7 +80,8 @@ public class ABCParser {
     private static Parser<ABCGrammar> makeParser() {
         try {
             // read the grammar as a file, relative to the project root.
-            final File grammarFile = new File("src/karaoke.parser/Abc.g");
+            
+            final File grammarFile = new File("src/karaoke/parser/Abc.g");
             return Parser.compile(grammarFile, ABCGrammar.ABC);
 
         // Parser.compile() throws two checked exceptions.
@@ -140,12 +143,12 @@ public class ABCParser {
             int lyricsPresent = 0;
             
             // Instrumental Lyric Generator
-            LyricGenerator lyricGenerator = new LyricGenerator("");
+//            LyricGenerator lyricGenerator = new LyricGenerator();
             // If the last element is a lyric, then we don't need to go through the last child of the parseTree,
-            // And we need to add all the elements of the parseTree to the thing
+            // And we need to add all the elements of the parseTree to the 
             if (parseTree.children().get(parseTree.children().size()-1).name().equals(ABCGrammar.LYRIC)) {
                 lyricsPresent = 1;
-                lyricGenerator = new LyricGenerator(parseTree.children().get(parseTree.children().size()-1));
+//                lyricGenerator = new LyricGenerator(parseTree.children().get(parseTree.children().size()-1));
             }
             // Go through each parseTree element, and for each, make a concat with 
             for (ParseTree<ABCGrammar> t : parseTree.children().subList(1, parseTree.children().size() - lyricsPresent)) {
@@ -164,16 +167,18 @@ public class ABCParser {
         // In this case, we need to make a new note to return to the use
         case NOTE: { // note ::= pitch note_length?;
             // pitch ::= accidental? basenote octave?;
+            Pitch newPitch = Pitch.MIDDLE_C;
             ParseTree<ABCGrammar> pitch = parseTree.children().get(0);
             for (ParseTree<ABCGrammar> t : parseTree.children()) {
 //                String accidental = "";
-                String note;
+                String note = "";
                 int accidentalNumber = 0;
-                
+                boolean accidentalChange = false;
                 switch (t.name()) {
                 
                 case ACCIDENTAL: { // accidental ::= "^" | "^^" | "_" | "__" | "=";
                     String accidental = t.text();
+                    accidentalChange = true;
                     switch (accidental) {
                     case "^": {
                         accidentalNumber = 1;
@@ -193,6 +198,7 @@ public class ABCParser {
                     default:
                         break;
                     }
+                    
                 }
                 case BASENOTE: { // basenote ::= "C" | "D" | "E" | "F" | "G" | "A" | "B" | "c" | "d" | "e" | "f" | "g" | "a" | "b";
                     note = t.text();
@@ -203,13 +209,31 @@ public class ABCParser {
                 default:
                     break;
                 }
-                accidentalMap.put(note, accidental);
+                if (accidentalChange) {
+                    accidentalMap.put(note, accidentalNumber);
+                }
 //                Lyric nextLyric = LyricGenerator.next();
-                Pitch newPitch = new Pitch(note).transpose(accidentalNumber);
+                newPitch = Pitch.parsePitch(note).transpose(accidentalMap.getOrDefault(note, 0));
             }
+            // If the duration of the note is being modified, then go here:
+            if (parseTree.children().size() > 1) {
+                ParseTree<ABCGrammar> noteLength = parseTree.children().get(1);
+                
+                
+                if (noteLength.text().contains("/")) {
+                    int index = noteLength.text().indexOf("/");
+                    int numerator = Integer.parseInt(noteLength.text().substring(0, index));
+                    
+                }
+            }
+            
+            
+            
+            Note newNote = new Note(1.0, newPitch, Instrument.ACCORDION, Optional.of(Lyric.INSTRUMENTAL));
+            return newNote;
         }
         
-        // In this case, we need to go through each note present, add it to a list
+        // In this case, we need to go through each note present, add create concats of each of these elements
         case CHORD: { // chord ::= "[" note+ "]";
             Music currentMusic = makeMusic(parseTree.children().get(0), header, accidentalMap);
             // For each of the other children, create a together object with the notes in it
@@ -218,6 +242,10 @@ public class ABCParser {
                 currentMusic = new Together(currentMusic, newNote);
             }
             return currentMusic;
+        }
+        
+        default: {
+            throw new AssertionError("Shouldn't get here.");
         }
             
         }

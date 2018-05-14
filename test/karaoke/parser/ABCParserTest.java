@@ -66,6 +66,7 @@ public class ABCParserTest {
     @Test
     public void testSample1() throws FileNotFoundException, UnableToParseException {
         @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/sample1.abc")).useDelimiter("\\Z").next();
+        System.out.println(abcFile);
         ABC actual = ABCParser.parse(abcFile);
 
         Music m1 = new Note(2, new Pitch('C').transpose(-Pitch.OCTAVE), Instrument.PIANO, Optional.empty());
@@ -87,7 +88,8 @@ public class ABCParserTest {
     // output: Note, Together
     @Test
     public void testSample2() throws FileNotFoundException, UnableToParseException {
-        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/sample2.abc")).useDelimiter("\\Z").next();
+        @SuppressWarnings("resource") 
+        String abcFile = new Scanner(new File("sample-abc/sample2.abc")).useDelimiter("\\Z").next() ;
         ABC actual = ABCParser.parse(abcFile);
 
         Music m1 = new Note(1, new Pitch('C'), Instrument.PIANO, Optional.empty());
@@ -156,8 +158,9 @@ public class ABCParserTest {
         Music CE = new Together(Cchord, E);
         Music EC = new Together(Echord, C);
 
-        Music part1 = concatChain(Arrays.asList(C, CE, GnoLyric, G, rest );
-        Music part2 = concatChain(Arrays.asList(C, CE, );
+        // TODO: Changed this; please return back
+        Music part1 = concatChain(Arrays.asList(C, CE, GnoLyric, G, rest ));
+        Music part2 = concatChain(Arrays.asList(C, CE, GnoLyric, G, rest));
 
         final Map<String, Music> parts = new HashMap<>();
         parts.put("1", part1);

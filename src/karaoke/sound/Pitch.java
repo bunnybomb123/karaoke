@@ -1,5 +1,7 @@
 package karaoke.sound;
 
+import static karaoke.sound.Pitch.OCTAVE;
+
 /**
  * Pitch is an immutable type representing the frequency of a musical note.
  * Standard music notation represents pitches by letters: A, B, C, ..., G.
@@ -65,6 +67,27 @@ public class Pitch {
         } catch (ArrayIndexOutOfBoundsException e) {
             throw new IllegalArgumentException(c + " must be in the range A-G", e);
         }
+    }
+    
+    /**
+     * Parse a symbol into a Pitch
+     * 
+     * @param symbol symbol to create a Pitch from 
+     * @return a pitch represented by the given symbol
+     */
+    public static Pitch parsePitch(String symbol) {
+        if (symbol.endsWith("'"))
+            return parsePitch(symbol.substring(0, symbol.length()-1)).transpose(OCTAVE);
+        else if (symbol.endsWith(","))
+            return parsePitch(symbol.substring(0, symbol.length()-1)).transpose(-OCTAVE);
+        else if (symbol.startsWith("^"))
+            return parsePitch(symbol.substring(1)).transpose(1);
+        else if (symbol.startsWith("_"))
+            return parsePitch(symbol.substring(1)).transpose(-1);
+        else if (symbol.length() != 1)
+            throw new IllegalArgumentException("can't understand " + symbol);
+        else
+            return new Pitch(symbol.charAt(0));
     }
 
     /**

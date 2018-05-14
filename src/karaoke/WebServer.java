@@ -34,23 +34,6 @@ public class WebServer {
     
     private static final int SUCCESS_CODE = 200;
     
-    private static ABC newABC() {
-        Music m1 = new Note(2, new Pitch('C').transpose(-Pitch.OCTAVE), Instrument.PIANO, Optional.of(new Lyric("hey,")));
-        Music m2 = new Note(2, new Pitch('C'), Instrument.PIANO, Optional.of(new Lyric("babe")));
-        Music m3 = new Note(1, new Pitch('C').transpose(Pitch.OCTAVE), Instrument.PIANO, Optional.of(new Lyric("hey")));
-        Music m4 = new Note(1, new Pitch('C').transpose(2*Pitch.OCTAVE), Instrument.PIANO, Optional.of(new Lyric("hey!")));
-        Music music = new Concat(m1, new Concat(m2, new Concat(m3, m4)));
-        
-        final Map<String, Music> parts = new HashMap<>();
-        parts.put("", music);
-        
-        final Map<Character, Object> fields = new HashMap<>();
-        fields.put('T', "sample 1");
-        fields.put('K', "C");
-        
-        ABC expected = new ABC(parts, fields);
-        return expected;
-    }
     // Abstraction function:
     //  AF(server, jukebox, currentSong, listeners) =
     //      a web server that plays songs from a jukebox of ABC songs,
@@ -147,22 +130,25 @@ public class WebServer {
      * @throws MidiUnavailableException 
      */
     private void handleHtmlStream(HttpExchange exchange) throws IOException {
+        final String path = exchange.getRequestURI().getPath();
+        final String base = exchange.getHttpContext().getPath();
+        final String startSong = path.substring(base.length());
+        
+        if (startSong.equals("startSong"))
+            jukebox.play();
+        
         exchange.getResponseHeaders().add("Content-Type", "text/html; charset=utf-8");
         PrintWriter out = helperGetPrintWriter(exchange);
         try {
-            final int enoughBytesToStartStreaming = 2048;
-            for (int i = 0; i < enoughBytesToStartStreaming; ++i) {
-                out.print(' ');
-            }
-            out.println(); // also flushes
+            enoughBytesToStartStreaming(out);
             setUpLyricsStreaming(out);
-//            jukebox.play();
-            
+            // autoscroll
             out.println("<script>document.body.scrollIntoView(false)</script>");
         } finally {
             exchange.close();
             System.err.println("done streaming request");
         }
+        checkRep();
     }
 
     private void setUpLyricsStreaming(PrintWriter out) {
@@ -191,6 +177,7 @@ public class WebServer {
         };
         jukebox.addListener(listener);
     }
+    
     /**
      * This handler waits for an event to occur in the server
      * before sending a complete HTML page to the web browser.
@@ -206,16 +193,15 @@ public class WebServer {
     private void handleHtmlWaitReload(HttpExchange exchange) throws IOException {
         checkRep();
         PrintWriter out = helperGetPrintWriter(exchange);
-        
         try {
             enoughBytesToStartStreaming(out);
             setUpLyricsStreaming(out);
             out.println("<script>location.reload()</script>");
         } finally {
             exchange.close();
+            System.err.println("done streaming request");
         }
-        System.err.println("done streaming request");
-        
+        checkRep();
     }    
     
     private static void enoughBytesToStartStreaming(PrintWriter out) {

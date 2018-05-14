@@ -3,24 +3,63 @@ package karaoke;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiUnavailableException;
 
+import karaoke.sound.Concat;
+import karaoke.sound.Instrument;
 import karaoke.sound.Lyric;
 import karaoke.sound.MidiSequencePlayer;
+import karaoke.sound.Music;
+import karaoke.sound.Note;
+import karaoke.sound.Pitch;
 import karaoke.sound.SequencePlayer;
 
 public class Jukebox {
+    
+    /* Abstraction function
+     *  AF(currentSong, queuedSongs, isPlaying, listeners)
+     *      = a jukebox that is currently playing currentSong, has
+     *      queuedSongs waiting in the queue.
+     *      
+     * Representation invariant
+     *  no fields are null
+     *  
+     * Safety from rep exposure
+     *  
+     * 
+     * Thread safety argument
+     * 
+     */
     
     private Optional<ABC> currentSong = Optional.empty();
     private final Deque<ABC> queuedSongs = new ArrayDeque<>();
     private boolean isPlaying = false;
     private final List<Listener> listeners = new ArrayList<>();
     
+    private static ABC newABC() {
+        Music m1 = new Note(2, new Pitch('C').transpose(-Pitch.OCTAVE), Instrument.PIANO, Optional.of(new Lyric("hey,")));
+        Music m2 = new Note(2, new Pitch('C'), Instrument.PIANO, Optional.of(new Lyric("babe")));
+        Music m3 = new Note(1, new Pitch('C').transpose(Pitch.OCTAVE), Instrument.PIANO, Optional.of(new Lyric("hey")));
+        Music m4 = new Note(1, new Pitch('C').transpose(2*Pitch.OCTAVE), Instrument.PIANO, Optional.of(new Lyric("hey!")));
+        Music music = new Concat(m1, new Concat(m2, new Concat(m3, m4)));
+        
+        final Map<String, Music> parts = new HashMap<>();
+        parts.put("", music);
+        
+        final Map<Character, Object> fields = new HashMap<>();
+        fields.put('T', "sample 1");
+        fields.put('K', "C");
+        
+        ABC expected = new ABC(parts, fields);
+        return expected;
+    }
     /**
      * Create a new empty Jukebox.
      */

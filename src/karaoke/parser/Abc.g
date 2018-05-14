@@ -76,9 +76,9 @@ nth_repeat ::= "[1" | "[2";
 middle_of_body_field ::= field_voice;
 
 lyric ::= "w:" lyrical-element*;
-lyrical_element ::= " "+ | "-" | "_" | "*" | "|" | lyric-text;
+lyrical_element ::= " "+ | "-" | "_" | "*" | "~" | "\-" | "|" | lyric-text;
 //; lyric_text should be defined appropriately
-lyric_text ::= [^ -_*|]+;
+lyric_text ::= [^ -_*~\|]+;
 
 //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 //;; General

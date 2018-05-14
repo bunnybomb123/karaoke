@@ -17,6 +17,7 @@ public class LyricGenerator {
     private final List<String> lyricalElements;
     private final String line;
     private final List<Integer> lyricLengths;
+    private int index = 0;
     private int beginIndex = 0;
     
     /* Abstraction function:
@@ -44,8 +45,9 @@ public class LyricGenerator {
      */
     public LyricGenerator(List<String> lyricalElements) {
         this.lyricalElements = new ArrayList<>(lyricalElements);
-        Stream<String> lyrics = lyricalElements.stream().map(this::processLyric);
-        this.line = String.join("", lyrics);
+        Stream<String> lyrics = lyricalElements.stream().map(text -> text.replace("~", " ").replace("\\-", "-"));
+        this.line = String.join("", lyrics.collect(Collectors.toList()));
+        this.lyricLengths = lyrics.map(String::length).collect(Collectors.toList());
         checkRep();
     }
     
@@ -54,12 +56,16 @@ public class LyricGenerator {
     }
     
     public Optional<Lyric> next() {
-        int endIndex = beginIndex;
+        
         
     }
     
     public void loadNextMeasure() {
         
+    }
+    
+    private String formatSyllable(String lyricalElement) {
+        return lyricalElement.replace("~", " ").replace("\\-", "-");
     }
     
     /**

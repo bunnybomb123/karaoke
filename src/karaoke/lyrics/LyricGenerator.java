@@ -17,12 +17,13 @@ public class LyricGenerator {
     
     /* Abstraction function:
      *  AF(lyricalElements, line, index, beginIndex, hold) =
-     *      a lyric generator that generates lyrics from the lyrical line
+     *      a lyric generator that generates Lyrics from the lyrical line
      *          specified by lyricalElements and with formatted representation line,
-     *      where the syllable being sung by the next lyric (or the barline if at the end of a measure)
-     *          is represented by lyricalElements.get(index)
-     *          and found in the formatted lyrical line as line.substring(beginIndex, beginIndex + syllable.length()),
-     *          unless hold > 0 in which case the previous syllable should be held for hold more notes
+     *      	where the syllable being sung by the next lyric (or the barline if at the 
+     *      	end of a measure) is represented by lyricalElements.get(index) and found 
+     *      	in the formatted lyrical line as line.substring(beginIndex, beginIndex + 
+     *      	syllable.length()), unless hold > 0 in which case the previous syllable 
+     *      	should be held for hold more notes
      * 
      * Rep invariant:
      *  fields are not null
@@ -116,7 +117,8 @@ public class LyricGenerator {
     
     /*
      * Returns the suffix starting at lyricalElements.get(index).
-     * A suffix is a string of characters that could trail behind a syllable or barline before the next syllable or barline.
+     * A suffix is a string of characters that could trail behind a syllable or 
+     * barline before the next syllable or barline.
      * Updates index to point to next syllable or barline.
      */
     private String removeSuffix() {

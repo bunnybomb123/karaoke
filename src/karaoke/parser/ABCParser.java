@@ -264,7 +264,7 @@ public class ABCParser {
             
             
             // Change the lyric constructor to have a non-blank voice
-            Note newNote = new Note(duration, newPitch, Instrument.ACCORDION, Optional.of(new Lyric("")));
+            Note newNote = new Note(duration, newPitch, Instrument.PIANO, Optional.of(new Lyric("")));
             return newNote;
         }
         

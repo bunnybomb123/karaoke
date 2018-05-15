@@ -11,22 +11,22 @@ import java.util.Optional;
 public class LyricGenerator {
     
     private final String voice;
-    private List<String> lyricalElements = new ArrayList<>();
-    private String line = "";
-    private int index = 0;
-    private int beginIndex = 0;
-    private int hold = 0;
+    private List<String> lyricalElements;
+    private String line;
+    private int index;
+    private int beginIndex;
+    private int hold;
     private boolean inInstrumental = false;
     
     /* Abstraction function:
      *  AF(lyricalElements, line, index, beginIndex, hold) =
      *      a lyric generator that generates Lyrics from the lyrical line
      *          specified by lyricalElements and with formatted representation line,
-     *      	where the syllable being sung by the next lyric (or the barline if at the 
-     *      	end of a measure) is represented by lyricalElements.get(index) and found 
-     *      	in the formatted lyrical line as line.substring(beginIndex, beginIndex + 
-     *      	syllable.length()), unless hold > 0 in which case the previous syllable 
-     *      	should be held for hold more notes
+     *          where the syllable being sung by the next lyric (or the barline if at the 
+     *          end of a measure) is represented by lyricalElements.get(index) and found 
+     *          in the formatted lyrical line as line.substring(beginIndex, beginIndex + 
+     *          syllable.length()), unless hold > 0 in which case the previous syllable 
+     *          should be held for hold more notes
      * 
      * Rep invariant:
      *  fields are not null
@@ -46,6 +46,7 @@ public class LyricGenerator {
      */
     public LyricGenerator(String voice) {
         this.voice = voice;
+        loadNoLyrics();
         checkRep();
     }
     
@@ -68,12 +69,25 @@ public class LyricGenerator {
     }
     
     /**
+     * Loads a new empty lyrical line,
+     * such that subsequent calls to next() will return instrumental Lyrics.
+     */
+    public void loadNoLyrics() {
+        lyricalElements = new ArrayList<>();
+        line = "";
+        index = 0;
+        beginIndex = 0;
+        hold = 0;
+        checkRep();
+    }
+    
+    /**
      * Loads the lyrical line specified by lyricalLine,
      * such that subsequent calls to next() will return Lyrics from this lyrical line.
      * @param lyricalLine lyrical line, represented by a list of lyrical elements
      *          according to Abc grammar
      */
-    public void loadNewLine(List<String> lyricalLine) {
+    public void loadLyrics(List<String> lyricalLine) {
         lyricalElements = new ArrayList<>(lyricalLine);
         
         StringBuffer formattedLine = new StringBuffer();

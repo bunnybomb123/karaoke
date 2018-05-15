@@ -99,9 +99,9 @@ public class ABCParserTest {
         
         ABC expected = new ABC(parts, fields);
         
-        SequencePlayer.load(actual, null).play();
+        SequencePlayer.load(actual, null).playUntilFinished();
         
-        //assertEquals(expected, actual);
+        assertEquals(expected, actual);
     }
     
     // output: Note, Together

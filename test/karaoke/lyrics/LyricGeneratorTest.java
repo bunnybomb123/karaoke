@@ -98,12 +98,11 @@ public class LyricGeneratorTest {
     @Test
     public void testTilde() {
     	LyricGenerator lg = new LyricGenerator("1");
-    	lg.loadLyrics(Arrays.asList("hi", "~"," ","go"));
+    	lg.loadLyrics(Arrays.asList("hi~"," ","go"));
     	
     	String line = "hi  go";
     	List<Optional<Lyric>> expected = Arrays.asList(
-			createOptionalLyric(line, 0, 2), // hi 
-			Optional.empty(),
+			createOptionalLyric(line, 0, 3), // hi 
 			createOptionalLyric(line, 4, 6) // go
 		);
     	helperTest(expected, lg);

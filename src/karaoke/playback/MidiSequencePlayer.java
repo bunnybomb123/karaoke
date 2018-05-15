@@ -201,8 +201,11 @@ public class MidiSequencePlayer implements SequencePlayer {
             } else if (meta.getType() == META_END_OF_TRACK) {
                 // allow the sequencer to finish
                 try { Thread.sleep(Duration.ofSeconds(1).toMillis()); } catch (InterruptedException ie) { }
+                // notify thread if waiting for playback to finish
+                synchronized (this) {
+                    notify();
+                }
                 // stop & close the sequencer
-                Thread.
                 sequencer.stop();
                 sequencer.close();
             }
@@ -210,6 +213,18 @@ public class MidiSequencePlayer implements SequencePlayer {
 
         // start playing!
         sequencer.start();
+    }
+    
+    @Override
+    public void playUntilFinished() {
+        play();
+        synchronized (this) {
+            try {
+                wait();
+            } catch (InterruptedException ie) {
+                return;
+            }
+        }
     }
 
     /**

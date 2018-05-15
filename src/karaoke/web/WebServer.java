@@ -94,6 +94,8 @@ public class WebServer {
         server.setExecutor(Executors.newCachedThreadPool());
 
         // register handlers
+        server.createContext("/addSong", this::handleAddSong);
+        server.createContext("/play", this::handlePlay);
         server.createContext("/textStream", this::handleTextStream);
         server.createContext("/htmlStream", this::handleHtmlStream);
         server.createContext("/htmlWaitReload", this::handleHtmlWaitReload);
@@ -103,6 +105,10 @@ public class WebServer {
     private void checkRep() {
         assert server != null;
         assert jukebox != null;
+    }
+    
+    private void handlePlay(HttpExchange exchange) {
+        
     }
     
     /**

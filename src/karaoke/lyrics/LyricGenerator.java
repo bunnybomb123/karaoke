@@ -10,6 +10,7 @@ import java.util.Optional;
  */
 public class LyricGenerator {
     
+    private final String voice;
     private List<String> lyricalElements = new ArrayList<>();
     private String line = "";
     private int index = 0;
@@ -41,8 +42,10 @@ public class LyricGenerator {
     
     /**
      * Creates an empty LyricGenerator, which can only generate instrumental lyrics until loadNewLine() is called.
+     * @param voice voice part of lyrics passed into this LyricGenerator
      */
-    public LyricGenerator() {
+    public LyricGenerator(String voice) {
+        this.voice = voice;
         checkRep();
     }
     
@@ -50,6 +53,7 @@ public class LyricGenerator {
      * Check rep invariant.
      */
     private void checkRep() {
+        assert voice != null;
         assert lyricalElements != null;
         assert line != null;
         if (index < lyricalElements.size()) {
@@ -104,7 +108,7 @@ public class LyricGenerator {
             else {
                 inInstrumental = true;
                 checkRep();
-                return Optional.of(Lyric.INSTRUMENTAL);
+                return Optional.of(new Lyric(voice));
             }
         
         inInstrumental = false;
@@ -133,7 +137,7 @@ public class LyricGenerator {
         String syllable = format(lyricalElements.get(index++));
         String suffix = removeSuffix();
         int endIndex = beginIndex + syllable.length() + suffix.lastIndexOf('_') + 1;
-        Lyric lyric = new Lyric(line, beginIndex, endIndex);
+        Lyric lyric = new Lyric(voice, line, beginIndex, endIndex);
         beginIndex += syllable.length() + suffix.length();
         checkRep();
         return Optional.of(lyric);

@@ -1,12 +1,10 @@
 package karaoke.songs;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
 
-import karaoke.lyrics.Lyric;
 import karaoke.music.Music;
 import karaoke.music.Together;
-import karaoke.playback.SequencePlayer;
 
 /**
  * An immutable representation of an abc file.
@@ -24,7 +22,8 @@ public class ABC {
      *  parts contains at least 1 key
      * 
      * Safety from rep exposure:
-     *  all fields private, final, and of immutable data types.
+     *  defensive copying in instantiation of lyricalElements
+     *  all other fields private, final, and of immutable data types
      * 
      * Thread safety argument:
      *  This object is immutable, and there is no beneficent mutation
@@ -48,7 +47,7 @@ public class ABC {
      *      a 'T' field (for title) and a 'K' field (for key signature)
      */
     public ABC(Map<String, Music> parts, Map<Character, Object> fields) {
-        this.parts = parts;
+        this.parts = new HashMap<String, Music>(parts);
         this.music = parts.values().stream().reduce((part1, part2) -> new Together(part1, part2)).get();
         this.title = (String) fields.get('T');
         this.keySignature = (String) fields.get('K');
@@ -73,11 +72,11 @@ public class ABC {
     }
     
     /**
-     * @param part name of voice part, or "" for music without a voice part
+     * @param voice name of voice part, or "" for music without a voice part
      * @return the Music associated with the specified voice part
      */
-    public Music getVoicePart(String part) {
-        return parts.get(part);
+    public Music getVoicePart(String voice) {
+        return parts.get(voice);
     }
 
     /** @return this piece's composer */

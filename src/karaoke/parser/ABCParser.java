@@ -367,8 +367,6 @@ public class ABCParser {
             break;
         }
         case OTHER_FIELDS: { // Go through all the children, and populate the header info with the information obtained from each. 
-//            System.out.println("Did it get here?");
-//            System.out.println(parseTree.text());
             getHeaderInfo(parseTree.children().get(0),currentHeaderInfo);
             break;
         }

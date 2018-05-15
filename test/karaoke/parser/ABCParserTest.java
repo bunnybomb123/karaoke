@@ -27,7 +27,6 @@ import karaoke.songs.ABC;
 
 /**
  * Test that ABCParser creates the correct ADT.
- * @category no_didit
  */
 public class ABCParserTest {
 

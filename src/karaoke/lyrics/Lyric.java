@@ -6,24 +6,21 @@ import java.util.Optional;
  * Lyric represents either a lyrical line (including the syllable being sung, if any) or the absence of a lyric during an instrumental.
  */
 public class Lyric {
-
-    /**
-     * Lyric constant representing the absence of a lyric during an instrumental.
-     */
-    public static final Lyric INSTRUMENTAL = new Lyric();
     
+    private final String voice;
     private final String prefix;
     private final Optional<String> syllable;
     private final String suffix;
     private final boolean isInstrumental;
     
     /* Abstraction function:
-     *  AF(prefix, syllable, suffix, isInstrumental) =
+     *  AF(voice, prefix, syllable, suffix, isInstrumental) =
      *      a lyric if isInstrumental is false,
      *          represented by the tuple (prefix, syllable, suffix)
      *          denoting the lyrical line prefix + syllable.get() + suffix where
      *          syllable is the syllable being sung, if any; or
      *      the absence of a lyric if isInstrumental is true.
+     *      voice is the voice part of the lyric.
      * 
      * Rep invariant:
      *  fields are not null
@@ -38,9 +35,11 @@ public class Lyric {
     
     /**
      * Creates a Lyric representing a lyrical line with no syllable being sung.
+     * @param voice voice part
      * @param line lyrical line
      */
-    public Lyric(String line) {
+    public Lyric(String voice, String line) {
+        this.voice = voice;
         this.prefix = line;
         this.syllable = Optional.empty();
         this.suffix = "";
@@ -50,11 +49,13 @@ public class Lyric {
     
     /**
      * Creates a Lyric representing a lyrical line including a syllable being sung at line.substring(beginIndex, endIndex).
+     * @param voice voice part
      * @param line lyrical line
      * @param beginIndex start index of syllable being sung, inclusive
      * @param endIndex end index of syllable being sung, exclusive
      */
-    public Lyric(String line, int beginIndex, int endIndex) {
+    public Lyric(String voice, String line, int beginIndex, int endIndex) {
+        this.voice = voice;
         this.prefix = line.substring(0, beginIndex);
         this.syllable = Optional.of(line.substring(beginIndex, endIndex));
         this.suffix = line.substring(endIndex);
@@ -62,10 +63,12 @@ public class Lyric {
         checkRep();
     }
     
-    /*
-     * Creates a Lyric representing the absence of a lyric during an instrumental, with text representation "***instrumental***"
+    /**
+     * Creates a Lyric representing the absence of a lyric during an instrumental.
+     * @param voice voice part
      */
-    private Lyric() {
+    public Lyric(String voice) {
+        this.voice = voice;
         this.prefix = "***instrumental***";
         this.syllable = Optional.empty();
         this.suffix = "";
@@ -74,9 +77,17 @@ public class Lyric {
     }
     
     private void checkRep() {
+        assert voice != null;
         assert prefix != null;
         assert syllable != null;
         assert suffix != null;
+    }
+    
+    /**
+     * @return this lyric's voice part
+     */
+    public String getVoice() {
+        return voice;
     }
     
     /**

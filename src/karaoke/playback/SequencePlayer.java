@@ -23,7 +23,7 @@ public interface SequencePlayer {
     /**
      * Create a sequence player with a song loaded.
      * @param song ABC song to load into sequence player
-     * @param lyricConsumer lyricConsumer function called when new lyrics are played
+     * @param lyricConsumer lyricConsumer function called when new lyrics are played, or null to ignore lyrics
      * @return new SequencePlayer with song loaded
      */
     public static SequencePlayer load(ABC song, Consumer<Lyric> lyricConsumer) {

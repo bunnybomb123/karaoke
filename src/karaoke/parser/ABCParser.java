@@ -328,9 +328,7 @@ public class ABCParser {
 
         }
         case OTHER_FIELDS: { // Go through all the children, and populate the header info with the information obtained from each. 
-            for (ParseTree<ABCGrammar> t : parseTree.children()) {
-                getHeaderInfo(t,currentHeaderInfo);
-            }
+            getHeaderInfo(parseTree.children().get(0), currentHeaderInfo);
         }
  
         case FIELD_COMPOSER: { // Go through all the children

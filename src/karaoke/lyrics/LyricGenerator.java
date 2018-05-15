@@ -5,15 +5,18 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * LyricGenerator generates Lyrics from a provided lyrical line.
+ * LyricGenerator generates Lyrics from provided lyrical lines, one at a time.
+ * LyricGenerator is guaranteed not to repeat any lyrics; any repeats are instead replaced by Optional.empty().
  */
 public class LyricGenerator {
     
-    private final List<String> lyricalElements;
-    private final String line;
-    private int index;
+    private final String voice;
+    private List<String> lyricalElements = new ArrayList<>();
+    private String line = "";
+    private int index = 0;
     private int beginIndex = 0;
     private int hold = 0;
+    private boolean inInstrumental = false;
     
     /* Abstraction function:
      *  AF(lyricalElements, line, index, beginIndex, hold) =
@@ -33,22 +36,16 @@ public class LyricGenerator {
      *  hold >= 0
      * 
      * Safety from rep exposure:
-     *  defensive copying in constructor for lyricalElements
+     *  defensive copying in instantiation of lyricalElements
      *  no other fields are passed in or returned by any methods
      */
     
     /**
-     * Creates a LyricGenerator for the lyrical line specified by lyricalElements.
-     * @param lyricalElements lyrical line, represented by a list of lyrical elements
-     *          according to Abc grammar
+     * Creates an empty LyricGenerator, which can only generate instrumental lyrics until loadNewLine() is called.
+     * @param voice voice part of lyrics passed into this LyricGenerator
      */
-    public LyricGenerator(List<String> lyricalElements) {
-        this.lyricalElements = new ArrayList<>(lyricalElements);
-        StringBuffer formattedLine = new StringBuffer();
-        lyricalElements.stream().map(LyricGenerator::format).forEach(formattedLine::append);
-        this.line = formattedLine.toString();
-        this.index = 0;
-        removeSuffix();
+    public LyricGenerator(String voice) {
+        this.voice = voice;
         checkRep();
     }
     
@@ -56,6 +53,7 @@ public class LyricGenerator {
      * Check rep invariant.
      */
     private void checkRep() {
+        assert voice != null;
         assert lyricalElements != null;
         assert line != null;
         if (index < lyricalElements.size()) {
@@ -67,6 +65,29 @@ public class LyricGenerator {
             assert syllable.equals(line.substring(beginIndex, endIndex));
         }
         assert hold >= 0;
+    }
+    
+    /**
+     * Loads the lyrical line specified by lyricalLine,
+     * such that subsequent calls to next() will return Lyrics from this lyrical line.
+     * @param lyricalLine lyrical line, represented by a list of lyrical elements
+     *          according to Abc grammar
+     */
+    public void loadNewLine(List<String> lyricalLine) {
+        lyricalElements = new ArrayList<>(lyricalLine);
+        
+        StringBuffer formattedLine = new StringBuffer();
+        lyricalLine.stream().map(LyricGenerator::format).forEach(formattedLine::append);
+        line = formattedLine.toString();
+        
+        index = 0;
+        removeSuffix();
+        
+        beginIndex = 0;
+        
+        hold = 0;
+        
+        checkRep();
     }
     
     /**
@@ -82,8 +103,15 @@ public class LyricGenerator {
         }
         
         if (index >= lyricalElements.size() || lyricalElements.get(index).equals("|"))
-            return Optional.of(Lyric.INSTRUMENTAL);
+            if (inInstrumental)
+                return Optional.empty();
+            else {
+                inInstrumental = true;
+                checkRep();
+                return Optional.of(new Lyric(voice));
+            }
         
+        inInstrumental = false;
         return nextSyllable();
     }
     
@@ -109,7 +137,7 @@ public class LyricGenerator {
         String syllable = format(lyricalElements.get(index++));
         String suffix = removeSuffix();
         int endIndex = beginIndex + syllable.length() + suffix.lastIndexOf('_') + 1;
-        Lyric lyric = new Lyric(line, beginIndex, endIndex);
+        Lyric lyric = new Lyric(voice, line, beginIndex, endIndex);
         beginIndex += syllable.length() + suffix.length();
         checkRep();
         return Optional.of(lyric);

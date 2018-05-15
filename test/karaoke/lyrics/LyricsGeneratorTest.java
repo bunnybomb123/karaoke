@@ -71,7 +71,7 @@ public class LyricsGeneratorTest {
 			new Lyric(voice, line, 38, 40), // Ar
 			new Lyric(voice, line, 41, 44), // dle
 			new Lyric(voice, line, 44, 45), // A
-			new Lyric(voice, line, 46, 48), // nd
+			new Lyric(voice, line, 46, 48) // nd
 		);
     	helperTest(expected, lg);
     	

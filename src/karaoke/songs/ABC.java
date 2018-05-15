@@ -1,8 +1,11 @@
 package karaoke.songs;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import karaoke.music.Music;
 import karaoke.music.Together;
@@ -23,7 +26,8 @@ public class ABC {
      *  parts contains at least 1 key
      * 
      * Safety from rep exposure:
-     *  defensive copying in instantiation of lyricalElements
+     *  defensive copying in instantiation of parts
+     *  voices is an unmodifiable set, so it is safe to pass to clients
      *  all other fields private, final, and of immutable data types
      * 
      * Thread safety argument:
@@ -36,6 +40,7 @@ public class ABC {
     private final String title;
     private final Key keySignature;
     private final String composer;
+    private final Set<String> voices;
     private final Meter meter;
     private final Meter defaultNote;
     private final Tempo tempo;
@@ -50,12 +55,13 @@ public class ABC {
      *      a 'T' field (for title) and a 'K' field (for key signature)
      */
     public ABC(Map<String, Music> parts, Map<Character, Object> fields) {
-        this.parts = new HashMap<String, Music>(parts);
+        this.parts = Collections.unmodifiableMap(new HashMap<>(parts));
         this.music = parts.values().stream().reduce((part1, part2) -> new Together(part1, part2)).get();
         this.indexNumber = (Integer) fields.get('X');
         this.title = (String) fields.get('T');
         this.keySignature = (Key) fields.get('K');
         this.composer = (String) fields.getOrDefault('C', "Unknown");
+        this.voices = Collections.unmodifiableSet(parts.keySet());
 
         final Meter defaultMeter = new Meter(4, 4);
         this.meter = (Meter) fields.getOrDefault('M', defaultMeter);
@@ -106,6 +112,11 @@ public class ABC {
     public String getComposer() {
         return composer;
     }
+    
+    /** @return this piece's voices */
+    public Set<String> getVoices() {
+        return voices;
+    }
 
     /** @return this piece's meter */
     public Meter getMeter() {
@@ -130,8 +141,7 @@ public class ABC {
     
     @Override
     public String toString() {
-        return "title: " + title + "key: " + keySignature 
-                + "music: " + music.toString();
+        return title + " by " + composer;
     }
 
     @Override
@@ -148,6 +158,7 @@ public class ABC {
                 && title.equals(that.title)
                 && keySignature.equals(that.keySignature)
                 && composer.equals(that.composer)
+                && voices.equals(that.voices)
                 && meter.equals(that.meter)
                 && defaultNote.equals(that.defaultNote)
                 && tempo.equals(that.tempo)
@@ -156,7 +167,7 @@ public class ABC {
 
     @Override
     public int hashCode() {
-        return Objects.hash(parts, music, indexNumber, title, keySignature, composer,
+        return Objects.hash(parts, music, indexNumber, title, keySignature, composer, voices,
                 meter, defaultNote, tempo, beatsPerMinute);
     }
     

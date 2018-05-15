@@ -31,11 +31,12 @@ public class ABC {
     
     private final Map<String, Music> parts;
     private final Music music;
+    private final int indexNumber;
     private final String title;
-    private final String keySignature;
+    private final Key keySignature;
     private final Meter meter;
-    private final int beatsPerMinute;
     private final double defaultNote;
+    private final int beatsPerMinute;
     private final String composer;
     
     /**
@@ -49,8 +50,9 @@ public class ABC {
     public ABC(Map<String, Music> parts, Map<Character, Object> fields) {
         this.parts = new HashMap<String, Music>(parts);
         this.music = parts.values().stream().reduce((part1, part2) -> new Together(part1, part2)).get();
+        this.indexNumber = (Integer) fields.get('X');
         this.title = (String) fields.get('T');
-        this.keySignature = (String) fields.get('K');
+        this.keySignature = (Key) fields.get('K');
         
         final Meter defaultMeter = new Meter(4, 4);
         this.meter = (Meter) fields.getOrDefault('M', defaultMeter);
@@ -61,8 +63,9 @@ public class ABC {
         this.defaultNote = (double) fields.getOrDefault('L', 
                 this.meter.meter() < baseline ? defaultNote1 : defaultNote2);
         
+        this.tempo = (Tempo) fields.getOrDefault('Q', new Tempo(defaultNote, )
         // must fix; look at spec. if Q is specified it depends on its own L
-        this.beatsPerMinute = (int) fields.getOrDefault('Q', 100);
+        this.beatsPerMinute = (int) (fields.getOrDefault('Q', 100) * 
         this.composer = (String) fields.getOrDefault('C', "Unknown");
     }
     

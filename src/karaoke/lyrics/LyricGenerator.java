@@ -158,7 +158,10 @@ public class LyricGenerator {
             if (symbol.equals("_"))
                 hold++;
             prev = symbol;
-            symbol = lyricalElements.get(++index);
+            index++;
+            if (index >= lyricalElements.size())
+                break;
+            symbol = lyricalElements.get(index);
         }
         return suffix.toString();
     }

@@ -11,14 +11,13 @@ public class Tempo {
     
     /**
      * Creates a new Tempo top/bottom=beatsPerMinute
-     * @param top numerator of the beat length
-     * @param bottom denominator of the beat length
+     * @param beatLength beat length as a meter fraction
      * @param beatsPerMinute beats per minute
      */
-    public Tempo(int top, int bottom, int beatsPerMinute) {
-        this.beatLength = (double) top / bottom;
+    public Tempo(Meter beatLength, int beatsPerMinute) {
+        this.beatLength = beatLength.value();
         this.beatsPerMinute = beatsPerMinute;
-        this.symbol = top + "/" + bottom + "=" + beatsPerMinute;
+        this.symbol = beatLength.top() + "/" + beatLength.bottom() + "=" + beatsPerMinute;
         checkRep();
     }
     

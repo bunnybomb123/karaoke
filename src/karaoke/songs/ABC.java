@@ -2,6 +2,7 @@ package karaoke.songs;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import karaoke.music.Music;
 import karaoke.music.Together;
@@ -34,10 +35,11 @@ public class ABC {
     private final int indexNumber;
     private final String title;
     private final Key keySignature;
-    private final Meter meter;
-    private final double defaultNote;
-    private final int beatsPerMinute;
     private final String composer;
+    private final Meter meter;
+    private final Meter defaultNote;
+    private final Tempo tempo;
+    private final int beatsPerMinute;
     
     /**
      * creates a new ABC file
@@ -53,20 +55,21 @@ public class ABC {
         this.indexNumber = (Integer) fields.get('X');
         this.title = (String) fields.get('T');
         this.keySignature = (Key) fields.get('K');
+        this.composer = (String) fields.getOrDefault('C', "Unknown");
         
         final Meter defaultMeter = new Meter(4, 4);
         this.meter = (Meter) fields.getOrDefault('M', defaultMeter);
         
         final double baseline = .75;
-        final double defaultNote1 = 1./16;
-        final double defaultNote2 = 1./8;
-        this.defaultNote = (double) fields.getOrDefault('L', 
-                this.meter.meter() < baseline ? defaultNote1 : defaultNote2);
+        final Meter defaultNote1 = new Meter(1, 16);
+        final Meter defaultNote2 = new Meter(1, 8);
+        this.defaultNote = (Meter) fields.getOrDefault('L', 
+                this.meter.value() < baseline ? defaultNote1 : defaultNote2);
         
-        this.tempo = (Tempo) fields.getOrDefault('Q', new Tempo(defaultNote, )
-        // must fix; look at spec. if Q is specified it depends on its own L
-        this.beatsPerMinute = (int) (fields.getOrDefault('Q', 100) * 
-        this.composer = (String) fields.getOrDefault('C', "Unknown");
+        final int defaultTempo = 100;
+        this.tempo = (Tempo) fields.getOrDefault('Q', new Tempo(defaultNote, defaultTempo));
+        
+        this.beatsPerMinute = (int) (tempo.beatsPerMinute() * tempo.beatLength() / defaultNote.value());
     }
     
     /** @return the Music associated with this abc piece */
@@ -81,6 +84,13 @@ public class ABC {
     public Music getVoicePart(String voice) {
         return parts.get(voice);
     }
+    
+    /**
+     * @return this piece's index number
+     */
+    public int getIndexNumber() {
+        return indexNumber;
+    }
 
     /** @return this piece's composer */
     public String getTitle() {
@@ -88,29 +98,34 @@ public class ABC {
     }
 
     /** @return this piece's key signature */
-    public String getKeySignature() {
+    public Key getKeySignature() {
         return keySignature;
+    }
+    
+    /** @return this piece's composer */
+    public String getComposer() {
+        return composer;
     }
 
     /** @return this piece's meter */
     public Meter getMeter() {
         return meter;
     }
+    
+    /** @return this piece's default note length as a meter fraction */
+    public Meter getDefaultNote() {
+        return defaultNote;
+    }
+    
+    /** @return this piece's tempo */
+    public Tempo getTempo() {
+        return tempo;
+    }
 
     /** @return the # of beats per minute in this piece, based on the
      * default note */
     public int getBeatsPerMinute() {
         return beatsPerMinute;
-    }
-
-    /** @return this piece's default note length */
-    public double getDefaultNote() {
-        return defaultNote;
-    }
-
-    /** @return this piece's composer */
-    public String getComposer() {
-        return composer;
     }
     
     @Override
@@ -127,21 +142,22 @@ public class ABC {
     // returns true if that ABC object has same value as this;
     // for use in equals()
     private boolean sameValue(ABC that) {
-        return music.equals(that.getMusic()) 
-                && title.equals(that.getTitle())
-                && keySignature.equals(that.getKeySignature())
-                && meter.equals(that.getMeter())
-                && beatsPerMinute == that.getBeatsPerMinute()
-                && defaultNote == that.getDefaultNote()
-                && composer.equals(that.getComposer())
-                && parts.equals(that.parts);
+        return parts.equals(that.parts)
+                && music.equals(that.music) 
+                && indexNumber == that.indexNumber
+                && title.equals(that.title)
+                && keySignature.equals(that.keySignature)
+                && composer.equals(that.composer)
+                && meter.equals(that.meter)
+                && defaultNote.equals(that.defaultNote)
+                && tempo.equals(that.tempo)
+                && beatsPerMinute == that.beatsPerMinute;
     }
 
     @Override
     public int hashCode() {
-        return (int) (music.hashCode() + title.hashCode() 
-        + keySignature.hashCode() + meter.hashCode() + beatsPerMinute 
-        + defaultNote + composer.hashCode() + parts.hashCode());
+        return Objects.hash(parts, music, indexNumber, title, keySignature, composer,
+                meter, defaultNote, tempo, beatsPerMinute);
     }
     
 }

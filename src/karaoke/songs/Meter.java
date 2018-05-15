@@ -7,7 +7,9 @@ package karaoke.songs;
  */
 public class Meter {
     
-    private final double meter;
+    private final int top;
+    private final int bottom;
+    private final double value;
     private final String symbol;
 
     private void checkRep() {
@@ -20,7 +22,9 @@ public class Meter {
      * @param bottom denominator of the meter
      */
     public Meter(int top, int bottom) {
-        this.meter = (double) top / bottom;
+        this.top = top;
+        this.bottom = bottom;
+        this.value = (double) top / bottom;
         this.symbol = top + "/" + bottom;
         checkRep();
     }
@@ -30,16 +34,43 @@ public class Meter {
      * @param symbol symbol of the meter
      */
     public Meter(String symbol) {
-        this.meter = 1.0;
+        final int commonTime = 4;
+        final int cutTime = 2;
+        if (symbol.equals("C")) {
+            this.top = commonTime;
+            this.bottom = commonTime;
+        }
+        else if (symbol.equals("C|")) {
+            this.top = cutTime;
+            this.bottom = cutTime;
+        }
+        else
+            throw new RuntimeException("incorrect meter symbol");
+        
+        this.value = 1.0;
         this.symbol = symbol;
         checkRep();
     }
     
     /**
+     * @return this meter's numerator
+     */
+    public int top() {
+        return top;
+    }
+    
+    /**
+     * @return this meter's denominator
+     */
+    public int bottom() {
+        return bottom;
+    }
+    
+    /**
      * @return this meter's decimal representation
      */
-    public double meter() {
-        return meter;
+    public double value() {
+        return value;
     }
     
     /**

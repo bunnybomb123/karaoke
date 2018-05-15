@@ -150,6 +150,9 @@ public class LyricGenerator {
      * Updates index to point to next syllable or barline.
      */
     private String removeSuffix() {
+        if (index >= lyricalElements.size())
+            return "";
+        
         StringBuffer suffix = new StringBuffer();
         String prev = index > 0 ? lyricalElements.get(index - 1) : null;
         String symbol = lyricalElements.get(index);

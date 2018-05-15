@@ -63,5 +63,10 @@ public interface SequencePlayer {
      * Play the scheduled music.
      */
     public void play();
+    
+    /**
+     * Play the scheduled music, waiting until the music is finished.
+     */
+    public void playUntilFinished();
 
 }

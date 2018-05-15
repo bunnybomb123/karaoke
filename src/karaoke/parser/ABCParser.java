@@ -1,6 +1,6 @@
 package karaoke.parser;
 
-import karaoke.lyrics.Lyric;
+import karaoke.lyrics.*;
 import karaoke.music.*;
 import karaoke.songs.ABC;
 import karaoke.songs.Key;
@@ -130,7 +130,7 @@ public class ABCParser {
         return abc;
     }
     
-    private static Music makeMusic(ParseTree<ABCGrammar> parseTree, Map<Character, Object> header, Map<String,Integer> accidentalMap) {
+    private static Music makeMusic(ParseTree<ABCGrammar> parseTree, Map<Character, Object> header, Map<String,Integer> accidentalMap, String voice) {
 //        Visualizer.showInBrowser(parseTree);
         switch (parseTree.name()) {
         
@@ -140,12 +140,12 @@ public class ABCParser {
             int lyricsPresent = 0;
             
             // Instrumental Lyric Generator
-//            LyricGenerator lyricGenerator = new LyricGenerator();
+            LyricGenerator lyricGenerator = new LyricGenerator(voice);
             // If the last element is a lyric, then we don't need to go through the last child of the parseTree,
             // And we need to add all the elements of the parseTree to the 
             if (parseTree.children().get(parseTree.children().size()-2).name().equals(ABCGrammar.LYRIC)) {
                 lyricsPresent = 1;
-//                lyricGenerator = new LyricGenerator(parseTree.children().get(parseTree.children().size()-1));
+                lyricGenerator = new LyricGenerator(parseTree.children().get(parseTree.children().size()-1));
             }
             // Go through each parseTree element, and for each, make a concat with 
             for (ParseTree<ABCGrammar> t : parseTree.children().subList(1, parseTree.children().size() - lyricsPresent)) {
@@ -160,7 +160,7 @@ public class ABCParser {
         }
         
         case ELEMENT: {
-            return makeMusic(parseTree.children().get(0), header, accidentalMap);
+            return makeMusic(parseTree.children().get(0), header, accidentalMap, voice);
         }
         
         // In this case, we need to just 

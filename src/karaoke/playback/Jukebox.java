@@ -63,41 +63,34 @@ public class Jukebox {
     /**
      * Add a new song to the jukebox.
      * @param song song in ABC format
+     * @return position of song in queue, or 0 if song is next up
      */
-    public synchronized void addSong(ABC song) {
+    public synchronized int addSong(ABC song) {
         queuedSongs.add(song);
         if (!currentSong.isPresent())
             updateCurrentSong();
-        System.err.println("Added " + song.getTitle() + " at position " + (queuedSongs.size() + 1) + " in queue");
+        return queuedSongs.size();
     }
     
     /**
-     * Play the first song in the jukebox, or do nothing if there is no song to play.
+     * Play the first song in the jukebox, or
+     * do nothing if there is no song to play or the jukebox is already playing a song.
      * @return whether play request succeeded
      */
     public synchronized boolean play() {
-        if (!currentSong.isPresent()) {
-            System.err.println("No song to play");
+        if (isPlaying || !currentSong.isPresent())
             return false;
-        }
         
         ABC song = currentSong.get();
-        SequencePlayer player = SequencePlayer.load(song, lyric -> {
-        	System.out.println("added: "+lyric.toHtmlText());
-        	broadcast(Signal.lyric(lyric));
-    	});
-        player.addEvent(0, beat -> {
-            isPlaying = true;
-            broadcast(Signal.SIGNAL_SONG_START);
-        });
+        SequencePlayer player = SequencePlayer.load(song, lyric -> broadcast(Signal.lyric(lyric)));
         player.addEvent(song.getMusic().duration(), beat -> {
             isPlaying = false;
-            updateCurrentSong();
             broadcast(Signal.SIGNAL_SONG_END);
+            updateCurrentSong();
         });
+        isPlaying = true;
+        broadcast(Signal.SIGNAL_SONG_START);
         player.play();
-        
-        System.err.println("Playing " + song.getTitle());
         return true;
     }
     

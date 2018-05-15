@@ -233,22 +233,37 @@ public class ABCParser {
                 newPitch = Pitch.parsePitch(note).transpose(accidentalMap.getOrDefault(note, 0));
             }
             // If the duration of the note is being modified, then go here:
+            double duration = 1.0;
             if (parseTree.children().size() > 1) {
                 ParseTree<ABCGrammar> noteLength = parseTree.children().get(1);
-                
+                assert noteLength.name().equals(ABCGrammar.NOTE_LENGTH);
+                System.out.println("It's hereeeex");
+                System.out.println(noteLength.text());
+                double numerator;
+                double denominator;
                 
                 if (noteLength.text().contains("/")) {
                     int index = noteLength.text().indexOf("/");
-                    int numerator = Integer.parseInt(noteLength.text().substring(0, index));
+                    if (noteLength.text().substring(0, index).length() != 0) {
+                        numerator = Integer.parseInt(noteLength.text().substring(0, index));
+                    } else {
+                        numerator = 1;
+                    }
+                    if (noteLength.text().substring(index, noteLength.text().length()).length() != 0) {
+                        denominator = Integer.parseInt(noteLength.text().substring(index, noteLength.text().length()));
+                    } else {
+                        denominator = 2;
+                    }
+                    duration = duration * numerator / denominator;
                     
+                } else if (noteLength.text().length() > 0){
+                    duration = duration * Integer.parseInt(noteLength.text());
                 }
             }
             
             
-            
-            
-            
-            Note newNote = new Note(1.0, newPitch, Instrument.ACCORDION, Optional.of(Lyric.INSTRUMENTAL));
+            // Change the lyric constructor to have a non-blank voice
+            Note newNote = new Note(1.0, newPitch, Instrument.ACCORDION, Optional.of(new Lyric("")));
             return newNote;
         }
         

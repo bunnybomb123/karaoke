@@ -16,7 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-
+import edu.mit.eecs.parserlib.Visualizer;
 import edu.mit.eecs.parserlib.ParseTree;
 import edu.mit.eecs.parserlib.Parser;
 import edu.mit.eecs.parserlib.UnableToParseException;
@@ -114,7 +114,8 @@ public class ABCParser {
         // make an AST from the parse tree
         final Map<Character, Object> abcHeaderInfo = new HashMap<Character, Object>();
         getHeaderInfo(abcHeaderTree,abcHeaderInfo);
-        
+//        System.out.println("parse tree " + parseTree);
+//         Visualizer.showInBrowser(parseTree);
         // Make a new dictionary from the header
         Map<Character, Object> headerCopy = new HashMap<>(abcHeaderInfo);
         headerCopy.put(CURRENT_VOICE_CHAR, "");
@@ -128,6 +129,7 @@ public class ABCParser {
     }
     
     private static Music makeMusic(ParseTree<ABCGrammar> parseTree, Map<Character, Object> header, Map<String,Integer> accidentalMap) {
+        Visualizer.showInBrowser(parseTree);
         
         switch (parseTree.name()) {
         
@@ -140,15 +142,24 @@ public class ABCParser {
 //            LyricGenerator lyricGenerator = new LyricGenerator();
             // If the last element is a lyric, then we don't need to go through the last child of the parseTree,
             // And we need to add all the elements of the parseTree to the 
-            if (parseTree.children().get(parseTree.children().size()-1).name().equals(ABCGrammar.LYRIC)) {
+            if (parseTree.children().get(parseTree.children().size()-2).name().equals(ABCGrammar.LYRIC)) {
                 lyricsPresent = 1;
 //                lyricGenerator = new LyricGenerator(parseTree.children().get(parseTree.children().size()-1));
             }
             // Go through each parseTree element, and for each, make a concat with 
             for (ParseTree<ABCGrammar> t : parseTree.children().subList(1, parseTree.children().size() - lyricsPresent)) {
-                Music newMusic = makeMusic(t, header, accidentalMap);
-                return new Concat(currentMusic, newMusic);
+                // Check to make sure it's not a non-musical element
+                if (t.children().get(0).name().equals(ABCGrammar.NOTE_ELEMENT) | t.children().get(0).name().equals(ABCGrammar.REST_ELEMENT) | t.children().get(0).name().equals(ABCGrammar.TUPLET_ELEMENT) ) {
+                    Music newMusic = makeMusic(t, header, accidentalMap);
+                    currentMusic = new Concat(currentMusic, newMusic);
+                }
+                
             }
+            return currentMusic;
+        }
+        
+        case ELEMENT: {
+            return makeMusic(parseTree.children().get(0), header, accidentalMap);
         }
         
         // In this case, we need to just 
@@ -157,15 +168,15 @@ public class ABCParser {
             return makeMusic(parseTree.children().get(0), header, accidentalMap);
         }
         
-        
-        // In this case, we need to make a new note to return to the use
+        // In this case, we need to make a new note to return to the user
         case NOTE: { // note ::= pitch note_length?;
             // pitch ::= accidental? basenote octave?;
             Pitch newPitch = Pitch.MIDDLE_C;
+            String note = "";
             ParseTree<ABCGrammar> pitch = parseTree.children().get(0);
-            for (ParseTree<ABCGrammar> t : parseTree.children()) {
+            for (ParseTree<ABCGrammar> t : pitch.children()) {
+                System.out.println(t.name());
 //                String accidental = "";
-                String note = "";
                 int accidentalNumber = 0;
                 boolean accidentalChange = false;
                 switch (t.name()) {
@@ -176,18 +187,23 @@ public class ABCParser {
                     switch (accidental) {
                     case "^": {
                         accidentalNumber = 1;
+                        break;
                     }
                     case "^^": {
                         accidentalNumber = 2;
+                        break;
                     }
                     case "_": {
                         accidentalNumber = -1;
+                        break;
                     }
                     case "__": {
                         accidentalNumber = -2;
+                        break;
                     }
                     case "=": {
                         accidentalNumber = 0;
+                        break;
                     }
                     default:
                         break;
@@ -196,9 +212,13 @@ public class ABCParser {
                 }
                 case BASENOTE: { // basenote ::= "C" | "D" | "E" | "F" | "G" | "A" | "B" | "c" | "d" | "e" | "f" | "g" | "a" | "b";
                     note = t.text();
+                    System.out.println("Hello there");
+                    System.out.println(t.text());
+                    break;
                 }
                 case OCTAVE: { // octave ::= "'"+ | ","+
                     note = note + t.text();
+                    break;
                 }
                 default:
                     break;
@@ -207,6 +227,9 @@ public class ABCParser {
                     accidentalMap.put(note, accidentalNumber);
                 }
 //                Lyric nextLyric = LyricGenerator.next();
+                System.out.println("Note Below: ");
+                System.out.println(note);
+                
                 newPitch = Pitch.parsePitch(note).transpose(accidentalMap.getOrDefault(note, 0));
             }
             // If the duration of the note is being modified, then go here:
@@ -220,6 +243,8 @@ public class ABCParser {
                     
                 }
             }
+            
+            
             
             
             
@@ -239,6 +264,8 @@ public class ABCParser {
         }
         
         default: {
+            System.out.println("Thing that failed: ");
+            System.out.println(parseTree.name());
             throw new AssertionError("Shouldn't get here.");
         }
             
@@ -308,37 +335,56 @@ public class ABCParser {
      * @param currentHeaderInfo map containing information from the fields that have already been extracted from this abc file's header
      */
     private static void getHeaderInfo(final ParseTree<ABCGrammar> parseTree, Map<Character, Object> currentHeaderInfo) {
-
+//        System.out.println(parseTree.children());
         switch (parseTree.name()) {
         
-        case ABC_HEADER: // Go through all of the children, and call the method on those
-            {
-
-                for (ParseTree<ABCGrammar> t : parseTree.children()) {
+        case ABC_HEADER: //abc_header ::= field_number comment* field_title other_fields* field_key;
+            { // Go through all of the children, and call the method on those
+                ParseTree<ABCGrammar> fieldNumberParsed = parseTree.children().get(0);
+                String currentStringDigits = "";
+                for (int i = 0; i < fieldNumberParsed.children().size() - 1; i++) {
+                    currentStringDigits = currentStringDigits +  fieldNumberParsed.children().get(i).text();
+                }
+//                System.out.println(currentStringDigits);
+                int fieldNumber = Integer.parseInt(currentStringDigits);
+                currentHeaderInfo.put('X', fieldNumber);
+                for (ParseTree<ABCGrammar> t : parseTree.children().subList(1, parseTree.children().size())) {
+//                    System.out.println("Name of child");
+//                    System.out.println(t.name());
                     getHeaderInfo(t, currentHeaderInfo);
                 }
+                break;
             }    
         
         case FIELD_NUMBER: { // Get the digit, and assign it to the "X" field in the map
             currentHeaderInfo.put('X', Integer.parseInt(parseTree.children().get(0).text()));
-
+            break;
         }
         case FIELD_TITLE: { // Get the title text, and assign it to the "T" field in the map
+//            System.out.println("Made it here");
+//            System.out.println(parseTree.children());
             currentHeaderInfo.put('T', parseTree.children().get(0).text());
-
+            break;
         }
         case OTHER_FIELDS: { // Go through all the children, and populate the header info with the information obtained from each. 
-            for (ParseTree<ABCGrammar> t : parseTree.children()) {
-                getHeaderInfo(t,currentHeaderInfo);
-            }
+//            System.out.println("Did it get here?");
+//            System.out.println(parseTree.text());
+            getHeaderInfo(parseTree.children().get(0),currentHeaderInfo);
+            break;
         }
  
         case FIELD_COMPOSER: { // Go through all the children
             currentHeaderInfo.put('C', parseTree.children().get(0).text());
+            break;
         }
         case FIELD_DEFAULT_LENGTH: {
             ParseTree<ABCGrammar> noteLengthStrict = parseTree.children().get(0);
             currentHeaderInfo.put('L', parseTree.children().get(0).text());
+            break;
+        }
+        case FIELD_KEY: {
+            ParseTree<ABCGrammar> key = parseTree.children().get(0);
+            break;
         }
         case FIELD_METER: {
             ParseTree<ABCGrammar> meter = parseTree.children().get(0);
@@ -346,6 +392,7 @@ public class ABCParser {
             // If the meter's text contains C, then make the mater 4/4
             // Otherwise, it's a meter fraction node, in which case you should extract the numerator and denominator and make a meter from that 
             // currentHeaderInfo.put('M', parseTree.children().get(0).text());
+            break;
         }
         case FIELD_TEMPO:  {
             ParseTree<ABCGrammar> meterFraction = parseTree.children().get(0);
@@ -357,7 +404,7 @@ public class ABCParser {
             double measureLength = (double)denominator * (double) digit / (double)numerator;
             
             currentHeaderInfo.put('Q', measureLength);
-
+            break;
         }
         case FIELD_VOICE: {
             // Voice will be stored as a Set of String objects, each representing a different voice
@@ -370,7 +417,7 @@ public class ABCParser {
             currentVoices.add(parseTree.children().get(0).text());
             
 //            ((HashMap<Character, Object>)currentHeaderInfo.get('V')).put('C', parseTree.children().get(0).text());
-            
+            break;
         }
         default:
             throw new AssertionError("should never get here");

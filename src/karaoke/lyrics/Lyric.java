@@ -3,7 +3,8 @@ package karaoke.lyrics;
 import java.util.Optional;
 
 /**
- * Lyric represents either a lyrical line (including the syllable being sung, if any) or the absence of a lyric during an instrumental.
+ * Immutable datatype representing either a lyrical line (including the syllable being 
+ * sung, if any) or the absence of a lyric during an instrumental.
  */
 public class Lyric {
     
@@ -15,7 +16,7 @@ public class Lyric {
     
     /* Abstraction function:
      *  AF(voice, prefix, syllable, suffix, isInstrumental) =
-     *      a lyric if isInstrumental is false,
+     *      an immutable lyric if isInstrumental is false,
      *          represented by the tuple (prefix, syllable, suffix)
      *          denoting the lyrical line prefix + syllable.get() + suffix where
      *          syllable is the syllable being sung, if any; or
@@ -129,6 +130,25 @@ public class Lyric {
      */
     public boolean isInstrumental() {
         return isInstrumental;
+    }
+    
+    @Override
+    public boolean equals(Object that) {
+    	return that instanceof Lyric && sameValue((Lyric) that);
+    }
+    
+    /* returns true if that is same Lyric as this*/
+    private boolean sameValue(Lyric that) {
+    	return that.voice.equals(this.voice) && this.prefix.equals(that.prefix)
+    			&& this.suffix.equals(that.suffix) && this.syllable.equals(that.syllable)
+    			&& this.isInstrumental == that.isInstrumental;
+    }
+    
+    @Override
+    public String toString() {
+    	return "voice:" + this.voice + "\nprefix + syllable + suffix: " 
+    			+ this.prefix + this.syllable + this.suffix + "\nisInstrumental: " 
+    			+ isInstrumental;
     }
 
 }

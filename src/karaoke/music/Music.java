@@ -69,10 +69,10 @@ public interface Music {
      */
     public interface Visitor<R> {
         /**
-         * @param concat music as Concat
-         * @return result of calling visitor on Concat
+         * @param rest music as Rest
+         * @return result of calling visitor on Rest
          */
-        public R on(Concat concat);
+        public R on(Rest rest);
         
         /**
          * @param note music as Note
@@ -81,10 +81,10 @@ public interface Music {
         public R on(Note note);
         
         /**
-         * @param rest music as Rest
-         * @return result of calling visitor on Rest
+         * @param concat music as Concat
+         * @return result of calling visitor on Concat
          */
-        public R on(Rest rest);
+        public R on(Concat concat);
         
         /**
          * @param together music as Together
@@ -104,14 +104,14 @@ public interface Music {
     /**
      * @return total duration of this piece in beats
      */
-    double duration();
+    public double duration();
 
     /**
      * Load this music into specified SequencePlayer.
      * @param player player to play on
      * @param atBeat when to play
-     * @param lyricConsumer function called when new lyrics are played
+     * @param lyricConsumer function called when new lyrics are played, or null to ignore lyrics
      */
-    void load(SequencePlayer player, double atBeat, Consumer<Lyric> lyricConsumer);
+    public void load(SequencePlayer player, double atBeat, Consumer<Lyric> lyricConsumer);
 
 }

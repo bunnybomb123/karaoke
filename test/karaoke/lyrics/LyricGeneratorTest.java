@@ -36,7 +36,7 @@ public class LyricGeneratorTest {
         assert false; // make sure assertions are enabled with VM argument: -ea
     }
     
-    /*  */
+    /* helper to  */
     private void helperTest(List<Lyric> expected, LyricGenerator lg) {
     	for (Lyric l : expected) {
     		System.out.println(l.getSyllable());
@@ -48,7 +48,7 @@ public class LyricGeneratorTest {
     public void testWaxiesDargle() {
     	LyricGenerator lg = new LyricGenerator("1");
     	lg.loadNewLine(Arrays.asList("I'll", " ","go"," ","down"," ","to"," ","Mon",
-    			"-","to"," ", "to","-","w","-","n"," ","To"," ","see"," ","un","-","cle",
+    			"-","to"," ", "to","\\-","w","_","n"," ","To","*","see"," ","un","-","cle",
     			" ","Mc","-","Ar","-","dle"," ","A","-","nd"));
     	
     	String voice = "1";
@@ -74,6 +74,10 @@ public class LyricGeneratorTest {
 			new Lyric(voice, line, 56, 58) // nd
 		);
     	helperTest(expected, lg);
+    }
+    
+    @Test
+    public void testHyphensDargle() {
     	
     }
 }

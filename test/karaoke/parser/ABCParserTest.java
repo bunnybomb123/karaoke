@@ -24,6 +24,7 @@ import karaoke.music.Pitch;
 import karaoke.music.Rest;
 import karaoke.music.Together;
 import karaoke.songs.ABC;
+import karaoke.songs.Key;
 
 /**
  * Test that ABCParser creates the correct ADT.
@@ -46,6 +47,12 @@ public class ABCParserTest {
      * Cover all parts
      */
     
+    private String getContentsFromFile(String filename) throws FileNotFoundException {
+        String abcFile = new Scanner(new File(filename)).useDelimiter("\\Z").next() + "\n";
+        return abcFile;
+    }
+    
+    
     @Test(expected=AssertionError.class)
     public void testAssertionsEnabled() {
         assert false; // make sure assertions are enabled with VM argument: -ea
@@ -64,10 +71,16 @@ public class ABCParserTest {
     // output: Note, Concat, transposed notes
     @Test
     public void testSample1() throws FileNotFoundException, UnableToParseException {
-        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/sample1.abc")).useDelimiter("\\Z").next() + "\n";
+        @SuppressWarnings("resource") 
+        /*
+         * String abcFile = new Scanner(new File("sample-abc/sample1.abc")).useDelimiter("\\Z").next() + "\n";
+         */
+        String abcFile = getContentsFromFile("sample-abc/sample1.abc");
+//        String abcFile = getContentsFromFile("sample-abc/sample1.abc");
         // System.out.println("parse tree " + parseTree);
         // Visualizer.showInBrowser(parseTree);
         System.out.println(abcFile);
+//        System.out.println(fileTwo);
         ABC actual = ABCParser.parse(abcFile);
 
         Music m1 = new Note(2, new Pitch('C').transpose(-Pitch.OCTAVE), Instrument.PIANO, Optional.empty());
@@ -80,7 +93,8 @@ public class ABCParserTest {
         parts.put("", music);
         final Map<Character, Object> fields = new HashMap<>();
         fields.put('T', "sample 1");
-        fields.put('K', "C");
+        fields.put('K', Key.valueOf("C"));
+        fields.put('X', 1);
         
         ABC expected = new ABC(parts, fields);
         assertEquals(expected, actual);
@@ -90,7 +104,7 @@ public class ABCParserTest {
     @Test
     public void testSample2() throws FileNotFoundException, UnableToParseException {
         @SuppressWarnings("resource") 
-        String abcFile = new Scanner(new File("sample-abc/sample2.abc")).useDelimiter("\\Z").next() ;
+        String abcFile = getContentsFromFile("sample-abc/sample2.abc");
         ABC actual = ABCParser.parse(abcFile);
 
         Music m1 = new Note(1, new Pitch('C'), Instrument.PIANO, Optional.empty());
@@ -101,7 +115,8 @@ public class ABCParserTest {
         
         final Map<Character, Object> fields = new HashMap<>();
         fields.put('T', "Chord");
-        fields.put('K', "C");
+        fields.put('K', Key.valueOf("C"));
+        fields.put('X', 8);
         
         ABC expected = new ABC(parts, fields);
         assertEquals(expected, actual);
@@ -111,7 +126,11 @@ public class ABCParserTest {
     // output: Together, Note
     @Test
     public void testSample3() throws FileNotFoundException, UnableToParseException {
-        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/sample3.abc")).useDelimiter("\\Z").next();
+        @SuppressWarnings("resource")
+        /*
+         * String abcFile = new Scanner(new File("sample-abc/sample3.abc")).useDelimiter("\\Z").next();
+         */
+        String abcFile = getContentsFromFile("sample-abc/sample3.abc");
         ABC actual = ABCParser.parse(abcFile);
 
         Music m1 = new Note(1, new Pitch('C'), Instrument.PIANO, Optional.empty());
@@ -125,7 +144,8 @@ public class ABCParserTest {
 
         final Map<Character, Object> fields = new HashMap<>();
         fields.put('T', "voices");
-        fields.put('K', "Cm");
+        fields.put('K', Key.valueOf("Cm"));
+        fields.put('X', 0);
         
         ABC expected = new ABC(parts, fields);
         

@@ -64,7 +64,9 @@ public class ABCParserTest {
     // output: Note, Concat, transposed notes
     @Test
     public void testSample1() throws FileNotFoundException, UnableToParseException {
-        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/sample1.abc")).useDelimiter("\\Z").next();
+        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/sample1.abc")).useDelimiter("\\Z").next() + "\n";
+        // System.out.println("parse tree " + parseTree);
+        // Visualizer.showInBrowser(parseTree);
         System.out.println(abcFile);
         ABC actual = ABCParser.parse(abcFile);
 

@@ -86,6 +86,9 @@ public class Pitch {
             return parsePitch(symbol.substring(1)).transpose(-1);
         else if (symbol.length() != 1)
             throw new IllegalArgumentException("can't understand " + symbol);
+        else if (symbol.toLowerCase().equals(symbol))
+            // TODO: CHECK TO SEE IF THIS IS CORRECT (Don't know if being a lower
+            return new Pitch(symbol.toUpperCase().charAt(0)).transpose(OCTAVE);
         else
             return new Pitch(symbol.charAt(0));
     }

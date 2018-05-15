@@ -38,7 +38,6 @@ public class LyricGeneratorTest {
     /* helper to  */
     private void helperTest(List<Lyric> expected, LyricGenerator lg) {
     	for (Lyric l : expected) {
-//    		System.out.println(l.getSyllable());
     		Optional<Lyric> actual = lg.next();
     		System.out.println("GET: "+actual.get());
     		if (actual.isPresent()){
@@ -47,17 +46,17 @@ public class LyricGeneratorTest {
 
     		}
     	}
-    }
+    }// \\- ~ _
     
     @Test
     public void testWaxiesDargle() {
     	LyricGenerator lg = new LyricGenerator("1");
     	lg.loadNewLine(Arrays.asList("I'll", " ","go"," ","down"," ","to"," ","Mon",
-    			"-","to"," ", "to","-","w","_","n"," ","To","\\-","see"," ","un","~","cle",
+    			"-","to"," ", "to","-","w","-","n"," ","To"," ","see"," ","un"," ","cle",
     			" ","Mc","-","Ar","-","dle","*","A","-","-","nd"));
     	
     	String voice = "1";
-    	String line = "I'll go down to Mon-to to-w_n To-see un cle Mc-Ar-dle*A--nd";
+    	String line = "I'll go down to Mon-to to-w-n To see un cle Mc-Ar-dle*A--nd";
     	List<Lyric> expected = Arrays.asList(
 			new Lyric(voice, line, 0, 4), // I'll
 			new Lyric(voice, line, 5, 7), // go
@@ -66,8 +65,8 @@ public class LyricGeneratorTest {
 			new Lyric(voice, line, 16, 19), // Mon
 			new Lyric(voice, line, 20, 22), // to
 			new Lyric(voice, line, 23, 25), // to
-			new Lyric(voice, line, 26, 28), // w_
-			new Lyric(voice, line, 27, 28), // n
+			new Lyric(voice, line, 26, 27), // w
+			new Lyric(voice, line, 28, 29), // n
 			new Lyric(voice, line, 30, 32), // To
 			new Lyric(voice, line, 33, 36), // see
 			new Lyric(voice, line, 37, 39), // un

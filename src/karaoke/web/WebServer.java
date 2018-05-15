@@ -24,7 +24,10 @@ import karaoke.music.Note;
 import karaoke.music.Pitch;
 import karaoke.playback.Jukebox;
 import karaoke.playback.Jukebox.Listener;
+import karaoke.playback.Jukebox.Signal;
+import karaoke.playback.Jukebox.Signal.Type;
 import karaoke.songs.ABC;
+import karaoke.songs.Key;
 
 /**
  * HTTP web karaoke server.
@@ -46,10 +49,12 @@ public class WebServer {
         parts.put("", music);
         
         final Map<Character, Object> fields = new HashMap<>();
+        fields.put('X', 1);
         fields.put('T', "sample 1");
-        fields.put('K', "C");
+        fields.put('K', Key.C);
         
         ABC expected = new ABC(parts, fields);
+        
         return expected;
     }
     // Abstraction function:
@@ -94,11 +99,11 @@ public class WebServer {
         server.setExecutor(Executors.newCachedThreadPool());
 
         // register handlers
-        server.createContext("/addSong", this::handleAddSong);
-        server.createContext("/play", this::handlePlay);
-        server.createContext("/textStream", this::handleTextStream);
-        server.createContext("/htmlStream", this::handleHtmlStream);
-        server.createContext("/htmlWaitReload", this::handleHtmlWaitReload);
+        server.createContext("/addSong/", this::handleAddSong);
+        server.createContext("/play/", this::handlePlay);
+        server.createContext("/textStream/", this::handleTextStream);
+        server.createContext("/htmlStream/", this::handleHtmlStream);
+        server.createContext("/htmlWaitReload/", this::handleHtmlWaitReload);
     }
 
     // checks that rep invariant is maintained
@@ -107,8 +112,34 @@ public class WebServer {
         assert jukebox != null;
     }
     
-    private void handlePlay(HttpExchange exchange) {
+    private void handleAddSong(HttpExchange exchange) throws IOException {
+        exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=utf-8");
+        PrintWriter out = getPrintWriter(exchange);
         
+        final String path = exchange.getRequestURI().getPath();
+        final String base = exchange.getHttpContext().getPath();
+        final String song = path.substring(base.length());
+        int position = jukebox.addSong(newABC());
+        if (position == 0)
+            out.println("Next song is " + song);
+        else
+            out.println("Added " + song + " at position " + position + " in queue");
+        exchange.close();
+    }
+    
+    private void handlePlay(HttpExchange exchange) throws IOException {
+        exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=utf-8");
+        PrintWriter out = getPrintWriter(exchange);
+        
+        boolean success = jukebox.play();
+        Optional<ABC> song = jukebox.getCurrentSong();
+        if (success)
+            out.println("Now playing " + song.get().getTitle());
+        else if (jukebox.isPlaying())
+            out.println("Jukebox is already playing " + song.get().getTitle());
+        else
+            out.println("Jukebox is empty");
+        exchange.close();
     }
     
     /**
@@ -121,63 +152,53 @@ public class WebServer {
      */
     private void handleTextStream(HttpExchange exchange) throws IOException {
         exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=utf-8");
-
-    }
-    
-    /**
-     * given an HttpExchange, return a PrintWriter that prints to 
-     * this exchange
-     * @param exchange
-     * @return out
-     * @throws IOException
-     */
-    private static PrintWriter helperGetPrintWriter(HttpExchange exchange) throws IOException {
-        final int lengthNotKnownYet = 0;
-        exchange.sendResponseHeaders(SUCCESS_CODE, lengthNotKnownYet);
+        PrintWriter out = getPrintWriter(exchange);
         
-        // get output stream to write to web browser
-        final boolean autoflushOnPrintln = true;
-        PrintWriter out = new PrintWriter(
-                              new OutputStreamWriter(
-                                  exchange.getResponseBody(), 
-                                  StandardCharsets.UTF_8), 
-                              autoflushOnPrintln);
-        return out;
-    }
-    
-    /*
-     * adds a listener to the jukebox for every single client connected to the server.
-     * The listener listens for lyrics and song start/end/change info, and broadcasts 
-     * it to all clients in html format.
-     */
-    private void setUpLyricsStreaming(PrintWriter out) {
-        Listener listener =  new Listener() {
+        // IMPORTANT: some web browsers don't start displaying a page until at least 2K bytes
+        // have been received.  So we'll send a line containing 2K spaces first.
+        final int enoughBytesToStartStreaming = 2048;
+        for (int i = 0; i < enoughBytesToStartStreaming; ++i) {
+            out.print(' ');
+        }
+        out.println(); // also flushes
+        
+        Optional<ABC> next = jukebox.getCurrentSong();
+        if (next.isPresent())
+            out.println("Next song is " + next.get().getTitle());
+        else
+            out.println("Jukebox is empty");
+        
+        jukebox.addListener(new Listener() {
             @Override
-            public void signalReceived(Jukebox.Signal signal) {
-                System.out.println("Signal is: " + signal);
-                switch (signal.getType()) {
-                case LYRIC:
-                    out.println(signal.getLyric().toHtmlText());
-                    break;
-                case SONG_CHANGE:
-                    out.println("Song changed!");
-                    printCurrentSongDetails();
-                    break;
-                case SONG_END:
-                	out.println("Song over.");
-                    break;
-                case SONG_START:
-//                	out.println("Song has begun!");
-                    break;
-                default:
-                    throw new RuntimeException("Should never get here");
+            public void signalReceived(Signal signal) {
+                try {
+                    Optional<ABC> song = jukebox.getCurrentSong();
+                    switch(signal.getType()) {
+                    case SONG_START:
+                        out.println("Now playing " + song.get().getTitle());
+                        out.println("--------------------");
+                        break;
+                    case SONG_END:
+                        out.println("--------------------");
+                        break;
+                    case SONG_CHANGE:
+                        if (song.isPresent())
+                            out.println("Next song is " + song.get().getTitle());
+                        else
+                            out.println("Jukebox is empty");
+                        break;
+                    case LYRIC:
+                        out.println(signal.getLyric().toPlainText());
+                        break;
+                    default:
+                        throw new RuntimeException();
+                    }
+                } catch (Exception e) {
+                    exchange.close();
+                    jukebox.removeListener(this);
                 }
             }
-            private void printCurrentSongDetails() {
-                out.println(jukebox.getCurrentSong().get().getTitle());
-            }
-        };
-        jukebox.addListener(listener);
+        });
     }
     
     /**
@@ -189,28 +210,57 @@ public class WebServer {
      * @throws MidiUnavailableException 
      */
     private void handleHtmlStream(HttpExchange exchange) throws IOException {
-        checkRep();
-        final String path = exchange.getRequestURI().getPath();
-        final String base = exchange.getHttpContext().getPath();
-        final String startSong = path.substring(base.length() + 1);
-
-        if (startSong.equals("start")) {
-            jukebox.addSong(newABC());
-            jukebox.play();
-        }
-        
         exchange.getResponseHeaders().add("Content-Type", "text/html; charset=utf-8");
-        PrintWriter out = helperGetPrintWriter(exchange);
-        try {
-            enoughBytesToStartStreaming(out);
-            setUpLyricsStreaming(out);
-            // autoscroll
-            out.println("<script>document.body.scrollIntoView(false)</script>");
-        } finally {
-//            exchange.close();
-            System.err.println("done streaming request");
+        PrintWriter out = getPrintWriter(exchange);
+        
+        // IMPORTANT: some web browsers don't start displaying a page until at least 2K bytes
+        // have been received.  So we'll send a line containing 2K spaces first.
+        final int enoughBytesToStartStreaming = 2048;
+        for (int i = 0; i < enoughBytesToStartStreaming; ++i) {
+            out.print(' ');
         }
-        checkRep();
+        out.println(); // also flushes
+        
+        Optional<ABC> next = jukebox.getCurrentSong();
+        if (next.isPresent())
+            out.println("Next song is " + next.get().getTitle() + "<br>");
+        else
+            out.println("Jukebox is empty<br>");
+        
+        jukebox.addListener(new Listener() {
+            @Override
+            public void signalReceived(Signal signal) {
+                try {
+                    Optional<ABC> song = jukebox.getCurrentSong();
+                    switch(signal.getType()) {
+                    case SONG_START:
+                        out.println("Now playing " + song.get().getTitle() + "<br>");
+                        out.println("--------------------<br>");
+                        break;
+                    case SONG_END:
+                        out.println("--------------------<br>");
+                        break;
+                    case SONG_CHANGE:
+                        if (song.isPresent())
+                            out.println("Next song is " + song.get().getTitle() + "<br>");
+                        else
+                            out.println("Jukebox is empty<br>");
+                        break;
+                    case LYRIC:
+                        out.println(signal.getLyric().toHtmlText());
+                        break;
+                    default:
+                        throw new RuntimeException();
+                    }
+                    // send some Javascript to browser that makes it scroll down to the bottom of the page,
+                    // so that the last line sent is always in view
+                    out.println("<script>document.body.scrollIntoView(false)</script>");
+                } catch (Exception e) {
+                    exchange.close();
+                    jukebox.removeListener(this);
+                }
+            }
+        });
     }
     
     /**
@@ -226,44 +276,52 @@ public class WebServer {
      * @throws IOException if network problem
      */
     private void handleHtmlWaitReload(HttpExchange exchange) throws IOException {
-        checkRep();
-        final String path = exchange.getRequestURI().getPath();
-        final String base = exchange.getHttpContext().getPath();
-        final String startSong = path.substring(base.length() + 1);
-
-        if (startSong.equals("start")) {
-            jukebox.play();
-        }
-        
         exchange.getResponseHeaders().add("Content-Type", "text/html; charset=utf-8");
-        PrintWriter out = helperGetPrintWriter(exchange);
-        try {
-            enoughBytesToStartStreaming(out);
-            setUpLyricsStreaming(out);
-            out.println("<script>location.reload()</script>");
-        } finally {
-//            exchange.close();
-            System.err.println("done streaming request");
-        }
-        checkRep();
-    }    
+        PrintWriter out = getPrintWriter(exchange);
+        
+        jukebox.addListener(new Listener() {
+            @Override
+            public void signalReceived(Signal signal) {
+                if (signal.getType() == Type.LYRIC) {
+                    out.println(signal.getLyric().toHtmlText());
+                    out.println("<script>location.reload()</script>");
+                    exchange.close();
+                    jukebox.removeListener(this);
+                }
+            }
+        });
+    }
     
-    private static void enoughBytesToStartStreaming(PrintWriter out) {
-        final int enoughBytesToStartStreaming = 2048;
-        for (int i = 0; i < enoughBytesToStartStreaming; ++i) {
-            out.print(' ');
-        }
-        out.println(); // also flushes
+    /**
+     * given an HttpExchange, return a PrintWriter that prints to 
+     * this exchange
+     * @param exchange
+     * @return out
+     * @throws IOException
+     */
+    private static PrintWriter getPrintWriter(HttpExchange exchange) throws IOException {
+        final int lengthNotKnownYet = 0;
+        exchange.sendResponseHeaders(SUCCESS_CODE, lengthNotKnownYet);
+        
+        // get output stream to write to web browser
+        final boolean autoflushOnPrintln = true;
+        PrintWriter out = new PrintWriter(
+                              new OutputStreamWriter(
+                                  exchange.getResponseBody(), 
+                                  StandardCharsets.UTF_8), 
+                              autoflushOnPrintln);
+        
+        return out;
     }
     
     /** @return the port on which this server is listening for connections */
-    public synchronized int port() {
+    public int port() {
         checkRep();
         return server.getAddress().getPort();
     }
     
     /** Start this server in a new background thread. */
-    public synchronized void start() {
+    public void start() {
         checkRep();
         System.err.println("Server will listen on " + server.getAddress());
         server.start();
@@ -271,7 +329,7 @@ public class WebServer {
     }
     
     /** Stop this server. Once stopped, this server cannot be restarted. */
-    public synchronized void stop() {
+    public void stop() {
         checkRep();
         System.err.println("Server will stop");
         server.stop(0);

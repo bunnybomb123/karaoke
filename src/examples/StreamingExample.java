@@ -204,7 +204,7 @@ public class StreamingExample {
             // Wait until an event occurs in the server.
             // In this example, the event is just a brief fixed-length delay, but it
             // could synchronize with another thread instead.
-            final int millisecondsToWait = 200;
+            final int millisecondsToWait = 20000;
             try {
                 Thread.sleep(millisecondsToWait);
             } catch (InterruptedException e) {

@@ -56,19 +56,19 @@ public class ABC {
         this.title = (String) fields.get('T');
         this.keySignature = (Key) fields.get('K');
         this.composer = (String) fields.getOrDefault('C', "Unknown");
-        
+
         final Meter defaultMeter = new Meter(4, 4);
         this.meter = (Meter) fields.getOrDefault('M', defaultMeter);
-        
+
         final double baseline = .75;
         final Meter defaultNote1 = new Meter(1, 16);
         final Meter defaultNote2 = new Meter(1, 8);
         this.defaultNote = (Meter) fields.getOrDefault('L', 
                 this.meter.value() < baseline ? defaultNote1 : defaultNote2);
-        
+
         final int defaultTempo = 100;
         this.tempo = (Tempo) fields.getOrDefault('Q', new Tempo(defaultNote, defaultTempo));
-        
+
         this.beatsPerMinute = (int) (tempo.beatsPerMinute() * tempo.beatLength() / defaultNote.value());
     }
     

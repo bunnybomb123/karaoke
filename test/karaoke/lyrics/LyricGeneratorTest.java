@@ -13,7 +13,7 @@ import org.junit.Test;
  * @author ericaweng
  */
 public class LyricGeneratorTest {
-	
+    
     /* Testing strategy
      *  input:
      *      optional fields (meter, beatsPerMinute, defaultNote, 

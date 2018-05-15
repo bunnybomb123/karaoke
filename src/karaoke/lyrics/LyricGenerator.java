@@ -16,20 +16,20 @@ public class LyricGenerator {
     private int index;
     private int beginIndex;
     private int hold;
-    private boolean inInstrumental = false;
+    private Lyric previous;
     
     /* Abstraction function:
-     *  AF(lyricalElements, line, index, beginIndex, hold) =
-     *      a lyric generator that generates Lyrics from the lyrical line
+     *  AF(voice, lyricalElements, line, index, beginIndex, hold, previous) =
+     *      a lyric generator that generates Lyrics for the given voice part from the lyrical line
      *          specified by lyricalElements and with formatted representation line,
      *          where the syllable being sung by the next lyric (or the barline if at the 
      *          end of a measure) is represented by lyricalElements.get(index) and found 
      *          in the formatted lyrical line as line.substring(beginIndex, beginIndex + 
      *          syllable.length()), unless hold > 0 in which case the previous syllable 
-     *          should be held for hold more notes
+     *          should be held for hold more notes; and previous is the last lyric returned by this generator
      * 
      * Rep invariant:
-     *  fields are not null
+     *  fields are not null except previous
      *  if index < lyricalElements.size():
      *      symbol = lyricalElements.get(index) is either a syllable or a barline, and
      *      syllable = format(symbol) is equal to line.substring(beginIndex, beginIndex + syllable.length())
@@ -46,6 +46,7 @@ public class LyricGenerator {
      */
     public LyricGenerator(String voice) {
         this.voice = voice;
+        this.previous = null;
         loadNoLyrics();
         checkRep();
     }
@@ -98,15 +99,15 @@ public class LyricGenerator {
         removeSuffix();
         
         beginIndex = 0;
-        
         hold = 0;
-        
+        previous = null;
         checkRep();
     }
     
     /**
      * @return new Lyric with next syllable being sung, or
-     *          an instrumental Lyric if at the end of a measure, or
+     *          a Lyric with no syllable being sung if at the end of a measure, or
+     *          an instrumental Lyric if current line contains no lyrics, or
      *          no Lyric if previous Lyric is being held
      */
     public Optional<Lyric> next() {
@@ -116,17 +117,21 @@ public class LyricGenerator {
             return Optional.empty();
         }
         
-        if (index >= lyricalElements.size() || lyricalElements.get(index).equals("|"))
-            if (inInstrumental)
-                return Optional.empty();
-            else {
-                inInstrumental = true;
-                checkRep();
-                return Optional.of(new Lyric(voice));
-            }
+        final Lyric lyric;
         
-        inInstrumental = false;
-        return nextSyllable();
+        if (line.isEmpty())
+            lyric = new Lyric(voice);
+        else if (index >= lyricalElements.size() || lyricalElements.get(index).equals("|"))
+            lyric = new Lyric(voice, line);
+        else
+            lyric = nextSyllable();
+        
+        if (lyric.equals(previous))
+            return Optional.empty();
+        else {
+            previous = lyric;
+            return Optional.of(lyric);
+        }
     }
     
     /**
@@ -147,14 +152,14 @@ public class LyricGenerator {
      * An extended syllable is a syllable extended to include all "_" characters following it.
      * Updates index to point to next syllable or barline.
      */
-    private Optional<Lyric> nextSyllable() {
+    private Lyric nextSyllable() {
         String syllable = format(lyricalElements.get(index++));
         String suffix = removeSuffix();
         int endIndex = beginIndex + syllable.length() + suffix.lastIndexOf('_') + 1;
         Lyric lyric = new Lyric(voice, line, beginIndex, endIndex);
         beginIndex += syllable.length() + suffix.length();
         checkRep();
-        return Optional.of(lyric);
+        return lyric;
     }
     
     /*

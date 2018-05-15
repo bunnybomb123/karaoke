@@ -202,6 +202,7 @@ public class MidiSequencePlayer implements SequencePlayer {
                 // allow the sequencer to finish
                 try { Thread.sleep(Duration.ofSeconds(1).toMillis()); } catch (InterruptedException ie) { }
                 // stop & close the sequencer
+                Thread.
                 sequencer.stop();
                 sequencer.close();
             }

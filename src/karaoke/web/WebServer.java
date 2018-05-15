@@ -5,6 +5,9 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.Executors;
 
 import javax.sound.midi.InvalidMidiDataException;
@@ -13,9 +16,15 @@ import javax.sound.midi.MidiUnavailableException;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
+import karaoke.lyrics.Lyric;
+import karaoke.music.Concat;
+import karaoke.music.Instrument;
+import karaoke.music.Music;
+import karaoke.music.Note;
+import karaoke.music.Pitch;
 import karaoke.playback.Jukebox;
 import karaoke.playback.Jukebox.Listener;
-import karaoke.playback.Jukebox.Signal;
+import karaoke.songs.ABC;
 
 /**
  * HTTP web karaoke server.
@@ -27,10 +36,10 @@ public class WebServer {
     
     private static final int SUCCESS_CODE = 200;
     private static ABC newABC() {
-        Music m1 = new Note(2, new Pitch('C').transpose(-Pitch.OCTAVE), Instrument.PIANO, Optional.of(new Lyric("hey,")));
-        Music m2 = new Note(2, new Pitch('C'), Instrument.PIANO, Optional.of(new Lyric("babe")));
-        Music m3 = new Note(1, new Pitch('C').transpose(Pitch.OCTAVE), Instrument.PIANO, Optional.of(new Lyric("hey")));
-        Music m4 = new Note(1, new Pitch('C').transpose(2*Pitch.OCTAVE), Instrument.PIANO, Optional.of(new Lyric("hey!")));
+        Music m1 = new Note(2, new Pitch('C').transpose(-Pitch.OCTAVE), Instrument.PIANO, Optional.of(new Lyric("1", "hey, babe hey-hey!", 0, 4)));
+        Music m2 = new Note(2, new Pitch('C'), Instrument.PIANO, Optional.of(new Lyric("1", "hey, babe hey-hey!", 5, 9)));
+        Music m3 = new Note(1, new Pitch('C').transpose(Pitch.OCTAVE), Instrument.PIANO, Optional.of(new Lyric("1", "hey, babe hey-hey!", 10, 13)));
+        Music m4 = new Note(1, new Pitch('C').transpose(2*Pitch.OCTAVE), Instrument.PIANO, Optional.of(new Lyric("1", "hey, babe hey-hey!", 14, 18)));
         Music music = new Concat(m1, new Concat(m2, new Concat(m3, m4)));
         
         final Map<String, Music> parts = new HashMap<>();
@@ -130,6 +139,41 @@ public class WebServer {
         return out;
     }
     
+    /*
+     * adds a listener to the jukebox for every single client connected to the server.
+     * The listener listens for lyrics and song start/end/change info, and broadcasts 
+     * it to all clients in html format.
+     */
+    private void setUpLyricsStreaming(PrintWriter out) {
+        Listener listener =  new Listener() {
+            @Override
+            public void signalReceived(Jukebox.Signal signal) {
+                System.out.println("Signal is: " + signal);
+                switch (signal.getType()) {
+                case LYRIC:
+                    out.println(signal.getLyric().toHtmlText());
+                    break;
+                case SONG_CHANGE:
+                    out.println("Song changed!");
+                    printCurrentSongDetails();
+                    break;
+                case SONG_END:
+                	out.println("Song over.");
+                    break;
+                case SONG_START:
+//                	out.println("Song has begun!");
+                    break;
+                default:
+                    throw new RuntimeException("Should never get here");
+                }
+            }
+            private void printCurrentSongDetails() {
+                out.println(jukebox.getCurrentSong().get().getTitle());
+            }
+        };
+        jukebox.addListener(listener);
+    }
+    
     /**
      * Sends an HTML stream to the web browser
      * 
@@ -139,6 +183,7 @@ public class WebServer {
      * @throws MidiUnavailableException 
      */
     private void handleHtmlStream(HttpExchange exchange) throws IOException {
+        checkRep();
         final String path = exchange.getRequestURI().getPath();
         final String base = exchange.getHttpContext().getPath();
         final String startSong = path.substring(base.length() + 1);
@@ -156,39 +201,10 @@ public class WebServer {
             // autoscroll
             out.println("<script>document.body.scrollIntoView(false)</script>");
         } finally {
-            exchange.close();
+//            exchange.close();
             System.err.println("done streaming request");
         }
         checkRep();
-    }
-
-    private void setUpLyricsStreaming(PrintWriter out) {
-        Listener listener =  new Listener() {
-            @Override
-            public void signalReceived(Jukebox.Signal signal) {
-                System.out.println("Signal is: " + signal);
-                switch (signal.getType()) {
-                case LYRIC:
-                    out.println("yo");
-                    out.println(signal.getLyric());
-                    break;
-                case SONG_CHANGE:
-                    out.println("Song changed!");
-                    printCurrentSongDetails();
-                    break;
-                case SONG_END:
-                    break;
-                case SONG_START:
-                    break;
-                default:
-                    throw new RuntimeException("Should never get here");
-                }
-            }
-            private void printCurrentSongDetails() {
-                out.println(jukebox.getCurrentSong());
-            }
-        };
-        jukebox.addListener(listener);
     }
     
     /**
@@ -205,13 +221,22 @@ public class WebServer {
      */
     private void handleHtmlWaitReload(HttpExchange exchange) throws IOException {
         checkRep();
+        final String path = exchange.getRequestURI().getPath();
+        final String base = exchange.getHttpContext().getPath();
+        final String startSong = path.substring(base.length() + 1);
+
+        if (startSong.equals("start")) {
+            jukebox.play();
+        }
+        
+        exchange.getResponseHeaders().add("Content-Type", "text/html; charset=utf-8");
         PrintWriter out = helperGetPrintWriter(exchange);
         try {
             enoughBytesToStartStreaming(out);
             setUpLyricsStreaming(out);
             out.println("<script>location.reload()</script>");
         } finally {
-            exchange.close();
+//            exchange.close();
             System.err.println("done streaming request");
         }
         checkRep();

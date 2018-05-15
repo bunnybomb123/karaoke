@@ -1,5 +1,8 @@
 package karaoke.lyrics;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.junit.Test;
 
 /**
@@ -27,5 +30,13 @@ public class LyricsGeneratorTest {
     @Test(expected=AssertionError.class)
     public void testAssertionsEnabled() {
         assert false; // make sure assertions are enabled with VM argument: -ea
+    }
+    
+    @Test
+    public void testWaxiesDargle() {
+    	List<String> lyricLine = Arrays.asList("I'll go down to Mon-to to-w-n To see "
+    			+ "un-cle Mc-Ar-dle A-nd".split(" "));
+    	LyricGenerator gnr = new LyricGenerator(lyricLine);
+    	
     }
 }

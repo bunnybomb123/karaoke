@@ -82,7 +82,10 @@ public class Jukebox {
         }
         
         ABC song = currentSong.get();
-        SequencePlayer player = SequencePlayer.load(song, lyric -> broadcast(Signal.lyric(lyric)));
+        SequencePlayer player = SequencePlayer.load(song, lyric -> {
+        	System.out.println("added: "+lyric.toHtmlText());
+        	broadcast(Signal.lyric(lyric));
+    	});
         player.addEvent(0, beat -> {
             isPlaying = true;
             broadcast(Signal.SIGNAL_SONG_START);

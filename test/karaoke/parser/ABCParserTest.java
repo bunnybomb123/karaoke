@@ -323,6 +323,7 @@ public class ABCParserTest {
         assertEquals(expected, actual);
     }
     
+    /* concats a bunch of musics into one music */
     private Music concatChain(List<Music> musics) {
         Music growing = new Rest(0); 
         for (Music music : musics)

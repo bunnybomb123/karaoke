@@ -1,7 +1,6 @@
 package karaoke.parser;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -51,6 +50,11 @@ public class ABCParserTest {
      * Cover all parts
      */
     
+    @Test(expected=AssertionError.class)
+    public void testAssertionsEnabled() {
+        assert false; // make sure assertions are enabled with VM argument: -ea
+    }
+    
     /* helper to get the actual ABC object that is parsed by parser */
     private ABC helperGetActual(String filename) throws UnableToParseException, FileNotFoundException {
     	@SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/"+filename+".abc")).useDelimiter("\\A").next();
@@ -58,10 +62,6 @@ public class ABCParserTest {
         return actual;
     }
     
-    @Test(expected=AssertionError.class)
-    public void testAssertionsEnabled() {
-        assert false; // make sure assertions are enabled with VM argument: -ea
-    }
     
     // output: Note, Concat, transposed notes
     @Test

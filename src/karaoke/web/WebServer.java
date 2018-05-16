@@ -1,6 +1,7 @@
 package karaoke.web;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -120,20 +121,37 @@ public class WebServer {
         final String base = exchange.getHttpContext().getPath();
         final String abcFile = path.length() > base.length() ? path.substring(base.length() + 1) : "";
         
-        try (
-            Scanner scan = new Scanner(new File("sample-abc/" + abcFile))
-        ) {
-            System.err.println("hi");
-            ABC song = ABCParser.parse(scan.useDelimiter("\\A").next());
-            System.err.println("bye");
-            int position = jukebox.addSong(song);
-            if (position == 0)
-                out.println("Next song is " + song);
-            else
-                out.println("Added " + song + " at position " + position + " in queue");
-        } catch (UnableToParseException e) {
-            out.println("Unable to parse " + abcFile);
+        final Scanner scan;
+        
+        try {
+            scan = new Scanner(new File("sample-abc/" + abcFile));
+        } catch (FileNotFoundException e) {
+            out.println(abcFile + " not found");
+            exchange.close();
+            return;
         }
+        
+        String songFile = scan.useDelimiter("\\A").next();
+        final ABC song;
+        
+        try {
+            song = ABCParser.parse(songFile);
+        } catch (Exception e) {
+            System.out.println("hi");
+            out.println("Unable to parse " + abcFile);
+            scan.close();
+            exchange.close();
+            e.printStackTrace();
+            return;
+        }
+        
+        int position = jukebox.addSong(song);
+        if (position == 0)
+            out.println("Next song is " + song.getInfo());
+        else
+            out.println("Added " + song.getInfo() + " at position " + position + " in queue");
+        
+        scan.close();
         exchange.close();
     }
     
@@ -144,9 +162,9 @@ public class WebServer {
         boolean success = jukebox.play();
         Optional<ABC> song = jukebox.getCurrentSong();
         if (success)
-            out.println("Now playing " + song.get());
+            out.println("Now playing " + song.get().getInfo());
         else if (jukebox.isPlaying())
-            out.println("Jukebox is already playing " + song.get());
+            out.println("Jukebox is already playing " + song.get().getInfo());
         else
             out.println("Jukebox is empty");
         exchange.close();
@@ -170,7 +188,7 @@ public class WebServer {
         
         Optional<ABC> next = jukebox.getCurrentSong();
         if (next.isPresent())
-            out.println("Next song is " + next.get());
+            out.println("Next song is " + next.get().getInfo());
         else
             out.println("Jukebox is empty");
         
@@ -181,7 +199,7 @@ public class WebServer {
                     Optional<ABC> song = jukebox.getCurrentSong();
                     switch(signal.getType()) {
                     case SONG_START:
-                        out.println("Now playing " + song.get());
+                        out.println("Now playing " + song.get().getInfo());
                         out.println("--------------------");
                         break;
                     case SONG_END:
@@ -189,7 +207,7 @@ public class WebServer {
                         break;
                     case SONG_CHANGE:
                         if (song.isPresent())
-                            out.println("Next song is " + song.get());
+                            out.println("Next song is " + song.get().getInfo());
                         else
                             out.println("Jukebox is empty");
                         break;
@@ -228,7 +246,7 @@ public class WebServer {
         
         Optional<ABC> next = jukebox.getCurrentSong();
         if (next.isPresent())
-            out.println("Next song is " + next.get() + "<br>");
+            out.println("Next song is " + next.get().getInfo() + "<br>");
         else
             out.println("Jukebox is empty<br>");
         
@@ -239,7 +257,7 @@ public class WebServer {
                     Optional<ABC> song = jukebox.getCurrentSong();
                     switch(signal.getType()) {
                     case SONG_START:
-                        out.println("Now playing " + song.get() + "<br>");
+                        out.println("Now playing " + song.get().getInfo() + "<br>");
                         out.println("--------------------<br>");
                         break;
                     case SONG_END:
@@ -247,7 +265,7 @@ public class WebServer {
                         break;
                     case SONG_CHANGE:
                         if (song.isPresent())
-                            out.println("Next song is " + song.get() + "<br>");
+                            out.println("Next song is " + song.get().getInfo() + "<br>");
                         else
                             out.println("Jukebox is empty<br>");
                         break;

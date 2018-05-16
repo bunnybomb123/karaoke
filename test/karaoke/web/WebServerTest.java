@@ -1,25 +1,14 @@
 package karaoke.web;
 
-import static org.junit.Assert.assertEquals; 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.net.BindException;
+import java.net.URL;
 import java.util.Scanner;
 
 import org.junit.Test;
-
-import edu.mit.eecs.parserlib.UnableToParseException;
-import karaoke.music.Concat;
-import karaoke.music.Instrument;
-import karaoke.music.Music;
-import karaoke.music.Note;
-import karaoke.music.Pitch;
-import karaoke.songs.ABC;
 
 
 public class WebServerTest {
@@ -39,7 +28,7 @@ public class WebServerTest {
      * Cover all parts
      */
     
-    private int PORT_NUMBER = 8080;
+    private static int PORT_NUMBER = 8080;
     
     @Test(expected=AssertionError.class)
     public void testAssertionsEnabled() {
@@ -49,26 +38,47 @@ public class WebServerTest {
     @Test
     public void testStartServerNoError() throws IOException {
         // Tests to make sure 
-        new karaoke.web.WebServer(PORT_NUMBER);
+        WebServer server = new WebServer(PORT_NUMBER);
+        server.start();
+        server.stop();
     }
     
-    @Test
+    @Test(expected=BindException.class)
     public void testStartTwoServersSamePort() throws IOException {
         // Tests to make sure an error is thrown when two servers listen on the same port
-        new karaoke.web.WebServer(PORT_NUMBER);
+        WebServer server = new WebServer(PORT_NUMBER);
+        server.start();
         try {
             // Should fail here
-            new karaoke.web.WebServer(PORT_NUMBER);
+            new WebServer(PORT_NUMBER).start();
             fail();
-        } catch (IOException e) {}
+        } finally {
+            server.stop();
+        }
     }
     
     @Test
-    public void testThingsAboutWebServerOooohAhhhhhFlashy() throws IOException {
-        assert true;
+    public void testPlayEmptyRequest() throws IOException {
+        WebServer server = new WebServer(PORT_NUMBER);
+        server.start();
+        try {
+            checkResponse(server, "/play", "Jukebox is empty");
+        } finally {
+            server.stop();
+        }
     }
     
-    
+    @Test
+    public void testPlaySongsRequest() throws IOException {
+        WebServer server = new WebServer(PORT_NUMBER);
+        server.start();
+        try {
+            checkResponse(server, "/addSong/sample1.abc", "Next song is sample 1 by Unknown");
+            checkResponse(server, "/play", "Now playing sample 1 by unknown");
+        } finally {
+            server.stop();
+        }
+    }
         
     @Test
     public void testPlayFile() {
@@ -81,7 +91,22 @@ public class WebServerTest {
         // Make sure it printed all the correct lyrics
     }
     
-    @Test public void testPlayInvalidFile() {
+    @Test
+    public void testPlayInvalidFile() {
         
+    }
+    
+    /**
+     * Assert that response when sending request to server is expected response.
+     * @param server the web server
+     * @param request request to server, such as "/addSong/sample1.abc" or "/play"
+     * @param expected expected response
+     * @throws IOException if request fails to send
+     */
+    private static void checkResponse(WebServer server, String request, String expected) throws IOException {
+        Scanner response = new Scanner(new URL("http://localhost:" + PORT_NUMBER + request).openStream());
+        String actual = response.useDelimiter("\\A").next();
+        response.close();
+        assert actual.contains(expected);
     }
 }

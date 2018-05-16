@@ -58,7 +58,8 @@ public class ABCParserTest {
     
     /* helper to get the actual ABC object that is parsed by parser */
     private ABC helperGetActual(String filename) throws UnableToParseException, FileNotFoundException {
-    	@SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/"+filename+".abc")).useDelimiter("\\A").next();
+    	@SuppressWarnings("resource") 
+    	String abcFile = new Scanner(new File("sample-abc/"+filename+".abc")).useDelimiter("\\A").next();
         ABC actual = ABCParser.parse(abcFile);
         return actual;
     }
@@ -186,7 +187,7 @@ public class ABCParserTest {
     // input: has lyrics, with tildes
     @Test
     public void testLyricsTilde() throws FileNotFoundException, UnableToParseException {
-        ABC actual = ABCParser.parse("lyricsTilde");
+        ABC actual = helperGetActual("lyricsTilde");
 
         List<Integer> starts = Arrays.asList(0, 8);
         List<Integer> ends = Arrays.asList(7, 10);

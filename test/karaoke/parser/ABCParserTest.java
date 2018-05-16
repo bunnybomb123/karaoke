@@ -1,6 +1,7 @@
 package karaoke.parser;
 
 import static karaoke.music.Music.concat;
+import static karaoke.music.Music.together;
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
@@ -24,9 +25,7 @@ import karaoke.music.Instrument;
 import karaoke.music.Music;
 import karaoke.music.Note;
 import karaoke.music.Pitch;
-import karaoke.music.Rest;
 import karaoke.music.Together;
-import karaoke.playback.SequencePlayer;
 import karaoke.songs.ABC;
 import karaoke.songs.Key;
 import karaoke.songs.Meter;
@@ -72,7 +71,6 @@ public class ABCParserTest {
     @Test
     public void testSample1() throws FileNotFoundException, UnableToParseException {
         ABC actual = helperGetActual("sample1");
-        //SequencePlayer.load(actual, null).playUntilFinished();
         
         Music m1 = new Note(2, new Pitch('C').transpose(-Pitch.OCTAVE), Instrument.PIANO, Optional.of(new Lyric("")));
         Music m2 = new Note(2, new Pitch('C'), Instrument.PIANO, Optional.empty());
@@ -82,6 +80,7 @@ public class ABCParserTest {
         
         final Map<String, Music> parts = new HashMap<>();
         parts.put("", music);
+        
         final Map<Character, Object> fields = new HashMap<>();
         fields.put('T', "sample 1");
         fields.put('K', Key.C);
@@ -95,16 +94,17 @@ public class ABCParserTest {
     @Test
     public void testSample2() throws FileNotFoundException, UnableToParseException {
         ABC actual = helperGetActual("sample2");
-//        SequencePlayer.load(actual, null).playUntilFinished();
-        Music m1 = new Note(1, new Pitch('C'), Instrument.PIANO, Optional.empty());
-        Music m2 = new Note(1, new Pitch('E'), Instrument.PIANO, Optional.empty());
-        Music music = new Together(m2, m1);
+        
+        Music m1 = new Note(1, new Pitch('E'), Instrument.PIANO, Optional.of(new Lyric("")));
+        Music m2 = new Note(1, new Pitch('C'), Instrument.PIANO, Optional.empty());
+        Music music = together(m1, m2);
+        
         final Map<String, Music> parts = new HashMap<>();
         parts.put("", music);
         
         final Map<Character, Object> fields = new HashMap<>();
         fields.put('T', "Chord");
-        fields.put('K', Key.valueOf("C"));
+        fields.put('K', Key.C);
         fields.put('X', 8);
         
         ABC expected = new ABC(parts, fields);
@@ -117,9 +117,9 @@ public class ABCParserTest {
     public void testSample3() throws FileNotFoundException, UnableToParseException {
         ABC actual = helperGetActual("sample3");
 
-        Music m1 = new Note(1, new Pitch('C'), Instrument.PIANO, Optional.empty());
-        Music m2 = new Note(1, new Pitch('E'), Instrument.PIANO, Optional.empty());
-        Music m3 = new Note(1, new Pitch('G'), Instrument.PIANO, Optional.empty());
+        Music m1 = new Note(1, new Pitch('C'), Instrument.PIANO, Optional.of(new Lyric("1")));
+        Music m2 = new Note(1, new Pitch('E').transpose(-1), Instrument.PIANO, Optional.of(new Lyric("2")));
+        Music m3 = new Note(1, new Pitch('G'), Instrument.PIANO, Optional.of(new Lyric("3")));
 
         final Map<String, Music> parts = new HashMap<>();
         parts.put("1", m1);
@@ -128,42 +128,44 @@ public class ABCParserTest {
 
         final Map<Character, Object> fields = new HashMap<>();
         fields.put('T', "voices");
-        fields.put('K', Key.valueOf("Cm"));
-        fields.put('X', 0);
+        fields.put('K', Key.Cm);
+        fields.put('X', 1);
         
         ABC expected = new ABC(parts, fields);
         
-        assertEquals(new Together(new Together(m1, m2), m3), actual.getMusic());
+        for (String voice : expected.getVoices())
+            assertEquals(expected.getVoicePart(voice), actual.getVoicePart(voice));
+        assertEquals(together(together(m1, m2), m3), actual.getMusic());
         assertEquals(expected, actual);
     }
     
     /* helper method to create a OptionalLyric object */
-    private Optional<Lyric> createOptionalLyric(String line, int start, int end){
-    	return Optional.of(new Lyric("", line, start, end));
+    private static Optional<Lyric> createOptionalLyric(String line, int start, int end){
+        return Optional.of(new Lyric("", line, start, end));
     }
     
     /* helper method to create notes objects to test lyrics*/
-    private List<Music> createNotesForLyricsTesting(String line, List<Integer> starts, List<Integer> ends) {
-    	List<Music> listMusics = new ArrayList<>();
-    	
-    	Iterator<Integer> startsItr = starts.iterator();
-    	Iterator<Integer> endsItr = ends.iterator();
-    	while (startsItr.hasNext()) {
-    		int start = startsItr.next();
-    		int end = endsItr.next();
-    		if (start == -1)
-        		listMusics.add(new Note(1, new Pitch('C'), Instrument.PIANO, Optional.empty()));
-    		else if (start == -1)
-            listMusics.add(new Note(1, new Pitch('C'), Instrument.PIANO, Optional.of(new Lyric("",line))));
-    		else
-    			listMusics.add(new Note(1, new Pitch('C'), Instrument.PIANO, createOptionalLyric(line, start, end)));
-    	}
-    	return listMusics;
+    private static List<Music> createNotesForLyricsTesting(String line, List<Integer> starts, List<Integer> ends) {
+        List<Music> listMusics = new ArrayList<>();
+        
+        Iterator<Integer> startsItr = starts.iterator();
+        Iterator<Integer> endsItr = ends.iterator();
+        while (startsItr.hasNext()) {
+            int start = startsItr.next();
+            int end = endsItr.next();
+            if (start == -1)
+                listMusics.add(new Note(1, new Pitch('C'), Instrument.PIANO, Optional.empty()));
+            else if (start == -1)
+                listMusics.add(new Note(1, new Pitch('C'), Instrument.PIANO, Optional.of(new Lyric("",line))));
+            else
+                listMusics.add(new Note(1, new Pitch('C'), Instrument.PIANO, createOptionalLyric(line, start, end)));
+        }
+        return listMusics;
     }
     
     /* helper method to get expected ABC file for lyrics testing */
-    private ABC getExpectedLyricsTesting(String title, Music music) {
-    	final Map<String, Music> parts = new HashMap<>();
+    private static ABC getExpectedLyricsTesting(String title, Music music) {
+        final Map<String, Music> parts = new HashMap<>();
         parts.put("", music);
         
         final Map<Character, Object> fields = new HashMap<>();
@@ -185,7 +187,7 @@ public class ABCParserTest {
         String line = "ly-ric-al";
         List<Music> musics = createNotesForLyricsTesting(line, starts, ends);
         Music music = concatChain(musics);
-        		
+        
         ABC expected = getExpectedLyricsTesting("lyricsSimple", music);
         assertEquals(expected, actual);
     }
@@ -200,7 +202,7 @@ public class ABCParserTest {
         String line = "ly ric  al";
         List<Music> musics = createNotesForLyricsTesting(line, starts, ends);
         Music music = concatChain(musics);
-        		
+        
         ABC expected = getExpectedLyricsTesting("lyricsTilde", music);
         assertEquals(expected, actual);
     }
@@ -215,7 +217,7 @@ public class ABCParserTest {
         String line = "ly-ric__ al_";
         List<Music> musics = createNotesForLyricsTesting(line, starts, ends);
         Music music = concatChain(musics);
-        		
+        
         ABC expected = getExpectedLyricsTesting("lyricsUnderscore", music);
         assertEquals(expected, actual);
     }
@@ -230,7 +232,7 @@ public class ABCParserTest {
         String line = "ly-ric ly-ri-cal";
         List<Music> musics = createNotesForLyricsTesting(line, starts, ends);
         Music music = concatChain(musics);
-        		
+        
         ABC expected = getExpectedLyricsTesting("lyricsBackslashHyphen", music);
         assertEquals(expected, actual);
     }
@@ -245,7 +247,7 @@ public class ABCParserTest {
         String line = "ly * al ly * al";
         List<Music> musics = createNotesForLyricsTesting(line, starts, ends);
         Music music = concatChain(musics);
-        		
+        
         ABC expected = getExpectedLyricsTesting("lyricsAsterisk", music);
         assertEquals(expected, actual);
     }
@@ -260,7 +262,7 @@ public class ABCParserTest {
         String line = "ly-ric-al | bear";
         List<Music> musics = createNotesForLyricsTesting(line, starts, ends);
         Music music = concatChain(musics);
-        		
+        
         ABC expected = getExpectedLyricsTesting("lyricsBarline", music);
         assertEquals(expected, actual);
     }
@@ -275,7 +277,7 @@ public class ABCParserTest {
         String line = "ly-ric-al-ly bear";
         List<Music> musics = createNotesForLyricsTesting(line, starts, ends);
         Music music = concatChain(musics);
-        		
+        
         ABC expected = getExpectedLyricsTesting("lyricsBarlineIgnored", music);
         assertEquals(expected, actual);
     }
@@ -289,22 +291,22 @@ public class ABCParserTest {
     }
    
     /* creates a note with empty lyric */
-    private Music createNote(double d, Pitch pitch) {
-    	return new Note(d, pitch, Instrument.PIANO, Optional.empty());
+    private static Music createNote(double d, Pitch pitch) {
+        return new Note(d, pitch, Instrument.PIANO, Optional.empty());
     }
     
     // input: lyrics contain all sorts of hyphens and breaks
     @Test
     public void testOctaveUp() throws FileNotFoundException, UnableToParseException {
-    	final String title = "testOctaveUp";
-    	Music n1 = createNote(1./4, new Pitch('C').transpose(Pitch.OCTAVE));
-    	Music n2 = createNote(1, new Pitch('C').transpose(Pitch.OCTAVE).transpose(Pitch.OCTAVE));
-    	Music n3 = createNote(1, new Pitch('C').transpose(Pitch.OCTAVE).transpose(Pitch.OCTAVE).transpose(Pitch.OCTAVE));
-    	Music n4 = createNote(1./2, new Pitch('C').transpose(Pitch.OCTAVE).transpose(Pitch.OCTAVE));
-    	Music n5 = createNote(1./4, new Pitch('C').transpose(Pitch.OCTAVE).transpose(Pitch.OCTAVE));
-    	
-    	List<Music> musics = Arrays.asList(n1, n2, n3, n4, new Together(n1, n5));
-    	Music music = concatChain(musics);
+        final String title = "testOctaveUp";
+        Music n1 = createNote(1./4, new Pitch('C').transpose(Pitch.OCTAVE));
+        Music n2 = createNote(1, new Pitch('C').transpose(Pitch.OCTAVE).transpose(Pitch.OCTAVE));
+        Music n3 = createNote(1, new Pitch('C').transpose(Pitch.OCTAVE).transpose(Pitch.OCTAVE).transpose(Pitch.OCTAVE));
+        Music n4 = createNote(1./2, new Pitch('C').transpose(Pitch.OCTAVE).transpose(Pitch.OCTAVE));
+        Music n5 = createNote(1./4, new Pitch('C').transpose(Pitch.OCTAVE).transpose(Pitch.OCTAVE));
+        
+        List<Music> musics = Arrays.asList(n1, n2, n3, n4, new Together(n1, n5));
+        Music music = concatChain(musics);
         ABC actual = helperGetActual(title);
         ABC expected = getExpectedLyricsTesting(title, music);
         assertEquals(expected, actual);
@@ -313,16 +315,16 @@ public class ABCParserTest {
     // input: lyrics contain all sorts of hyphens and breaks
     @Test
     public void testOctaveDown() throws FileNotFoundException, UnableToParseException {
-    	final String title = "testOctaveDown";
-    	Music n1 = createNote(1, new Pitch('C'));
-    	Music n2 = createNote(1, new Pitch('C').transpose(-Pitch.OCTAVE));
-    	Music n3 = createNote(1./2, new Pitch('C').transpose(-Pitch.OCTAVE));
-    	Music n4 = createNote(1, new Pitch('C').transpose(-Pitch.OCTAVE).transpose(-Pitch.OCTAVE));
-    	Music n5 = createNote(1, new Pitch('C').transpose(-Pitch.OCTAVE).transpose(-Pitch.OCTAVE).transpose(-Pitch.OCTAVE));
-    	
-    	List<Music> musics = Arrays.asList(n1, n2, n3, n4, new Together(n1, n5));
-    	Music music = concatChain(musics);
-    	
+        final String title = "testOctaveDown";
+        Music n1 = createNote(1, new Pitch('C'));
+        Music n2 = createNote(1, new Pitch('C').transpose(-Pitch.OCTAVE));
+        Music n3 = createNote(1./2, new Pitch('C').transpose(-Pitch.OCTAVE));
+        Music n4 = createNote(1, new Pitch('C').transpose(-Pitch.OCTAVE).transpose(-Pitch.OCTAVE));
+        Music n5 = createNote(1, new Pitch('C').transpose(-Pitch.OCTAVE).transpose(-Pitch.OCTAVE).transpose(-Pitch.OCTAVE));
+        
+        List<Music> musics = Arrays.asList(n1, n2, n3, n4, new Together(n1, n5));
+        Music music = concatChain(musics);
+        
         ABC actual = helperGetActual(title);
         ABC expected = getExpectedLyricsTesting(title, music);
         assertEquals(expected, actual);
@@ -331,16 +333,16 @@ public class ABCParserTest {
     // input: tests that all headers can be correctly parsed
     @Test
     public void testHeaders() throws FileNotFoundException, UnableToParseException {
-    	final String title = "testHeaders";
-    	Music n1 = createNote(1, new Pitch('C'));
-    	Music n2 = createNote(1, new Pitch('E').transpose(-Pitch.OCTAVE));
-    	
-    	Map<Character, Object> fields = new HashMap<>();
-    	Map<String, Music> parts = new HashMap<>();
-    	parts.put("1", n1);
-    	parts.put("2", n2);
-    	
-    	fields.put('T', "testHeaders");
+        final String title = "testHeaders";
+        Music n1 = createNote(1, new Pitch('C'));
+        Music n2 = createNote(1, new Pitch('E').transpose(-Pitch.OCTAVE));
+        
+        Map<Character, Object> fields = new HashMap<>();
+        Map<String, Music> parts = new HashMap<>();
+        parts.put("1", n1);
+        parts.put("2", n2);
+        
+        fields.put('T', "testHeaders");
         fields.put('K', Key.valueOf("Cbm"));
         fields.put('X', 1);
         fields.put('M', new Meter("C"));
@@ -348,7 +350,7 @@ public class ABCParserTest {
         fields.put('C', "Chris Chang");
         fields.put('Q', new Tempo(new Meter(1,2), 150));
         fields.put('V', new HashSet<>(Arrays.asList("1", "2")));
-    	
+        
         ABC actual = helperGetActual(title);
         ABC expected = new ABC(parts, fields);
 
@@ -358,7 +360,7 @@ public class ABCParserTest {
     
     
     /* concats a bunch of musics into one music */
-    private Music concatChain(List<Music> musics) {
+    private static Music concatChain(List<Music> musics) {
         Iterator<Music> musicsItr = musics.iterator();
         Music growing = musicsItr.next();
         while (musicsItr.hasNext())

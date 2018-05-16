@@ -74,6 +74,12 @@ public class ABCParserTest {
         SequencePlayer.load(actual, lyric -> System.out.println(lyric.toPlainText())).playUntilFinished();
     }
     
+    @Test
+    public void testWaxiesDargleTwo() throws FileNotFoundException, UnableToParseException {
+        ABC actual = helperGetActual("waxies_dargle_2");
+        SequencePlayer.load(actual, lyric -> System.out.println(lyric.toPlainText())).playUntilFinished();
+    }
+    
     // output: Note, Concat, transposed notes
     @Test
     public void testSample1() throws FileNotFoundException, UnableToParseException {
@@ -104,7 +110,7 @@ public class ABCParserTest {
 //        SequencePlayer.load(actual, null).playUntilFinished();
         Music m1 = new Note(1, new Pitch('C'), Instrument.PIANO, Optional.empty());
         Music m2 = new Note(1, new Pitch('E'), Instrument.PIANO, Optional.empty());
-        Music music = new Together(m1, m2);
+        Music music = new Together(m2, m1);
         final Map<String, Music> parts = new HashMap<>();
         parts.put("", music);
         
@@ -259,9 +265,9 @@ public class ABCParserTest {
     public void testLyricsBarline() throws FileNotFoundException, UnableToParseException {
         ABC actual = helperGetActual("lyricsBarline");
 
-        List<Integer> starts = Arrays.asList(0, 3, 7, 10);
-        List<Integer> ends =   Arrays.asList(2, 6, 9, 14);
-        String line = "ly-ric-al bear";
+        List<Integer> starts = Arrays.asList(0, 3, 7, -2, 12);
+        List<Integer> ends =   Arrays.asList(2, 6, 9, -2, 16);
+        String line = "ly-ric-al | bear";
         List<Music> musics = createNotesForLyricsTesting(line, starts, ends);
         Music music = concatChain(musics);
         		
@@ -358,6 +364,8 @@ public class ABCParserTest {
 
         assertEquals(expected, actual);
     }    
+    
+    
     
     /* concats a bunch of musics into one music */
     private Music concatChain(List<Music> musics) {

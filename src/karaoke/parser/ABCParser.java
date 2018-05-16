@@ -1,5 +1,12 @@
 package karaoke.parser;
 
+import static karaoke.music.Pitch.OCTAVE;
+import static karaoke.music.Music.empty;
+import static karaoke.music.Music.rest;
+import static karaoke.music.Music.note;
+import static karaoke.music.Music.concat;
+import static karaoke.music.Music.together;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -8,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import edu.mit.eecs.parserlib.ParseTree;
 import edu.mit.eecs.parserlib.Parser;
@@ -24,7 +32,7 @@ import karaoke.music.Together;
 import karaoke.songs.ABC;
 import karaoke.songs.AccidentalMap;
 import karaoke.songs.Key;
-//import org.apache.commons.io.FileUtils;
+
 public class ABCParser {
     
     private static final char CURRENT_VOICE_CHAR = '.';
@@ -135,33 +143,121 @@ public class ABCParser {
     
 
     /**
-     * Given a nonterminal abc_body and a key signature, return the Music for each voice part in a map.
+     * Given a nonterminal abc_body and a key signature, return the complete music score.
      * @param abcBody nonterminal abc_body
      * @param accidentalMap key signature
-     * @return map from voice parts to Music
+     * @return complete music score as a map from voice part to Music
      */
-    private static Map<String, Music> parseBody(ParseTree<ABCGrammar> abcBody, AccidentalMap keySignature) {
-        
+    private static Map<String, Music> parseBody(ParseTree<ABCGrammar> abcBody,
+            AccidentalMap keySignature) throws UnableToParseException {
         String voice = "";
-        Map<String, Music> savedParts = new HashMap<>();
-        Map<String, Music> newParts = new HashMap<>();
-        Map<String, Music> parts = newParts; // map to modify
-        Map<String, LyricGenerator> lyricGenerators = new HashMap<>();
+        final Map<String, Music> savedParts = new HashMap<>();
+        final Map<String, Music> newParts = new HashMap<>();
+        Map<String, Map<String, Music>> partMap = new HashMap<>(); // map to modify for each voice part
+        final Map<String, LyricGenerator> lyricGenerators = new HashMap<>();
         
         for (ParseTree<ABCGrammar> abcLine : abcBody.children()) {
-            List<ParseTree<ABCGrammar>> elements = abcLine.children();
-            ParseTree<ABCGrammar> first = elements.get(0);
-            if (first.name() == ABCGrammar.ELEMENT) {
+            final List<ParseTree<ABCGrammar>> line = abcLine.children();
+            final ParseTree<ABCGrammar> first = line.get(0);
+            switch (first.name()) {
+            case ELEMENT:
                 if (!lyricGenerators.containsKey(voice))
                     lyricGenerators.put(voice, new LyricGenerator(voice));
                 
-                LyricGenerator lyricGenerator = lyricGenerators.get(voice);
+                final LyricGenerator lyricGenerator = lyricGenerators.get(voice);
                 
+                final List<ParseTree<ABCGrammar>> elements;
                 
-            }
-            else if (first.name() == ABCGrammar.MIDDLE_OF_BODY_FIELD)
+                final ParseTree<ABCGrammar> last = line.get(line.size() - 2);
+                switch (last.name()) {
+                case LYRIC:
+                    elements = line.subList(0, line.size() - 3);
+                    List<ParseTree<ABCGrammar>> lyric = last.children();
+                    List<String> lyricalElements = lyric.subList(1, lyric.size())
+                                                        .stream()
+                                                        .map(ParseTree::text)
+                                                        .collect(Collectors.toList());
+                    lyricGenerator.loadLyrics(lyricalElements);
+                    break;
+                case ELEMENT:
+                    elements = line.subList(0, line.size() - 1);
+                    lyricGenerator.loadNoLyrics();
+                    break;
+                default:
+                    throw new UnableToParseException("abc_line is malformed");
+                }
+                
+                for (ParseTree<ABCGrammar> genericElement : elements) {
+                    ParseTree<ABCGrammar> element = genericElement.children().get(0);
+                    switch (element.name()) {
+                    case MUSICAL_ELEMENT:
+                        Music music = makeMusic(element, keySignature, lyricGenerator);
+                        Map<String, Music> parts = partMap.getOrDefault(voice, newParts);
+                        addMusic(parts, voice, music);
+                        break;
+                    case BARLINE:
+                        keySignature.refresh();
+                        lyricGenerator.loadNextMeasure();
+                        switch (element.text()) {
+                        case "|":
+                            break;
+                        case "||":
+                        case "[|":
+                        case "|]":
+                        case "|:":
+                            partMap.put(voice, newParts);
+                            break;
+                        case ":|":
+                            addMusic(savedParts, voice, newParts.getOrDefault(voice, empty()));
+                            newParts.put(voice, empty());
+                            break;
+                        default:
+                            throw new UnableToParseException("barline is malformed");
+                        }
+                        break;
+                    case NTH_REPEAT:
+                        switch (element.text()) {
+                        case "[1":
+                            addMusic(savedParts, voice, newParts.getOrDefault(voice, empty()));
+                            partMap.put(voice, savedParts);
+                            break;
+                        case "[2":
+                            break;
+                        default:
+                            throw new UnableToParseException("nth_repeat is malformed");
+                        }
+                        break;
+                    case SPACE_OR_TAB:
+                        break;
+                    default:
+                        throw new UnableToParseException("element is malformed");
+                    }
+                }
+                break;
+            case MIDDLE_OF_BODY_FIELD:
                 voice = first.children().get(0).children().get(1).text().trim();
+                break;
+            case COMMENT:
+                break;
+            default:
+                throw new UnableToParseException("abc_line is malformed");
+            }
         }
+        
+        for (String part : newParts.keySet())
+            addMusic(savedParts, part, newParts.get(part));
+        
+        return savedParts;
+    }
+    
+    /**
+     * Add music to the specified voice part of a score.
+     * @param parts music score
+     * @param voice voice part
+     * @param music music to add
+     */
+    private static void addMusic(Map<String, Music> parts, String voice, Music music) {
+        parts.put(voice, concat(parts.getOrDefault(voice, empty()), music));
     }
     
     /**

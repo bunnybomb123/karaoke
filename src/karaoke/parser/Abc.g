@@ -27,7 +27,7 @@ abc ::= abc_header abc_body;
     mode_minor ::= "m";
     
     meter ::= "C" | "C|" | meter_fraction;
-    meter_fraction ::= number "/" number;
+    meter_fraction ::= numerator "/" denominator;
     
     tempo ::= meter_fraction "=" number;
 }
@@ -51,8 +51,10 @@ note_element ::= note | chord;
 note ::= pitch note_length?;
 pitch ::= accidental? basenote octave?;
 octave ::= "'"+ | ","+;
-note_length ::= number? ("/" number?)?;
-note_length_strict ::= number "/" number;
+note_length ::= numerator? ("/" denominator?)?;
+note_length_strict ::= numerator "/" denominator;
+numerator ::= number;
+denominator ::= number;
 
 // "^" is sharp, "_" is flat, and "=" is neutral
 accidental ::= "^" | "^^" | "_" | "__" | "=";

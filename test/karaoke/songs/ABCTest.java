@@ -43,7 +43,7 @@ public class ABCTest {
     	assertEquals(expected.get('L'), actual.getDefaultNote());
     	assertEquals(expected.get('V'), actual.getVoices());
     	assertEquals(expected.get('C'), actual.getComposer());
-    	assertEquals(expected.get('X'), actual.getComposer());
+    	assertEquals(expected.get('X'), actual.getIndexNumber());
     }
     
     // M, L, and Q are omitted

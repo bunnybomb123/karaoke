@@ -106,7 +106,7 @@ public class Together implements Music {
 
     @Override
     public String toString() {
-        return first.toString() + second;
+        return "["+first.toString() + second.toString()+"]";
     }
 
 }

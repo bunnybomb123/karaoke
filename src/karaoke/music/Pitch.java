@@ -111,6 +111,13 @@ public class Pitch {
     public int difference(Pitch that) {
         return this.value - that.value;
     }
+    
+    /**
+     * @return base note of this pitch
+     */
+    public String note() {
+        return value >= 0 ? VALUE_TO_STRING[value % OCTAVE] : VALUE_TO_STRING[(value % OCTAVE + OCTAVE) % OCTAVE];
+    }
 
     @Override
     public boolean equals(Object obj) {

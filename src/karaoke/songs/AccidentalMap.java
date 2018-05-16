@@ -22,7 +22,7 @@ public class AccidentalMap {
         if (accidentals.containsKey(pitch))
             return accidentals.get(pitch);
         else
-            return keySignature.getOrDefault(pitch, 0);
+            return keySignature.getOrDefault(pitch.note(), 0);
     }
     
 }

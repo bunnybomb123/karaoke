@@ -98,9 +98,6 @@ public class ABCParserTest {
         fields.put('X', 1);
         
         ABC expected = new ABC(parts, fields);
-        
-        SequencePlayer.load(actual, null).playUntilFinished();
-        
         assertEquals(expected, actual);
     }
     

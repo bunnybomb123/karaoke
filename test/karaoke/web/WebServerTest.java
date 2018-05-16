@@ -62,6 +62,7 @@ public class WebServerTest {
         
     @Test
     public void testPlayFile() {
+    	// Manual Test:
         // Start the server
         // Send the request to load with multiple files
         // Send the play request

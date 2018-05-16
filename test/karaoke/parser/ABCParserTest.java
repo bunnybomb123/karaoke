@@ -39,11 +39,12 @@ public class ABCParserTest {
      *      1 musical part, many musical parts
      *      music has lyrics, doesn't have lyrics
      *      lyrics contain all sorts of hyphens and breaks, don't
-     *      notes must be transposed, not transposed
+     *      notes must be transposed (have ' and ,), notes don't have to be transposed
      * 
      *  output:
      *      resulting ABC object contains Note, Rest, Concat, Together
      *      subsets of those
+     *      resulting ABC contains notes of duration 0, (0, 1), 1, >1
      * 
      * Cover all parts
      */
@@ -72,7 +73,6 @@ public class ABCParserTest {
     // output: Note, Concat, transposed notes
     @Test
     public void testSample1() throws FileNotFoundException, UnableToParseException {
-        @SuppressWarnings("resource") 
         /*
          * String abcFile = new Scanner(new File("sample-abc/sample1.abc")).useDelimiter("\\Z").next() + "\n";
          */
@@ -104,7 +104,6 @@ public class ABCParserTest {
     // output: Note, Together
     @Test
     public void testSample2() throws FileNotFoundException, UnableToParseException {
-        @SuppressWarnings("resource") 
         String abcFile = getContentsFromFile("sample-abc/sample2.abc");
         ABC actual = ABCParser.parse(abcFile);
 
@@ -127,7 +126,6 @@ public class ABCParserTest {
     // output: Together, Note
     @Test
     public void testSample3() throws FileNotFoundException, UnableToParseException {
-        @SuppressWarnings("resource")
         /*
          * String abcFile = new Scanner(new File("sample-abc/sample3.abc")).useDelimiter("\\Z").next();
          */
@@ -150,10 +148,20 @@ public class ABCParserTest {
         
         ABC expected = new ABC(parts, fields);
         
-        assertEquals(new Together(m1, new Together(m2, m3)), actual.getMusic());
+        assertEquals(new Together(new Together(m1, m2), m3), actual.getMusic());
         assertEquals(expected, actual);
     }
     
+    // input: has lyrics, hyphens only
+    public void testLyricsSimple() throws FileNotFoundException, UnableToParseException {
+        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/testLyrics.abc")).useDelimiter("\\Z").next();
+        ABC actual = ABCParser.parse(abcFile);
+        ABC expected = new ABC(parts, fields);
+
+        assertEquals(expected, actual);
+
+    }
+
     
     // input: lyrics contain all sorts of hyphens and breaks
     // output: Together, Note
@@ -194,14 +202,14 @@ public class ABCParserTest {
         
         ABC expected = new ABC(parts, fields);
         
-        assertEquals(new Together(m1, new Together(m2, m3)), actual.getMusic());
+        assertEquals(new Together(new Together(m1, m2), m3), actual.getMusic());
         assertEquals(expected, actual);
     }
     
     private Music concatChain(List<Music> musics) {
         Music growing = new Rest(0); 
         for (Music music : musics)
-            growing = new Concat(music, growing);
+            growing = new Concat(growing, music);
         return growing;
     }
 }

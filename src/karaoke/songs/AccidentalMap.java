@@ -5,7 +5,19 @@ import java.util.Map;
 
 import karaoke.music.Pitch;
 
+/**
+ * a map that keeps track of which notes are currently sharped or flatted
+ */
 public class AccidentalMap {
+	
+	/* Abstraction function
+	 * 
+	 * Rep invariant
+	 * 
+	 * Safety from rep exposure
+	 * 
+	 * Thread safety 
+	 */
     
     private final Map<String, Integer> keySignature;
     private final Map<Pitch, Integer> accidentals = new HashMap<>();

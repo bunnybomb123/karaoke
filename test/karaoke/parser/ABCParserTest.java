@@ -284,12 +284,22 @@ public class ABCParserTest {
         ABC expected = getExpectedLyricsTesting("lyricsBarlineIgnored", music);
         assertEquals(expected, actual);
     }
+    
+    // Makes sure no errors are thrown when a relatively large file is parsed
+    // Idea is that if no error is thrown here, we can handle most cases
+    @Test
+    public void testParsingBigFile() throws FileNotFoundException, UnableToParseException {
+        ABC actual = helperGetActual("piece2");
+        System.out.println(actual);
+    }
    
+    /* creates a note with empty lyric */
     private Music createNote(double d, Pitch pitch) {
     	return new Note(d, pitch, Instrument.PIANO, Optional.empty());
     }
     
     // input: lyrics contain all sorts of hyphens and breaks
+    @Test
     public void testOctaveUp() throws FileNotFoundException, UnableToParseException {
     	final String title = "testOctaveUp";
     	Music n1 = createNote(1./4, new Pitch('C').transpose(Pitch.OCTAVE));
@@ -304,7 +314,9 @@ public class ABCParserTest {
         ABC expected = getExpectedLyricsTesting(title, music);
         assertEquals(expected, actual);
     }
+    
     // input: lyrics contain all sorts of hyphens and breaks
+    @Test
     public void testOctaveDown() throws FileNotFoundException, UnableToParseException {
     	final String title = "testOctaveDown";
     	Music n1 = createNote(1, new Pitch('C'));
@@ -321,6 +333,9 @@ public class ABCParserTest {
         assertEquals(expected, actual);
     }
     
+    
+    
+    /* concats a bunch of musics into one music */
     private Music concatChain(List<Music> musics) {
         Music growing = new Rest(0); 
         for (Music music : musics)

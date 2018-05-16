@@ -120,7 +120,7 @@ public class WebServer {
         final String path = exchange.getRequestURI().getPath();
         final String base = exchange.getHttpContext().getPath();
         final String abcFile = path.length() > base.length() ? path.substring(base.length() + 1) : "";
-        
+        /*
         final Scanner scan;
         
         try {
@@ -143,15 +143,22 @@ public class WebServer {
             exchange.close();
             e.printStackTrace();
             return;
+        }*/
+        
+        try (
+            Scanner scan = new Scanner(new File("sample-abc/" + abcFile))
+        ) {
+            ABC song = ABCParser.parse(scan.useDelimiter("\\A").next());
+            int position = jukebox.addSong(song);
+            if (position == 0)
+                out.println("Next song is " + song.getInfo());
+            else
+                out.println("Added " + song.getInfo() + " at position " + position + " in queue");
+        } catch (FileNotFoundException e) {
+            out.println(abcFile + " not found");
+        } catch (UnableToParseException e) {
+            out.println("Unable to parse " + abcFile);
         }
-        
-        int position = jukebox.addSong(song);
-        if (position == 0)
-            out.println("Next song is " + song.getInfo());
-        else
-            out.println("Added " + song.getInfo() + " at position " + position + " in queue");
-        
-        scan.close();
         exchange.close();
     }
     
@@ -213,7 +220,7 @@ public class WebServer {
                         break;
                     case LYRIC:
                         Lyric lyric = signal.getLyric();
-                        if (song.get().getVoices().size() > 1 && !lyric.getVoice().equals(voice))
+                        if (!voice.equals("") && song.get().getVoices().size() > 1 && !lyric.getVoice().equals(voice))
                             return;
                         out.println(lyric.toPlainText());
                         break;
@@ -271,7 +278,7 @@ public class WebServer {
                         break;
                     case LYRIC:
                         Lyric lyric = signal.getLyric();
-                        if (song.get().getVoices().size() > 1 && !lyric.getVoice().equals(voice))
+                        if (!voice.equals("") && song.get().getVoices().size() > 1 && !lyric.getVoice().equals(voice))
                             return;
                         out.println(lyric.toHtmlText());
                         break;
@@ -315,7 +322,7 @@ public class WebServer {
                 if (signal.getType() == Type.LYRIC) {
                     ABC song = jukebox.getCurrentSong().get();
                     Lyric lyric = signal.getLyric();
-                    if (song.getVoices().size() > 1 && !lyric.getVoice().equals(voice))
+                    if (!voice.equals("") && song.getVoices().size() > 1 && !lyric.getVoice().equals(voice))
                         return;
                     out.println(lyric.toHtmlText());
                     out.println("<script>location.reload()</script>");

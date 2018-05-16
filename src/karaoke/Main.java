@@ -1,6 +1,7 @@
 package karaoke;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -33,17 +34,19 @@ public class Main {
         
         while (!arguments.isEmpty())
             addSong(arguments.remove());
-        // TODO replace localhost?
+        
+        String publicIPAddress = getPublicIPAddress();
+        
         System.out.println("Server running, browse to one of these URLs to view lyrics for a particular voice");
         System.out.println("or omit the voice to view lyrics for a piece without voices:");
-        System.out.println("http://localhost:8080/textStream[/voice]");
-        System.out.println("http://localhost:8080/htmlStream[/voice]");
-        System.out.println("http://localhost:8080/htmlWaitReload[/voice]");
+        System.out.println("http://" + publicIPAddress + ":8080/textStream[/voice]");
+        System.out.println("http://" + publicIPAddress + ":8080/htmlStream[/voice]");
+        System.out.println("http://" + publicIPAddress + ":8080/htmlWaitReload[/voice]");
         System.out.println();
         System.out.println("To add songs to the jukebox, enter the command \"addSong sample.abc\" or browse to:");
-        System.out.println("http://localhost:8080/addSong/[songfile]");
+        System.out.println("http://" + publicIPAddress + ":8080/addSong/[songfile]");
         System.out.println("To play the next song, enter the command \"play\" or browse to:");
-        System.out.println("http://localhost:8080/play");
+        System.out.println("http://" + publicIPAddress + ":8080/play");
         System.out.println("To end the server, enter the command \"quit\".");
         System.out.println("Ready for commands:");
         
@@ -88,6 +91,16 @@ public class Main {
             System.out.println(response.useDelimiter("\\A").next());
         } catch (IOException e) {
             System.err.println("unable to send request");
+        }
+    }
+    
+    private static String getPublicIPAddress() {
+        try (
+            Scanner response = new Scanner(new URL("http://bot.whatismyipaddress.com").openStream())
+        ) {
+            return response.useDelimiter("\\A").next();
+        } catch (IOException e) {
+            throw new RuntimeException("unable to obtain public IP address");
         }
     }
     

@@ -335,6 +335,7 @@ public class ABCParser {
             final int doubleSharp = 2;
             final int flat = -1;
             final int doubleFlat = -2;
+            final int natural = 0;
             
             final List<ParseTree<ABCGrammar>> children = element.children();
             Optional<Integer> accidental = Optional.empty();
@@ -361,7 +362,7 @@ public class ABCParser {
                         break;
                     }
                     case "=": {
-                        accidental = Optional.of(0);
+                        accidental = Optional.of(natural);
                         break;
                     }
                     default: {

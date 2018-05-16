@@ -477,8 +477,6 @@ public class ABCParser {
             Set<String> currentVoices = ((Set<String>)currentHeaderInfo.get('V'));
             // Add the current voice's text into the set of voices.
             currentVoices.add(parseTree.children().get(0).text().trim());
-            
-//            ((HashMap<Character, Object>)currentHeaderInfo.get('V')).put('C', parseTree.children().get(0).text());
             break;
         }
         

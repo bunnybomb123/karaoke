@@ -10,21 +10,29 @@ import java.util.Optional;
 import karaoke.lyrics.Lyric;
 import karaoke.songs.ABC;
 
+/**
+ * Jukebox is a thread-safe playback handler that plays ABC songs in a queue.
+ */
 public class Jukebox {
     
     /* Abstraction function
      *  AF(currentSong, queuedSongs, isPlaying, listeners)
      *      = a jukebox that is currently playing currentSong, has
-     *      queuedSongs waiting in the queue.
+     *      queuedSongs waiting in the queue, and has listeners
+     *      waiting for signals to be broadcast
      *      
      * Representation invariant
      *  no fields are null
+     *  if isPlaying, then currentSong.isPresent()
      *  
      * Safety from rep exposure
-     *  
+     *  all fields are private
+     *  currentSong is immutable
+     *  listeners is never passed in or returned
+     *  defensive copying when returning queuedSongs
      * 
      * Thread safety argument
-     *  All public methods are synchronized by this object's lock
+     *  All methods are synchronized by this object's lock
      */
     
     private Optional<ABC> currentSong = Optional.empty();
@@ -36,7 +44,19 @@ public class Jukebox {
     /**
      * Create a new empty Jukebox.
      */
-    public Jukebox() {}
+    public Jukebox() {
+        checkRep();
+    }
+    
+    /*
+     * Check rep invariant.
+     */
+    private synchronized void checkRep() {
+        assert currentSong != null;
+        assert queuedSongs != null;
+        assert listeners != null;
+        assert !isPlaying || currentSong.isPresent();
+    }
     
     /**
      * @return song being played or next to be played if jukebox is not playing,
@@ -69,6 +89,7 @@ public class Jukebox {
         queuedSongs.add(song);
         if (!currentSong.isPresent())
             updateCurrentSong();
+        checkRep();
         return queuedSongs.size();
     }
     
@@ -91,6 +112,7 @@ public class Jukebox {
         isPlaying = true;
         broadcast(Signal.SIGNAL_SONG_START);
         player.play();
+        checkRep();
         return true;
     }
     
@@ -111,6 +133,7 @@ public class Jukebox {
      */
     public synchronized void addListener(Listener listener) {
         listeners.add(listener);
+        checkRep();
     }
     
     /**
@@ -120,6 +143,7 @@ public class Jukebox {
      */
     public synchronized void removeListener(Listener listener) {
         listeners.remove(listener);
+        checkRep();
     }
     
     /**
@@ -145,7 +169,7 @@ public class Jukebox {
     }
     
     /**
-     * Represents a signal broadcast from a Jukebox to any JukeboxListeners.
+     * Represents a signal broadcast from a Jukebox to any Listeners.
      */
     public static class Signal {
         
@@ -179,13 +203,14 @@ public class Jukebox {
         //  fields are not null
         //  type == Type.LYRIC implies lyric.isPresent()
         // Safety from rep exposure:
-        //  the board that is passed into the constructor (in ServerMain)
-        //      is only intended to be used with this WebServer. Thus, no
-        //      inadvertent mutation will happen from outside this class.
+        //  all fields are private, immutable, and final
         // Thread safety argument:
-        //  intended to be a singleton server; thus no need to worry about
-        //      other threads accessing or mutating it.
+        //  This object and its fields are all immutable, and there is no 
+        //  beneficent mutation
         
+        /*
+         * Check rep invariant.
+         */
         private void checkRep() {
             assert type != null;
             assert lyric != null;

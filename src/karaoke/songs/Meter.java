@@ -1,33 +1,34 @@
 package karaoke.songs;
 
+import java.util.Objects;
+
 /**
- * an immutable Meter object representing a Meter
+ * A Meter is a fraction, often used to determine the number of beats in a measure.
  */
 public class Meter {
     
-	/* Abstraction function
-	 * 	AF(top, bottom, value, symbol) = an immutable Meter object with top top, bottom bottom,
-	 * 		value = the double value of top/bottom, and string representation symbol
-	 * 
-	 * Rep invariant
-	 * 	top, bottom, value > 0
-	 * 	symbol is common time ("C"), cut time ("C|"), or contains a slash ("/")
-	 *  no fields are null
-	 *
-	 * Safety from rep exposure
-	 * 	args passed into the constructor are primitive int, thus immutable
-	 * 
-	 * Thread safety
-	 * 	This object is immutable with no beneficent mutation
-	 */
-	
+    /* Abstraction function
+     *  AF(top, bottom, value, symbol) = the meter fraction top/bottom, with
+     *      decimal value value and string representation symbol
+     * 
+     * Rep invariant
+     *  top, bottom, value > 0
+     *  symbol is common time ("C"), cut time ("C|"), or represents top/bottom
+     *
+     * Safety from rep exposure
+     *  args passed into the constructor are primitive int, thus immutable
+     * 
+     * Thread safety
+     *  This object and its fields are immutable with no beneficent mutation
+     */
+
     private final int top;
     private final int bottom;
     private final double value;
     private final String symbol;
 
     private void checkRep() {
-        assert symbol.equals("C") || symbol.equals("C|") || symbol.contains("/");
+        assert symbol.equals("C") || symbol.equals("C|") || symbol.equals(top + "/" + bottom);
         assert top > 0;
         assert bottom > 0;
         assert value > 0;
@@ -96,24 +97,26 @@ public class Meter {
     public String symbol() {
         return symbol;
     }
+    
+    @Override
     public String toString() {
-    	return symbol;
+        return symbol;
     }
     
     @Override
     public boolean equals(Object that) {
-    	return that instanceof Meter && sameValue((Meter) that);
+        return that instanceof Meter && sameValue((Meter) that);
     }
 
     /* returns true if that has same tempo value as this */
-	private boolean sameValue(Meter that) {
-		return this.top == that.top && this.bottom == that.bottom && this.value == that.value
-				&& this.symbol.equals(that.symbol);
-	}
-	
-	@Override
-	public int hashCode() {
-		return (int) (this.top + this.bottom + this.symbol.hashCode());
-	}
-	
+    private boolean sameValue(Meter that) {
+        return this.top == that.top && this.bottom == that.bottom && this.value == that.value
+                && this.symbol.equals(that.symbol);
+    }
+    
+    @Override
+    public int hashCode() {
+        return Objects.hash(top, bottom, value, symbol);
+    }
+
 }

@@ -61,23 +61,11 @@ public class ABCParserTest {
     }
     
     /* helper to get the actual ABC object that is parsed by parser */
-    private ABC helperGetActual(String filename) throws UnableToParseException, FileNotFoundException {
-    	@SuppressWarnings("resource") 
-    	String abcFile = new Scanner(new File("sample-abc/"+filename+".abc")).useDelimiter("\\A").next();
-        ABC actual = ABCParser.parse(abcFile);
+    private static ABC helperGetActual(String filename) throws UnableToParseException, FileNotFoundException {
+        Scanner scan = new Scanner(new File("sample-abc/" + filename + ".abc"));
+        ABC actual = ABCParser.parse(scan.useDelimiter("\\A").next());
+        scan.close();
         return actual;
-    }
-    
-    @Test
-    public void testWaxiesDargle() throws FileNotFoundException, UnableToParseException {
-        ABC actual = helperGetActual("invention");
-        SequencePlayer.load(actual, lyric -> System.out.println(lyric.toPlainText())).playUntilFinished();
-    }
-    
-    @Test
-    public void testWaxiesDargleTwo() throws FileNotFoundException, UnableToParseException {
-        ABC actual = helperGetActual("waxies_dargle_2");
-        SequencePlayer.load(actual, lyric -> System.out.println(lyric.toPlainText())).playUntilFinished();
     }
     
     // output: Note, Concat, transposed notes

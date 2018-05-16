@@ -4,25 +4,26 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * an enum representing a key signature. 
+ * Enum representing a key signature. 
  */
 public enum Key {
-	
-	/* Abstraction function
-	 *  AF(keySignature) = a key where mapping a Pitch to whether it's sharp
-	 *  	(positive number) or flat (negative number), and its magnitude of sharpness
-	 *  	or flatness.
-	 * 
-	 * Rep invariant
-	 * 	keySignature is not null
-	 * 
-	 * Safety from rep exposure
-	 * 	all passed-in parameters are immutable
-	 * 
-	 * Thread safety 
-	 * 	all fields are immutable
-	 */
-	
+    
+    /* Abstraction function
+     *  AF(keySignature) = a key signature mapping notes to accidentals (sharps or flats)
+     *      according to the mappings in keySignature
+     * 
+     * Rep invariant
+     *  keySignature is not null
+     * 
+     * Safety from rep exposure
+     *  all fields are private and final
+     *  all passed-in parameters are immutable
+     * 
+     * Thread safety 
+     *  This object is immutable, and there is no 
+     *  beneficent mutation
+     */
+
     Fbm(-11),
     Cbm(-10),
     Gbm(-9),
@@ -53,6 +54,10 @@ public enum Key {
     
     private final Map<String, Integer> keySignature;
     
+    /**
+     * Create a key signature with the specified number of sharps or flats.
+     * @param num number of sharps/flats, positive for sharps and negative for flats
+     */
     private Key(int num) {
         this.keySignature = new HashMap<>();
         for (int i = 0; i < num; i++) {

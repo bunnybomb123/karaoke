@@ -7,8 +7,6 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Scanner;
 import java.util.concurrent.Executors;
@@ -21,18 +19,12 @@ import com.sun.net.httpserver.HttpServer;
 
 import edu.mit.eecs.parserlib.UnableToParseException;
 import karaoke.lyrics.Lyric;
-import karaoke.music.Concat;
-import karaoke.music.Instrument;
-import karaoke.music.Music;
-import karaoke.music.Note;
-import karaoke.music.Pitch;
 import karaoke.parser.ABCParser;
 import karaoke.playback.Jukebox;
 import karaoke.playback.Jukebox.Listener;
 import karaoke.playback.Jukebox.Signal;
 import karaoke.playback.Jukebox.Signal.Type;
 import karaoke.songs.ABC;
-import karaoke.songs.Key;
 
 /**
  * HTTP web karaoke server.
@@ -43,26 +35,7 @@ public class WebServer {
     private final Jukebox jukebox = new Jukebox();
     
     private static final int SUCCESS_CODE = 200;
-    private static ABC newABC() {
-        Music m1 = new Note(2, new Pitch('C').transpose(-Pitch.OCTAVE), Instrument.PIANO, Optional.of(new Lyric("1", "hey, babe hey-hey!", 0, 4)));
-        Music m2 = new Note(2, new Pitch('C'), Instrument.PIANO, Optional.of(new Lyric("1", "hey, babe hey-hey!", 5, 9)));
-        Music m3 = new Note(1, new Pitch('C').transpose(Pitch.OCTAVE), Instrument.PIANO, Optional.of(new Lyric("1", "hey, babe hey-hey!", 10, 13)));
-        Music m4 = new Note(1, new Pitch('C').transpose(2*Pitch.OCTAVE), Instrument.PIANO, Optional.of(new Lyric("1", "hey, babe hey-hey!", 14, 18)));
-        Music music = new Concat(m1, new Concat(m2, new Concat(m3, m4)));
-        
-        final Map<String, Music> parts = new HashMap<>();
-        parts.put("1", music);
-        
-        final Map<Character, Object> fields = new HashMap<>();
-        fields.put('X', 1);
-        fields.put('T', "sample 1");
-        fields.put('K', Key.C);
-        fields.put('C', "Mozart");
-        
-        ABC expected = new ABC(parts, fields);
-        
-        return expected;
-    }
+    
     // Abstraction function:
     //  AF(server, jukebox) =
     //      a web server that plays songs from a jukebox of ABC songs
@@ -77,15 +50,6 @@ public class WebServer {
     // Thread safety argument:
     //  Each exchange:HttpExchange is confined to a single thread
     //  
-    
-    /**
-     * for debuging use only
-     * @param args
-     * @throws IOException
-     */
-    public static void main (String args[]) throws IOException {
-        new WebServer(8080).start();
-    }
     
     /**
      * Make a new karaoke server that listens for connections on port.
@@ -105,6 +69,8 @@ public class WebServer {
         server.createContext("/textStream", this::handleTextStream);
         server.createContext("/htmlStream", this::handleHtmlStream);
         server.createContext("/htmlWaitReload", this::handleHtmlWaitReload);
+        
+        checkRep();
     }
 
     // checks that rep invariant is maintained
@@ -120,30 +86,6 @@ public class WebServer {
         final String path = exchange.getRequestURI().getPath();
         final String base = exchange.getHttpContext().getPath();
         final String abcFile = path.length() > base.length() ? path.substring(base.length() + 1) : "";
-        /*
-        final Scanner scan;
-        
-        try {
-            scan = new Scanner(new File("sample-abc/" + abcFile));
-        } catch (FileNotFoundException e) {
-            out.println(abcFile + " not found");
-            exchange.close();
-            return;
-        }
-        
-        String songFile = scan.useDelimiter("\\A").next();
-        final ABC song;
-        
-        try {
-            song = ABCParser.parse(songFile);
-        } catch (Exception e) {
-            System.out.println("hi");
-            out.println("Unable to parse " + abcFile);
-            scan.close();
-            exchange.close();
-            e.printStackTrace();
-            return;
-        }*/
         
         try (
             Scanner scan = new Scanner(new File("sample-abc/" + abcFile))
@@ -371,7 +313,6 @@ public class WebServer {
     
     /** Start this server in a new background thread. */
     public void start() {
-        checkRep();
         System.err.println("Server will listen on " + server.getAddress());
         server.start();
         checkRep();
@@ -379,7 +320,6 @@ public class WebServer {
     
     /** Stop this server. Once stopped, this server cannot be restarted. */
     public void stop() {
-        checkRep();
         System.err.println("Server will stop");
         server.stop(0);
         checkRep();

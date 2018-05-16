@@ -173,6 +173,7 @@ public class ABCParserTest {
     }
     
     // input: has lyrics, hyphens only
+    @Test
     public void testLyricsSimple() throws FileNotFoundException, UnableToParseException {
         @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/lyricsSimple.abc")).useDelimiter("\\Z").next();
         ABC actual = ABCParser.parse(abcFile);
@@ -193,7 +194,6 @@ public class ABCParserTest {
 
         ABC expected = new ABC(parts, fields);
         assertEquals(expected, actual);
-
     }
 
     

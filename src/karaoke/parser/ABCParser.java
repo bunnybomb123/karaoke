@@ -331,86 +331,67 @@ public class ABCParser {
         }
         
         case NOTE: { // note ::= pitch note_length?;
-            // pitch ::= accidental? basenote octave?;
-            Pitch newPitch = Pitch.MIDDLE_C;
+            final int sharp = 1;
+            final int doubleSharp = 2;
+            final int flat = -1;
+            final int doubleFlat = -2;
+            
+            final List<ParseTree<ABCGrammar>> children = element.children();
+            Optional<Integer> accidental = Optional.empty();
             String note = "";
-            ParseTree<ABCGrammar> pitch = element.children().get(0);
-            int accidentalNumber = 0;
-            boolean accidentalChange = false;
-            for (ParseTree<ABCGrammar> t : pitch.children()) {
-                switch (t.name()) {
+            // pitch ::= accidental? basenote octave?;
+            for (ParseTree<ABCGrammar> component : children.get(0).children()) {
+                switch (component.name()) {
                 case ACCIDENTAL: { // accidental ::= "^" | "^^" | "_" | "__" | "=";
-                    String accidental = t.text();
-                    switch (accidental) {
+                    switch (component.text()) {
                     case "^": {
-                        accidentalNumber = 1;
-                        accidentalChange = true;
+                        accidental = Optional.of(sharp);
                         break;
                     }
                     case "^^": {
-                        accidentalNumber = 2;
-                        accidentalChange = true;
-
+                        accidental = Optional.of(doubleSharp);
                         break;
                     }
                     case "_": {
-                        accidentalNumber = -1;
-                        accidentalChange = true;
-
+                        accidental = Optional.of(flat);
                         break;
                     }
                     case "__": {
-                        accidentalNumber = -2;
-                        accidentalChange = true;
-
+                        accidental = Optional.of(doubleFlat);
                         break;
                     }
                     case "=": {
-                        accidentalNumber = 0;
-                        accidentalChange = true;
-
+                        accidental = Optional.of(0);
                         break;
                     }
-                    default:
-                        break;
+                    default: {
+                        throw new UnableToParseException("accidental is malformed");
                     }
-                    
+                    }
                 }
                 case BASENOTE: { // basenote ::= "C" | "D" | "E" | "F" | "G" | "A" | "B" | "c" | "d" | "e" | "f" | "g" | "a" | "b";
-                    note = t.text();
+                    note = component.text();
                     break;
                 }
-                case OCTAVE: { // octave ::= "'"+ | ","+
-                    note = note + t.text();
+                case OCTAVE: { // octave ::= "'"+ | ","+;
+                    note += component.text();
                     break;
                 }
-                default:
-                    break;
+                default: {
+                    throw new UnableToParseException("pitch is malformed");
                 }
-                
-                newPitch = Pitch.parsePitch(note);
-                if (accidentalChange) {
-                    accidentalMap.put(newPitch, accidentalNumber);
                 }
-//                Lyric nextLyric = LyricGenerator.next();
-                System.out.println("Note Below: ");
-                System.out.println(note);
-                
-                newPitch = newPitch.transpose(accidentalMap.get(newPitch));
-            }
-            // If the duration of the note is being modified, then go here:
-            double duration = 1.0;
-            if (element.children().size() > 1) {
-                ParseTree<ABCGrammar> noteLength = element.children().get(1);
-                assert noteLength.name().equals(ABCGrammar.NOTE_LENGTH);
-                Music lengthNote = makeMusic(noteLength,accidentalMap,lyricGenerator);
-                duration = lengthNote.duration();
             }
             
+            Pitch pitch = Pitch.parsePitch(note);
+            if (accidental.isPresent()) {
+                accidentalMap.put(pitch, accidental.get());
+            }
+            pitch = pitch.transpose(accidentalMap.get(pitch));
             
-            // Change the lyric constructor to have a non-blank voice
-            Note newNote = new Note(duration, newPitch, Instrument.PIANO, lyricGenerator.next());
-            return newNote;
+            final double duration = children.size() == 1 ? 1 : getDecimalValue(children.get(1));
+            
+            return note(duration, pitch, Instrument.PIANO, lyricGenerator.next());
         }
         
         default: {

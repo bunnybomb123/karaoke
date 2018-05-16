@@ -47,7 +47,6 @@ public class LyricGeneratorTest {
     			"-","to"," ", "to","-","w","-","n"," ","To"," ","see"," ","un"," ","cle",
     			" ","Mc","-","Ar","-","dle","*","A","-","-","nd"));
     	
-    	String voice = "1";
     	String line = "I'll go down to Mon-to to-w-n To see un cle Mc-Ar-dle*A--nd";
     	List<Optional<Lyric>> expected = Arrays.asList(
 			createOptionalLyric(line, 0, 4), // I'll

@@ -78,6 +78,11 @@ public class ABC {
         this.beatsPerMinute = (int) (tempo.beatsPerMinute() * tempo.beatLength() / defaultNote.value());
     }
     
+    /** @return a summary representation of this abc piece */
+    public String getInfo() {
+        return title + " by " + composer;
+    }
+    
     /** @return the Music associated with this abc piece */
     public Music getMusic() {
         return music;

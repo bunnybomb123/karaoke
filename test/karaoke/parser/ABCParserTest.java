@@ -70,7 +70,7 @@ public class ABCParserTest {
     
     @Test
     public void testWaxiesDargle() throws FileNotFoundException, UnableToParseException {
-        ABC actual = helperGetActual("waxies_dargle");
+        ABC actual = helperGetActual("invention");
         SequencePlayer.load(actual, lyric -> System.out.println(lyric.toPlainText())).playUntilFinished();
     }
     

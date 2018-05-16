@@ -8,13 +8,6 @@ import javax.sound.midi.MidiUnavailableException;
 import org.junit.Test;
 
 import karaoke.lyrics.Lyric;
-import karaoke.music.Concat;
-import karaoke.music.Instrument;
-import karaoke.music.Music;
-import karaoke.music.Note;
-import karaoke.music.Pitch;
-import karaoke.music.Rest;
-import karaoke.music.Together;
 import karaoke.playback.MidiSequencePlayer;
 import karaoke.playback.SequencePlayer;
 
@@ -23,15 +16,15 @@ import karaoke.playback.SequencePlayer;
  * @category no_didit
  */
 public class MusicTest {
-	
-	/* Testing Strategy
-	 * input partitions:
-	 * 	presence of Note, Together, Concat, Rest
-	 * 	notes have duration 0, (0, 1), 1, >1
-	 * music has lyrics, doesn't have lyrics
-	 * 
-	 * Cover all parts
-	 */
+
+    /* Testing Strategy
+     * input partitions:
+     *  presence of Note, Together, Concat, Rest
+     *  notes have duration 0, (0, 1), 1, >1
+     * music has lyrics, doesn't have lyrics
+     * 
+     * Cover all parts
+     */
 
     @Test(expected=AssertionError.class)
     public void testAssertionsEnabled() {
@@ -109,7 +102,7 @@ public class MusicTest {
     }
     
     /* returns a concatentation of all pieces of music in list */
-    private Music concatChain(Music[] list) {
+    private static Music concatChain(Music[] list) {
     	Music existing = new Rest(0);
     	for (Music m : list)
     		existing = new Concat(existing, m);

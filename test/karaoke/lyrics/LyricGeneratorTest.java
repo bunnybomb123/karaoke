@@ -13,15 +13,11 @@ import org.junit.Test;
  * @author ericaweng
  */
 public class LyricGeneratorTest {
-    
+	
     /* Testing strategy
      *  input:
-     *      optional fields (meter, beatsPerMinute, defaultNote, 
-     *          composer) are given, not given
-     *      1 musical part, many musical parts
-     *      music has lyrics, doesn't have lyrics
-     *      lyrics contain all sorts of hyphens and breaks, don't
-     *      notes must be transposed, not transposed
+     *      input contains: "~", "\-", "-", " ", "*"
+     *      input contains 0, 1, >1 of these ^ objects
      * 
      *  output:
      *      resulting ABC object contains Note, Rest, Concat, Together
@@ -43,6 +39,7 @@ public class LyricGeneratorTest {
     	}
     }
     
+    // handles input with hyphens, spaces, multiple hyphens, asterisks.
     @Test
     public void testWaxiesDargle() {
     	LyricGenerator lg = new LyricGenerator("1");
@@ -50,7 +47,6 @@ public class LyricGeneratorTest {
     			"-","to"," ", "to","-","w","-","n"," ","To"," ","see"," ","un"," ","cle",
     			" ","Mc","-","Ar","-","dle","*","A","-","-","nd"));
     	
-    	String voice = "1";
     	String line = "I'll go down to Mon-to to-w-n To see un cle Mc-Ar-dle*A--nd";
     	List<Optional<Lyric>> expected = Arrays.asList(
 			createOptionalLyric(line, 0, 4), // I'll
@@ -77,37 +73,42 @@ public class LyricGeneratorTest {
     	helperTest(expected, lg);
     }
     
+    /**/
     private Optional<Lyric> createOptionalLyric(String line, int start, int end){
     	return Optional.of(new Lyric("1", line, start, end));
     }
     
+    // handles input with underscores and double underscores.
     @Test
     public void testDoubleUnderscore() {
     	LyricGenerator lg = new LyricGenerator("1");
-    	lg.loadLyrics(Arrays.asList("hi", "_","_"," ","go"));
+    	lg.loadLyrics(Arrays.asList("hi", "_","_"," ","go", "_"));
     	
-    	String line = "hi__ go";
+    	String line = "hi__ go_";
     	List<Optional<Lyric>> expected = Arrays.asList(
 			createOptionalLyric(line, 0, 4), // hi__
 			Optional.empty(), Optional.empty(),
-			createOptionalLyric(line, 5, 7) // go
+			createOptionalLyric(line, 5, 8) // go_
 		);
     	helperTest(expected, lg);
     }
     
+    // handles input with tildes
     @Test
     public void testTilde() {
     	LyricGenerator lg = new LyricGenerator("1");
-    	lg.loadLyrics(Arrays.asList("hi~"," ","go"));
+    	lg.loadLyrics(Arrays.asList("hi~friend" , " ","hi~","go"));
     	
-    	String line = "hi  go";
+    	String line = "hi friend hi go";
     	List<Optional<Lyric>> expected = Arrays.asList(
-			createOptionalLyric(line, 0, 3), // hi 
-			createOptionalLyric(line, 4, 6) // go
+			createOptionalLyric(line, 0, 9), // hi friend
+			createOptionalLyric(line, 10, 13), // hi 
+			createOptionalLyric(line, 13, 15) // go
 		);
     	helperTest(expected, lg);
     }
     
+    // handles input with backslash hyphens
     @Test
     public void testBackslashHyphen() {
     	LyricGenerator lg = new LyricGenerator("1");

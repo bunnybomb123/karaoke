@@ -1,5 +1,6 @@
 package karaoke.lyrics;
 
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -134,22 +135,27 @@ public class Lyric {
     
     @Override
     public boolean equals(Object that) {
-    	return that instanceof Lyric && sameValue((Lyric) that);
+        return that instanceof Lyric && sameValue((Lyric) that);
+    }
+    
+    @Override
+    public int hashCode() {
+        return Objects.hash(voice, prefix, syllable, suffix, isInstrumental);
     }
     
     /* returns true if that is same Lyric as this*/
     private boolean sameValue(Lyric that) {
-    	return that.voice.equals(this.voice) && this.prefix.equals(that.prefix)
-    			&& this.suffix.equals(that.suffix) && this.syllable.equals(that.syllable)
-    			&& this.isInstrumental == that.isInstrumental;
+        return that.voice.equals(this.voice) && this.prefix.equals(that.prefix)
+                && this.suffix.equals(that.suffix) && this.syllable.equals(that.syllable)
+                && this.isInstrumental == that.isInstrumental;
     }
     
     @Override
     public String toString() {
-    	return "voice:" + this.voice + "\nprefix:  "
-    			+ this.prefix + "syllable: " + this.syllable 
-    			+ "suffix:" + this.suffix + "\nisInstrumental: " 
-    			+ isInstrumental;
+        return "voice:" + this.voice + "\nprefix:  "
+                + this.prefix + "syllable: " + this.syllable 
+                + "suffix:" + this.suffix + "\nisInstrumental: " 
+                + isInstrumental;
     }
 
 }

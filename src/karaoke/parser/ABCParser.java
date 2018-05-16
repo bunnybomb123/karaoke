@@ -1,8 +1,9 @@
 package karaoke.parser;
 
-import karaoke.lyrics.Lyric;
+import karaoke.lyrics.*;
 import karaoke.music.*;
 import karaoke.songs.ABC;
+import karaoke.songs.Key;
 import karaoke.songs.Meter;
 
 import java.util.Map;
@@ -105,7 +106,8 @@ public class ABCParser {
         ParseTree<ABCGrammar> abcBodyTree = parseTree.children().get(1);
         assert abcHeaderTree.name().equals(ABCGrammar.ABC_HEADER);
         assert abcBodyTree.name().equals(ABCGrammar.ABC_BODY);
-
+        
+        Visualizer.showInBrowser(abcBodyTree);
 
         // display the parse tree in various ways, for debugging only
         // System.out.println("parse tree " + parseTree);
@@ -128,9 +130,8 @@ public class ABCParser {
         return abc;
     }
     
-    private static Music makeMusic(ParseTree<ABCGrammar> parseTree, Map<Character, Object> header, Map<String,Integer> accidentalMap) {
-        Visualizer.showInBrowser(parseTree);
-        
+    private static Music makeMusic(ParseTree<ABCGrammar> parseTree, Map<Character, Object> header, Map<String,Integer> accidentalMap, String voice) {
+//        Visualizer.showInBrowser(parseTree);
         switch (parseTree.name()) {
         
         case ABC_LINE: {
@@ -139,12 +140,12 @@ public class ABCParser {
             int lyricsPresent = 0;
             
             // Instrumental Lyric Generator
-//            LyricGenerator lyricGenerator = new LyricGenerator();
+            LyricGenerator lyricGenerator = new LyricGenerator(voice);
             // If the last element is a lyric, then we don't need to go through the last child of the parseTree,
             // And we need to add all the elements of the parseTree to the 
             if (parseTree.children().get(parseTree.children().size()-2).name().equals(ABCGrammar.LYRIC)) {
                 lyricsPresent = 1;
-//                lyricGenerator = new LyricGenerator(parseTree.children().get(parseTree.children().size()-1));
+                lyricGenerator = new LyricGenerator(parseTree.children().get(parseTree.children().size()-1));
             }
             // Go through each parseTree element, and for each, make a concat with 
             for (ParseTree<ABCGrammar> t : parseTree.children().subList(1, parseTree.children().size() - lyricsPresent)) {
@@ -159,7 +160,7 @@ public class ABCParser {
         }
         
         case ELEMENT: {
-            return makeMusic(parseTree.children().get(0), header, accidentalMap);
+            return makeMusic(parseTree.children().get(0), header, accidentalMap, voice);
         }
         
         // In this case, we need to just 
@@ -263,7 +264,7 @@ public class ABCParser {
             
             
             // Change the lyric constructor to have a non-blank voice
-            Note newNote = new Note(1.0, newPitch, Instrument.ACCORDION, Optional.of(new Lyric("")));
+            Note newNote = new Note(duration, newPitch, Instrument.PIANO, Optional.of(new Lyric("")));
             return newNote;
         }
         
@@ -277,6 +278,7 @@ public class ABCParser {
             }
             return currentMusic;
         }
+        
         
         default: {
             System.out.println("Thing that failed: ");
@@ -311,9 +313,14 @@ public class ABCParser {
             for (ParseTree<ABCGrammar> t : parseTree.children()) {
                 Map<String, Integer> accidentalMap = new HashMap<>();
                 // if t == voice section, then update the current voice
-                if(t.name().equals(ABCGrammar.MIDDLE_OF_BODY_FIELD)) {
-                    currentVoice = t.children().get(0).text();
-                } else if(t.name().equals(ABCGrammar.COMMENT)) {
+                if(t.children().get(0).name().equals(ABCGrammar.MIDDLE_OF_BODY_FIELD)) {
+                    currentVoice = t.children().get(0).children().get(0).children().get(0).text();
+                    System.out.println("Currentt Voice:");
+                    System.out.println(currentVoice);
+                    System.out.println(t.children().get(0).children().get(0).children().get(0).text());
+                } else if(t.children().get(0).name().equals(ABCGrammar.COMMENT)) {
+                    System.out.println("Inside the comment place");
+                    System.out.println(t);
                     // Do nothing here, it's just a comment
                 }
                 
@@ -397,6 +404,11 @@ public class ABCParser {
         }
         case FIELD_KEY: {
             ParseTree<ABCGrammar> key = parseTree.children().get(0);
+            String fullKey = key.text();
+            fullKey = fullKey.replace('#', '$');
+            fullKey = fullKey.replaceAll("\\s+","");
+            Key newKey = Key.valueOf(fullKey);
+            currentHeaderInfo.put('K', newKey);
             break;
         }
         case FIELD_METER: {

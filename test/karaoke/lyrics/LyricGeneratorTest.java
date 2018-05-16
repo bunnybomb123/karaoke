@@ -16,12 +16,8 @@ public class LyricGeneratorTest {
 	
     /* Testing strategy
      *  input:
-     *      optional fields (meter, beatsPerMinute, defaultNote, 
-     *          composer) are given, not given
-     *      1 musical part, many musical parts
-     *      music has lyrics, doesn't have lyrics
-     *      lyrics contain all sorts of hyphens and breaks, don't
-     *      notes must be transposed, not transposed
+     *      input contains: "~", "\-", "-", " ", "*"
+     *      input contains 0, 1, >1 of these ^ objects
      * 
      *  output:
      *      resulting ABC object contains Note, Rest, Concat, Together
@@ -47,7 +43,7 @@ public class LyricGeneratorTest {
     @Test
     public void testWaxiesDargle() {
     	LyricGenerator lg = new LyricGenerator("1");
-    	lg.loadNewLine(Arrays.asList("I'll", " ","go"," ","down"," ","to"," ","Mon",
+    	lg.loadLyrics(Arrays.asList("I'll", " ","go"," ","down"," ","to"," ","Mon",
     			"-","to"," ", "to","-","w","-","n"," ","To"," ","see"," ","un"," ","cle",
     			" ","Mc","-","Ar","-","dle","*","A","-","-","nd"));
     	
@@ -87,7 +83,7 @@ public class LyricGeneratorTest {
     @Test
     public void testDoubleUnderscore() {
     	LyricGenerator lg = new LyricGenerator("1");
-    	lg.loadNewLine(Arrays.asList("hi", "_","_"," ","go", "_"));
+    	lg.loadLyrics(Arrays.asList("hi", "_","_"," ","go", "_"));
     	
     	String line = "hi__ go_";
     	List<Optional<Lyric>> expected = Arrays.asList(
@@ -102,7 +98,7 @@ public class LyricGeneratorTest {
     @Test
     public void testTilde() {
     	LyricGenerator lg = new LyricGenerator("1");
-    	lg.loadNewLine(Arrays.asList("hi~friend" , " ","hi~","go"));
+    	lg.loadLyrics(Arrays.asList("hi~friend" , " ","hi~","go"));
     	
     	String line = "hi friend hi go";
     	List<Optional<Lyric>> expected = Arrays.asList(
@@ -117,7 +113,7 @@ public class LyricGeneratorTest {
     @Test
     public void testBackslashHyphen() {
     	LyricGenerator lg = new LyricGenerator("1");
-    	lg.loadNewLine(Arrays.asList("hi\\-"," ","go"," ", "\\-"," ","\\-"));
+    	lg.loadLyrics(Arrays.asList("hi\\-"," ","go"," ", "\\-"," ","\\-"));
     	
     	String line = "hi- go - -";
     	List<Optional<Lyric>> expected = Arrays.asList(

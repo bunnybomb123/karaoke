@@ -46,35 +46,31 @@ public class WebServer {
         Music music = new Concat(m1, new Concat(m2, new Concat(m3, m4)));
         
         final Map<String, Music> parts = new HashMap<>();
-        parts.put("", music);
+        parts.put("1", music);
         
         final Map<Character, Object> fields = new HashMap<>();
         fields.put('X', 1);
         fields.put('T', "sample 1");
         fields.put('K', Key.C);
+        fields.put('C', "Mozart");
         
         ABC expected = new ABC(parts, fields);
         
         return expected;
     }
     // Abstraction function:
-    //  AF(server, jukebox, currentSong, listeners) =
-    //      a web server that plays songs from a jukebox of ABC songs,
-    //      is currently playing currentSong.get() if currentSong.isPresent(),
-    //      and has a list of listeners notified whenever the server broadcasts a signal
+    //  AF(server, jukebox) =
+    //      a web server that plays songs from a jukebox of ABC songs
     //
     // Representation invariant:
     //  fields are not null
     //
     // Safety from rep exposure:
     //  No fields are passed in as parameters or returned by any methods
-    //  All fields except currentSong are private and final
-    //  currentSong is private and an immutable object
+    //  All fields are private and final
     //
     // Thread safety argument:
     //  Each exchange:HttpExchange is confined to a single thread
-    //  All public methods are synchronized by this object's lock
-    //  All non-synchronized private methods do not access any fields
     //  
     
     /**
@@ -99,11 +95,11 @@ public class WebServer {
         server.setExecutor(Executors.newCachedThreadPool());
 
         // register handlers
-        server.createContext("/addSong/", this::handleAddSong);
-        server.createContext("/play/", this::handlePlay);
-        server.createContext("/textStream/", this::handleTextStream);
-        server.createContext("/htmlStream/", this::handleHtmlStream);
-        server.createContext("/htmlWaitReload/", this::handleHtmlWaitReload);
+        server.createContext("/addSong", this::handleAddSong);
+        server.createContext("/play", this::handlePlay);
+        server.createContext("/textStream", this::handleTextStream);
+        server.createContext("/htmlStream", this::handleHtmlStream);
+        server.createContext("/htmlWaitReload", this::handleHtmlWaitReload);
     }
 
     // checks that rep invariant is maintained
@@ -118,12 +114,15 @@ public class WebServer {
         
         final String path = exchange.getRequestURI().getPath();
         final String base = exchange.getHttpContext().getPath();
-        final String song = path.substring(base.length());
-        int position = jukebox.addSong(newABC());
+        final String abcFile = path.length() > base.length() ? path.substring(base.length() + 1) : "";
+        
+        ABC song = newABC();
+        int position = jukebox.addSong(song);
         if (position == 0)
             out.println("Next song is " + song);
         else
             out.println("Added " + song + " at position " + position + " in queue");
+        
         exchange.close();
     }
     
@@ -134,9 +133,9 @@ public class WebServer {
         boolean success = jukebox.play();
         Optional<ABC> song = jukebox.getCurrentSong();
         if (success)
-            out.println("Now playing " + song.get().getTitle());
+            out.println("Now playing " + song.get());
         else if (jukebox.isPlaying())
-            out.println("Jukebox is already playing " + song.get().getTitle());
+            out.println("Jukebox is already playing " + song.get());
         else
             out.println("Jukebox is empty");
         exchange.close();
@@ -154,17 +153,13 @@ public class WebServer {
         exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=utf-8");
         PrintWriter out = getPrintWriter(exchange);
         
-        // IMPORTANT: some web browsers don't start displaying a page until at least 2K bytes
-        // have been received.  So we'll send a line containing 2K spaces first.
-        final int enoughBytesToStartStreaming = 2048;
-        for (int i = 0; i < enoughBytesToStartStreaming; ++i) {
-            out.print(' ');
-        }
-        out.println(); // also flushes
+        final String path = exchange.getRequestURI().getPath();
+        final String base = exchange.getHttpContext().getPath();
+        final String voice = path.length() > base.length() ? path.substring(base.length() + 1) : "";
         
         Optional<ABC> next = jukebox.getCurrentSong();
         if (next.isPresent())
-            out.println("Next song is " + next.get().getTitle());
+            out.println("Next song is " + next.get());
         else
             out.println("Jukebox is empty");
         
@@ -175,7 +170,7 @@ public class WebServer {
                     Optional<ABC> song = jukebox.getCurrentSong();
                     switch(signal.getType()) {
                     case SONG_START:
-                        out.println("Now playing " + song.get().getTitle());
+                        out.println("Now playing " + song.get());
                         out.println("--------------------");
                         break;
                     case SONG_END:
@@ -183,12 +178,15 @@ public class WebServer {
                         break;
                     case SONG_CHANGE:
                         if (song.isPresent())
-                            out.println("Next song is " + song.get().getTitle());
+                            out.println("Next song is " + song.get());
                         else
                             out.println("Jukebox is empty");
                         break;
                     case LYRIC:
-                        out.println(signal.getLyric().toPlainText());
+                        Lyric lyric = signal.getLyric();
+                        if (song.get().getVoices().size() > 1 && !lyric.getVoice().equals(voice))
+                            return;
+                        out.println(lyric.toPlainText());
                         break;
                     default:
                         throw new RuntimeException();
@@ -213,17 +211,13 @@ public class WebServer {
         exchange.getResponseHeaders().add("Content-Type", "text/html; charset=utf-8");
         PrintWriter out = getPrintWriter(exchange);
         
-        // IMPORTANT: some web browsers don't start displaying a page until at least 2K bytes
-        // have been received.  So we'll send a line containing 2K spaces first.
-        final int enoughBytesToStartStreaming = 2048;
-        for (int i = 0; i < enoughBytesToStartStreaming; ++i) {
-            out.print(' ');
-        }
-        out.println(); // also flushes
+        final String path = exchange.getRequestURI().getPath();
+        final String base = exchange.getHttpContext().getPath();
+        final String voice = path.length() > base.length() ? path.substring(base.length() + 1) : "";
         
         Optional<ABC> next = jukebox.getCurrentSong();
         if (next.isPresent())
-            out.println("Next song is " + next.get().getTitle() + "<br>");
+            out.println("Next song is " + next.get() + "<br>");
         else
             out.println("Jukebox is empty<br>");
         
@@ -234,7 +228,7 @@ public class WebServer {
                     Optional<ABC> song = jukebox.getCurrentSong();
                     switch(signal.getType()) {
                     case SONG_START:
-                        out.println("Now playing " + song.get().getTitle() + "<br>");
+                        out.println("Now playing " + song.get() + "<br>");
                         out.println("--------------------<br>");
                         break;
                     case SONG_END:
@@ -242,12 +236,15 @@ public class WebServer {
                         break;
                     case SONG_CHANGE:
                         if (song.isPresent())
-                            out.println("Next song is " + song.get().getTitle() + "<br>");
+                            out.println("Next song is " + song.get() + "<br>");
                         else
                             out.println("Jukebox is empty<br>");
                         break;
                     case LYRIC:
-                        out.println(signal.getLyric().toHtmlText());
+                        Lyric lyric = signal.getLyric();
+                        if (song.get().getVoices().size() > 1 && !lyric.getVoice().equals(voice))
+                            return;
+                        out.println(lyric.toHtmlText());
                         break;
                     default:
                         throw new RuntimeException();
@@ -279,11 +276,19 @@ public class WebServer {
         exchange.getResponseHeaders().add("Content-Type", "text/html; charset=utf-8");
         PrintWriter out = getPrintWriter(exchange);
         
+        final String path = exchange.getRequestURI().getPath();
+        final String base = exchange.getHttpContext().getPath();
+        final String voice = path.length() > base.length() ? path.substring(base.length() + 1) : "";
+        
         jukebox.addListener(new Listener() {
             @Override
             public void signalReceived(Signal signal) {
                 if (signal.getType() == Type.LYRIC) {
-                    out.println(signal.getLyric().toHtmlText());
+                    ABC song = jukebox.getCurrentSong().get();
+                    Lyric lyric = signal.getLyric();
+                    if (song.getVoices().size() > 1 && !lyric.getVoice().equals(voice))
+                        return;
+                    out.println(lyric.toHtmlText());
                     out.println("<script>location.reload()</script>");
                     exchange.close();
                     jukebox.removeListener(this);
@@ -310,6 +315,14 @@ public class WebServer {
                                   exchange.getResponseBody(), 
                                   StandardCharsets.UTF_8), 
                               autoflushOnPrintln);
+        
+        // IMPORTANT: some web browsers don't start displaying a page until at least 2K bytes
+        // have been received.  So we'll send a line containing 2K spaces first.
+        final int enoughBytesToStartStreaming = 2048;
+        for (int i = 0; i < enoughBytesToStartStreaming; ++i) {
+            out.print(' ');
+        }
+        out.println(); // also flushes
         
         return out;
     }

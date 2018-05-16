@@ -24,7 +24,7 @@ public class Jukebox {
      *  
      * 
      * Thread safety argument
-     * 
+     *  All public methods are synchronized by this object's lock
      */
     
     private Optional<ABC> currentSong = Optional.empty();

@@ -20,6 +20,7 @@ public class Tempo {
 	 * Thread safety
 	 * 	This object is immutable with no beneficent mutation 
 	 */
+	
     private final double beatLength;
     private final int beatsPerMinute;
     private final String symbol;
@@ -79,7 +80,7 @@ public class Tempo {
     /* returns true if that has same tempo value as this */
 	private boolean sameValue(Tempo that) {
 		return this.beatLength == that.beatLength && this.beatsPerMinute == that.beatsPerMinute
-				&& this.symbol == that.symbol;
+				&& this.symbol.equals(that.symbol);
 	}
 	
 	@Override

@@ -118,7 +118,7 @@ public class ABCParser {
         assert abcHeaderTree.name().equals(ABCGrammar.ABC_HEADER);
         assert abcBodyTree.name().equals(ABCGrammar.ABC_BODY);
         
-        Visualizer.showInBrowser(abcBodyTree);
+        // Visualizer.showInBrowser(abcBodyTree);
 
         // display the parse tree in various ways, for debugging only
         // System.out.println("parse tree " + parseTree);
@@ -288,6 +288,7 @@ public class ABCParser {
         
         case REST_ELEMENT: { // rest_element ::= "z" note_length?;
             final List<ParseTree<ABCGrammar>> children = element.children();
+            System.out.println(children);
             return children.isEmpty() ? rest(1) : rest(toDouble(children.get(0)));
         }
         
@@ -410,17 +411,17 @@ public class ABCParser {
     
     private static double toDouble(ParseTree<ABCGrammar> fraction) throws UnableToParseException {
         switch (fraction.name()) {
-        case METER_FRACTION:
-        case NOTE_LENGTH:
-        case NOTE_LENGTH_STRICT:
+        case METER_FRACTION: // meter_fraction ::= numerator "/" denominator;
+        case NOTE_LENGTH: // note_length ::= numerator ("/" denominator?)? | ("/" denominator?);
+        case NOTE_LENGTH_STRICT: // note_length_strict ::= numerator "/" denominator;
             int numerator = 1;
-            int denominator = 1;
+            int denominator = fraction.text().contains("/") ? 2 : 1;
             for (final ParseTree<ABCGrammar> component : fraction.children())
                 switch (component.name()) {
-                case NUMERATOR:
+                case NUMERATOR: // numerator ::= number;
                     numerator = toInt(component);
                     break;
-                case DENOMINATOR:
+                case DENOMINATOR: // denominator ::= number;
                     denominator = toInt(component);
                     break;
                 default:

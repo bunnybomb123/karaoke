@@ -69,9 +69,9 @@ public class ABCParserTest {
     }
     
     @Test
-    public void testFurElise() throws FileNotFoundException, UnableToParseException {
-        ABC actual = helperGetActual("fur_elise");
-//        SequencePlayer.load(actual, null).playUntilFinished();
+    public void testWaxiesDargle() throws FileNotFoundException, UnableToParseException {
+        ABC actual = helperGetActual("waxies_dargle");
+        SequencePlayer.load(actual, lyric -> System.out.println(lyric.toPlainText())).playUntilFinished();
     }
     
     
@@ -79,7 +79,8 @@ public class ABCParserTest {
     @Test
     public void testSample1() throws FileNotFoundException, UnableToParseException {
         ABC actual = helperGetActual("sample1");
-        SequencePlayer.load(actual, null).playUntilFinished();
+        //SequencePlayer.load(actual, null).playUntilFinished();
+        
         Music m1 = new Note(2, new Pitch('C').transpose(-Pitch.OCTAVE), Instrument.PIANO, Optional.of(new Lyric("")));
         Music m2 = new Note(2, new Pitch('C'), Instrument.PIANO, Optional.empty());
         Music m3 = new Note(1, new Pitch('C').transpose(2*Pitch.OCTAVE), Instrument.PIANO, Optional.empty());

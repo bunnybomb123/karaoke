@@ -1,5 +1,6 @@
 package karaoke.web;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -8,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Scanner;
 import java.util.concurrent.Executors;
 
 import javax.sound.midi.InvalidMidiDataException;
@@ -16,12 +18,14 @@ import javax.sound.midi.MidiUnavailableException;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
+import edu.mit.eecs.parserlib.UnableToParseException;
 import karaoke.lyrics.Lyric;
 import karaoke.music.Concat;
 import karaoke.music.Instrument;
 import karaoke.music.Music;
 import karaoke.music.Note;
 import karaoke.music.Pitch;
+import karaoke.parser.ABCParser;
 import karaoke.playback.Jukebox;
 import karaoke.playback.Jukebox.Listener;
 import karaoke.playback.Jukebox.Signal;
@@ -116,13 +120,18 @@ public class WebServer {
         final String base = exchange.getHttpContext().getPath();
         final String abcFile = path.length() > base.length() ? path.substring(base.length() + 1) : "";
         
-        ABC song = newABC();
-        int position = jukebox.addSong(song);
-        if (position == 0)
-            out.println("Next song is " + song);
-        else
-            out.println("Added " + song + " at position " + position + " in queue");
-        
+        try (
+            Scanner scan = new Scanner(new File("sample-abc/" + abcFile))
+        ) {
+            ABC song = ABCParser.parse(scan.useDelimiter("\\A").next());
+            int position = jukebox.addSong(song);
+            if (position == 0)
+                out.println("Next song is " + song);
+            else
+                out.println("Added " + song + " at position " + position + " in queue");
+        } catch (UnableToParseException e) {
+            out.println("Unable to parse " + abcFile);
+        }
         exchange.close();
     }
     

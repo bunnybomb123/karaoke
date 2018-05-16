@@ -276,9 +276,9 @@ public class ABCParserTest {
         @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/lyricsBarline.abc")).useDelimiter("\\Z").next();
         ABC actual = ABCParser.parse(abcFile);
         
-        List<Integer> starts = Arrays.asList(0, 7);
-        List<Integer> ends =   Arrays.asList(6, 16);
-        String line = "ly-ric ly-ri-cal";
+        List<Integer> starts = Arrays.asList(0, 3, 7, 10);
+        List<Integer> ends =   Arrays.asList(2, 6, 9, 14);
+        String line = "ly-ric-al bear";
         List<Music> musics = createNotesForLyricsTesting(line, starts, ends);
         Music music = concatChain(musics);
         		
@@ -291,10 +291,10 @@ public class ABCParserTest {
     public void testLyricsBarlineIgnored() throws FileNotFoundException, UnableToParseException {
         @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/lyricsBarlineIgnored.abc")).useDelimiter("\\Z").next();
         ABC actual = ABCParser.parse(abcFile);
-        
-        List<Integer> starts = Arrays.asList(0, 7);
-        List<Integer> ends =   Arrays.asList(6, 16);
-        String line = "ly-ric ly-ri-cal";
+
+        List<Integer> starts = Arrays.asList(0, 3, 7, 10, 13);
+        List<Integer> ends =   Arrays.asList(2, 6, 9, 12, 17);
+        String line = "ly-ric-al-ly bear";
         List<Music> musics = createNotesForLyricsTesting(line, starts, ends);
         Music music = concatChain(musics);
         		

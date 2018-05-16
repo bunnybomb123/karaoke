@@ -73,12 +73,20 @@ public class WebServer {
         checkRep();
     }
 
-    // checks that rep invariant is maintained
+    /**
+     * Checks to make sure the rep invariants are satisfied
+     */
     private void checkRep() {
         assert server != null;
         assert jukebox != null;
     }
 
+    /**
+     * HTTP handler that adds a song to our current list of songs to play
+     * 
+     * @param exchange http exchange currently in progress
+     * @throws IOException thrown if there is a network problem 
+     */
     private void handleAddSong(HttpExchange exchange) throws IOException {
         exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=utf-8");
         PrintWriter out = getPrintWriter(exchange);
@@ -104,6 +112,12 @@ public class WebServer {
         exchange.close();
     }
     
+    /**
+     * HTTP handler that plays the next song from our current list of songs to play
+     * 
+     * @param exchange http exchange currently in progress
+     * @throws IOException thrown if there is a network problem
+     */
     private void handlePlay(HttpExchange exchange) throws IOException {
         exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=utf-8");
         PrintWriter out = getPrintWriter(exchange);
@@ -278,6 +292,7 @@ public class WebServer {
     /**
      * given an HttpExchange, return a PrintWriter that prints to 
      * this exchange
+     * 
      * @param exchange
      * @return out
      * @throws IOException
@@ -305,20 +320,28 @@ public class WebServer {
         return out;
     }
     
-    /** @return the port on which this server is listening for connections */
+    /** 
+     * Gets the port on which the server is listening for connections
+     * 
+     * @return the port on which this server is listening for connections 
+     */
     public int port() {
         checkRep();
         return server.getAddress().getPort();
     }
     
-    /** Start this server in a new background thread. */
+    /** 
+     * Starts this server in a new background thread.
+     */
     public void start() {
         System.err.println("Server will listen on " + server.getAddress());
         server.start();
         checkRep();
     }
     
-    /** Stop this server. Once stopped, this server cannot be restarted. */
+    /** 
+     * Stops this server. Once stopped, this server cannot be restarted. 
+     */
     public void stop() {
         System.err.println("Server will stop");
         server.stop(0);

@@ -26,6 +26,7 @@ public class WebServerTest {
     
     /*
      * Testing Strategy for WebServer.java:
+     * Functions: port, start, stop, WebServer (Constructor)
      * inputs: port
      * outputs: 
      * 

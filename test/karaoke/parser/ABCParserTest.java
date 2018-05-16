@@ -24,6 +24,7 @@ import karaoke.music.Note;
 import karaoke.music.Pitch;
 import karaoke.music.Rest;
 import karaoke.music.Together;
+import karaoke.playback.SequencePlayer;
 import karaoke.songs.ABC;
 import karaoke.songs.Key;
 
@@ -89,7 +90,7 @@ public class ABCParserTest {
     @Test
     public void testSample2() throws FileNotFoundException, UnableToParseException {
         ABC actual = helperGetActual("sample2");
-
+        SequencePlayer.load(actual, null).playUntilFinished();
         Music m1 = new Note(1, new Pitch('C'), Instrument.PIANO, Optional.empty());
         Music m2 = new Note(1, new Pitch('E'), Instrument.PIANO, Optional.empty());
         Music music = new Together(m1, m2);

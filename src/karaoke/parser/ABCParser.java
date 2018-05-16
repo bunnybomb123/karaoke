@@ -260,7 +260,12 @@ public class ABCParser {
      * @param music music to add
      */
     private static void addMusic(Map<String, Music> parts, String voice, Music music) {
-        parts.put(voice, concat(parts.getOrDefault(voice, empty()), music));
+        if (music.duration() == 0)
+            return;
+        else if (!parts.containsKey(voice))
+            parts.put(voice, music);
+        else
+            parts.put(voice, concat(parts.get(voice), music));
     }
     
     /**

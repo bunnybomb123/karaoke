@@ -53,7 +53,7 @@ public class ABCParserTest {
     
     /* helper to get the actual ABC object that is parsed by parser */
     private ABC helperGetActual(String filename) throws UnableToParseException, FileNotFoundException {
-    	@SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/"+filename+".abc")).useDelimiter("\\Z").next();
+    	@SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/"+filename+".abc")).useDelimiter("\\A").next();
         ABC actual = ABCParser.parse(abcFile);
         return actual;
     }

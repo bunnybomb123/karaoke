@@ -14,7 +14,7 @@ public class Note implements Music {
     
     /* Abstraction function:
      *  AF(duration, pitch, instrument, lyric) = 
-     *      a note with a duration (in beats), a pitch, an instrument it's played on,
+     *      a note with a duration (in beats), a pitch, the instrument it's played on,
      *      and optionally a lyric sung on the note
      * 
      * Rep invariant:

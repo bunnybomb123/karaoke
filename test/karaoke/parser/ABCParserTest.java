@@ -62,22 +62,10 @@ public class ABCParserTest {
         assert false; // make sure assertions are enabled with VM argument: -ea
     }
     
-    @Test
-    public void testBadAbcFile() throws FileNotFoundException {
-        @SuppressWarnings("resource") 
-        String abcFile = new Scanner(new File("sample-abc/bad.abc")).useDelimiter("\\Z").next();
-        try {
-            ABCParser.parse(abcFile);
-            fail("should not get here");
-        } catch (UnableToParseException e) {}
-    }
-    
     // output: Note, Concat, transposed notes
     @Test
     public void testSample1() throws FileNotFoundException, UnableToParseException {
-        /*
-         * String abcFile = new Scanner(new File("sample-abc/sample1.abc")).useDelimiter("\\Z").next() + "\n";
-         */
+
         String abcFile = getContentsFromFile("sample-abc/sample1.abc");
 //        String abcFile = getContentsFromFile("sample-abc/sample1.abc");
         // System.out.println("parse tree " + parseTree);
@@ -193,7 +181,8 @@ public class ABCParserTest {
     // input: has lyrics, hyphens only
     @Test
     public void testLyricsHyphen() throws FileNotFoundException, UnableToParseException {
-        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/lyricsHyphen.abc")).useDelimiter("\\Z").next();
+        @SuppressWarnings("resource") 
+        String abcFile = getContentsFromFile("sample-abc/lyricsHyphen.abc");
         ABC actual = ABCParser.parse(abcFile);
         
         List<Integer> starts = Arrays.asList(0, 3, 7);
@@ -209,7 +198,8 @@ public class ABCParserTest {
     // input: has lyrics, with tildes
     @Test
     public void testLyricsTilde() throws FileNotFoundException, UnableToParseException {
-        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/lyricsTilde.abc")).useDelimiter("\\Z").next();
+        @SuppressWarnings("resource") 
+        String abcFile = getContentsFromFile("sample-abc/lyricsTilde.abc");
         ABC actual = ABCParser.parse(abcFile);
         
         List<Integer> starts = Arrays.asList(0, 8);
@@ -225,7 +215,8 @@ public class ABCParserTest {
     // input: has lyrics, with underscores, Key is minor, with accidental
     @Test
     public void testLyricsUnderscore() throws FileNotFoundException, UnableToParseException {
-        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/lyricsTilde.abc")).useDelimiter("\\Z").next();
+        @SuppressWarnings("resource") 
+        String abcFile = getContentsFromFile("sample-abc/lyricsTilde.abc");
         ABC actual = ABCParser.parse(abcFile);
         
         List<Integer> starts = Arrays.asList(0, 3, -1, -1, 9, -1);
@@ -241,7 +232,8 @@ public class ABCParserTest {
     // input: has lyrics, with backslash hyphens.
     @Test
     public void testLyricsBackslashHyphen() throws FileNotFoundException, UnableToParseException {
-        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/lyricsBackslashHyphen.abc")).useDelimiter("\\Z").next();
+        @SuppressWarnings("resource") 
+        String abcFile = getContentsFromFile("sample-abc/lyricsBackslashHyphen.abc");
         ABC actual = ABCParser.parse(abcFile);
         
         List<Integer> starts = Arrays.asList(0, 7);
@@ -257,7 +249,8 @@ public class ABCParserTest {
     // input: has lyrics, with asterisks.
     @Test
     public void testLyricsAsterisk() throws FileNotFoundException, UnableToParseException {
-        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/lyricsAsterisk.abc")).useDelimiter("\\Z").next();
+        @SuppressWarnings("resource") 
+        String abcFile = getContentsFromFile("sample-abc/lyricsAsterisk.abc");
         ABC actual = ABCParser.parse(abcFile);
         
         List<Integer> starts = Arrays.asList(0, 3, 5, 8, 11, 13, 15);
@@ -273,7 +266,8 @@ public class ABCParserTest {
     // input: has lyrics, with a barline that is not ignored.
     @Test
     public void testLyricsBarline() throws FileNotFoundException, UnableToParseException {
-        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/lyricsBarline.abc")).useDelimiter("\\Z").next();
+        @SuppressWarnings("resource") 
+        String abcFile = getContentsFromFile("sample-abc/lyricsBarline.abc");
         ABC actual = ABCParser.parse(abcFile);
         
         List<Integer> starts = Arrays.asList(0, 3, 7, 10);
@@ -289,7 +283,8 @@ public class ABCParserTest {
     // input: has lyrics, with a barline that is ignored.
     @Test
     public void testLyricsBarlineIgnored() throws FileNotFoundException, UnableToParseException {
-        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/lyricsBarlineIgnored.abc")).useDelimiter("\\Z").next();
+        @SuppressWarnings("resource") 
+        String abcFile = getContentsFromFile("sample-abc/lyricsBarlineIgnored.abc");
         ABC actual = ABCParser.parse(abcFile);
 
         List<Integer> starts = Arrays.asList(0, 3, 7, 10, 13);
@@ -306,7 +301,8 @@ public class ABCParserTest {
     // output: Together, Note
     @Test
     public void testLyricsMulti() throws FileNotFoundException, UnableToParseException {
-        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/lyricsMulti.abc")).useDelimiter("\\Z").next();
+        @SuppressWarnings("resource") 
+        String abcFile = getContentsFromFile("sample-abc/lyricsMulti.abc");
         ABC actual = ABCParser.parse(abcFile);
 
         Music m1 = new Note(1, new Pitch('C'), Instrument.PIANO, Optional.empty());

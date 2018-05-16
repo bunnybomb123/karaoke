@@ -23,7 +23,7 @@ public class AccidentalMap {
      * @param pitch note on which an accidental was found, must be a white note
      * @param accidental accidental on note in signed half steps
      */
-    public void setAccidental(Pitch pitch, int accidental) {
+    public void put(Pitch pitch, int accidental) {
         accidentals.put(pitch, accidental);
     }
     
@@ -31,7 +31,7 @@ public class AccidentalMap {
      * @param pitch a white note
      * @return accidental on given note according to this accidental map
      */
-    public int getAccidental(Pitch pitch) {
+    public int get(Pitch pitch) {
         if (accidentals.containsKey(pitch))
             return accidentals.get(pitch);
         else

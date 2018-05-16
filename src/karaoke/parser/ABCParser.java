@@ -172,13 +172,160 @@ public class ABCParser {
      * @return Music for this musical element
      */
     private static Music makeMusic(ParseTree<ABCGrammar> musicalElement, AccidentalMap accidentalMap, LyricGenerator lyricGenerator) {
-        throw new UnsupportedOperationException();
+        
+        // musical_element ::= note_element | rest_element | tuplet_element;
+        switch (musicalElement.name()) {
+        
+        case NOTE_ELEMENT: {
+            return makeMusic(musicalElement.children().get(0), accidentalMap, lyricGenerator);
+        }
+        
+        case REST_ELEMENT: {
+            double duration = 1.0;
+            if (musicalElement.children().size() > 0) {
+                Music lengthNote = makeMusic(musicalElement.children().get(0), accidentalMap, lyricGenerator);
+                duration = lengthNote.duration();
+           }
+            return rest(duration);
+            break;
+        }
+        
+        case TUPLET_ELEMENT: {
+            
+            
+            break;
+        }
+        
+        case CHORD: {
+            lyricGenerator.setChordSize(musicalElement.children().size());
+            Music currentMusic = makeMusic(musicalElement.children().get(0), accidentalMap, lyricGenerator);
+            // For each of the other children, create a together object with the notes in it
+            for (ParseTree<ABCGrammar> t : musicalElement.children().subList(1, musicalElement.children().size())) {
+                Music newNote = makeMusic(t, accidentalMap, lyricGenerator);
+                currentMusic = new Together(currentMusic, newNote);
+            }
+            return currentMusic;
+        }
+        
+        case NOTE: { // note ::= pitch note_length?;
+            // pitch ::= accidental? basenote octave?;
+            Pitch newPitch = Pitch.MIDDLE_C;
+            String note = "";
+            ParseTree<ABCGrammar> pitch = musicalElement.children().get(0);
+            int accidentalNumber = 0;
+            boolean accidentalChange = false;
+            for (ParseTree<ABCGrammar> t : pitch.children()) {
+                switch (t.name()) {
+                case ACCIDENTAL: { // accidental ::= "^" | "^^" | "_" | "__" | "=";
+                    String accidental = t.text();
+                    switch (accidental) {
+                    case "^": {
+                        accidentalNumber = 1;
+                        accidentalChange = true;
+                        break;
+                    }
+                    case "^^": {
+                        accidentalNumber = 2;
+                        accidentalChange = true;
+
+                        break;
+                    }
+                    case "_": {
+                        accidentalNumber = -1;
+                        accidentalChange = true;
+
+                        break;
+                    }
+                    case "__": {
+                        accidentalNumber = -2;
+                        accidentalChange = true;
+
+                        break;
+                    }
+                    case "=": {
+                        accidentalNumber = 0;
+                        accidentalChange = true;
+
+                        break;
+                    }
+                    default:
+                        break;
+                    }
+                    
+                }
+                case BASENOTE: { // basenote ::= "C" | "D" | "E" | "F" | "G" | "A" | "B" | "c" | "d" | "e" | "f" | "g" | "a" | "b";
+                    note = t.text();
+                    break;
+                }
+                case OCTAVE: { // octave ::= "'"+ | ","+
+                    note = note + t.text();
+                    break;
+                }
+                default:
+                    break;
+                }
+                
+                newPitch = Pitch.parsePitch(note);
+                if (accidentalChange) {
+                    accidentalMap.put(newPitch, accidentalNumber);
+                }
+//                Lyric nextLyric = LyricGenerator.next();
+                System.out.println("Note Below: ");
+                System.out.println(note);
+                
+                newPitch = newPitch.transpose(accidentalMap.get(newPitch));
+            }
+            // If the duration of the note is being modified, then go here:
+            double duration = 1.0;
+            if (musicalElement.children().size() > 1) {
+                ParseTree<ABCGrammar> noteLength = musicalElement.children().get(1);
+                assert noteLength.name().equals(ABCGrammar.NOTE_LENGTH);
+                Music lengthNote = makeMusic(noteLength,accidentalMap,lyricGenerator);
+                duration = lengthNote.duration();
+            }
+            
+            
+            // Change the lyric constructor to have a non-blank voice
+            Note newNote = new Note(duration, newPitch, Instrument.PIANO, lyricGenerator.next());
+            return newNote;
+        }
+        
+        case NOTE_LENGTH: {
+            
+            double numerator;
+            double denominator;
+            double duration = 1.0;
+            if (musicalElement.text().contains("/")) {
+                int index = musicalElement.text().indexOf("/");
+                if (musicalElement.text().substring(0, index).length() != 0) {
+                    numerator = Integer.parseInt(musicalElement.text().substring(0, index));
+                } else {
+                    numerator = 1;
+                }
+                if (musicalElement.text().substring(index, musicalElement.text().length()).length() != 0) {
+                    denominator = Integer.parseInt(musicalElement.text().substring(index, musicalElement.text().length()));
+                } else {
+                    denominator = 2;
+                }
+                duration = duration * numerator / denominator;
+                
+            } else if (musicalElement.text().length() > 0){
+                duration = duration * Integer.parseInt(musicalElement.text());
+            }
+            return new Note(duration, Pitch.MIDDLE_C,Instrument.PIANO,Optional.of(new Lyric("")));
+        }
+        
+        }
+        
+        
+        
+        
+        
+        
     }
     
     private static Music makeMusic(ParseTree<ABCGrammar> parseTree, Map<Character, Object> header, Map<String,Integer> accidentalMap, String voice) {
-//        Visualizer.showInBrowser(parseTree);
         switch (parseTree.name()) {
-        
         case ABC_LINE: {
             
             Music currentMusic = makeMusic(parseTree.children().get(0), header, accidentalMap,lyricMap, voice);
@@ -315,13 +462,7 @@ public class ABCParser {
         
         // In this case, we need to go through each note present, add create concats of each of these elements
         case CHORD: { // chord ::= "[" note+ "]";
-            Music currentMusic = makeMusic(parseTree.children().get(0), header, accidentalMap, lyricMap, voice);
-            // For each of the other children, create a together object with the notes in it
-            for (ParseTree<ABCGrammar> t : parseTree.children().subList(1, parseTree.children().size())) {
-                Music newNote = makeMusic(t, header, accidentalMap);
-                currentMusic = new Together(currentMusic, newNote);
-            }
-            return currentMusic;
+
         }
         
         

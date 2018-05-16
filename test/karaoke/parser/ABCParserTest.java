@@ -40,7 +40,7 @@ public class ABCParserTest {
      *      1 musical part, many musical parts
      *      music has lyrics, doesn't have lyrics
      *      lyrics contain all sorts of hyphens and breaks, don't
-     *      notes must be transposed (have ' and ,), notes don't have to be transposed
+     *      notes must be transposed Octaves up or down (have ' and ,), don't have to
      *      with comments in file, without comments in file
      * 
      *  output:
@@ -51,11 +51,12 @@ public class ABCParserTest {
      * Cover all parts
      */
     
-    private String getContentsFromFile(String filename) throws FileNotFoundException {
-        String abcFile = new Scanner(new File(filename)).useDelimiter("\\A").next();
-        return abcFile;
+    /* helper to get the actual ABC object that is parsed by parser */
+    private ABC helperGetActual(String filename) throws UnableToParseException, FileNotFoundException {
+    	@SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/"+filename+".abc")).useDelimiter("\\Z").next();
+        ABC actual = ABCParser.parse(abcFile);
+        return actual;
     }
-    
     
     @Test(expected=AssertionError.class)
     public void testAssertionsEnabled() {
@@ -75,16 +76,7 @@ public class ABCParserTest {
     // output: Note, Concat, transposed notes
     @Test
     public void testSample1() throws FileNotFoundException, UnableToParseException {
-        /*
-         * String abcFile = new Scanner(new File("sample-abc/sample1.abc")).useDelimiter("\\Z").next() + "\n";
-         */
-        String abcFile = getContentsFromFile("sample-abc/sample1.abc");
-//        String abcFile = getContentsFromFile("sample-abc/sample1.abc");
-        // System.out.println("parse tree " + parseTree);
-        // Visualizer.showInBrowser(parseTree);
-        System.out.println(abcFile);
-//        System.out.println(fileTwo);
-        ABC actual = ABCParser.parse(abcFile);
+        ABC actual = helperGetActual("sample1");
 
         Music m1 = new Note(2, new Pitch('C').transpose(-Pitch.OCTAVE), Instrument.PIANO, Optional.empty());
         Music m2 = new Note(2, new Pitch('C'), Instrument.PIANO, Optional.empty());
@@ -106,8 +98,7 @@ public class ABCParserTest {
     // output: Note, Together
     @Test
     public void testSample2() throws FileNotFoundException, UnableToParseException {
-        String abcFile = getContentsFromFile("sample-abc/sample2.abc");
-        ABC actual = ABCParser.parse(abcFile);
+        ABC actual = helperGetActual("sample2");
 
         Music m1 = new Note(1, new Pitch('C'), Instrument.PIANO, Optional.empty());
         Music m2 = new Note(1, new Pitch('E'), Instrument.PIANO, Optional.empty());
@@ -128,11 +119,7 @@ public class ABCParserTest {
     // output: Together, Note
     @Test
     public void testSample3() throws FileNotFoundException, UnableToParseException {
-        /*
-         * String abcFile = new Scanner(new File("sample-abc/sample3.abc")).useDelimiter("\\Z").next();
-         */
-        String abcFile = getContentsFromFile("sample-abc/sample3.abc");
-        ABC actual = ABCParser.parse(abcFile);
+        ABC actual = helperGetActual("sample3");
 
         Music m1 = new Note(1, new Pitch('C'), Instrument.PIANO, Optional.empty());
         Music m2 = new Note(1, new Pitch('E'), Instrument.PIANO, Optional.empty());
@@ -193,8 +180,7 @@ public class ABCParserTest {
     // input: has lyrics, hyphens only
     @Test
     public void testLyricsHyphen() throws FileNotFoundException, UnableToParseException {
-        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/lyricsHyphen.abc")).useDelimiter("\\Z").next();
-        ABC actual = ABCParser.parse(abcFile);
+        ABC actual = helperGetActual("lyricsHyphen");
         
         List<Integer> starts = Arrays.asList(0, 3, 7);
         List<Integer> ends = Arrays.asList(2, 6, 9);
@@ -209,8 +195,7 @@ public class ABCParserTest {
     // input: has lyrics, with tildes
     @Test
     public void testLyricsTilde() throws FileNotFoundException, UnableToParseException {
-        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/lyricsTilde.abc")).useDelimiter("\\Z").next();
-        ABC actual = ABCParser.parse(abcFile);
+        ABC actual = ABCParser.parse("lyricsTilde");
         
         List<Integer> starts = Arrays.asList(0, 8);
         List<Integer> ends = Arrays.asList(7, 10);
@@ -225,8 +210,7 @@ public class ABCParserTest {
     // input: has lyrics, with underscores, Key is minor, with accidental
     @Test
     public void testLyricsUnderscore() throws FileNotFoundException, UnableToParseException {
-        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/lyricsTilde.abc")).useDelimiter("\\Z").next();
-        ABC actual = ABCParser.parse(abcFile);
+        ABC actual = helperGetActual("lyricsUnderscore");
         
         List<Integer> starts = Arrays.asList(0, 3, -1, -1, 9, -1);
         List<Integer> ends =   Arrays.asList(2, 8, -1, -1, 12, -1);
@@ -241,8 +225,7 @@ public class ABCParserTest {
     // input: has lyrics, with backslash hyphens.
     @Test
     public void testLyricsBackslashHyphen() throws FileNotFoundException, UnableToParseException {
-        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/lyricsBackslashHyphen.abc")).useDelimiter("\\Z").next();
-        ABC actual = ABCParser.parse(abcFile);
+        ABC actual = helperGetActual("lyricsBackslashHyphen");
         
         List<Integer> starts = Arrays.asList(0, 7);
         List<Integer> ends =   Arrays.asList(6, 16);
@@ -257,8 +240,7 @@ public class ABCParserTest {
     // input: has lyrics, with asterisks.
     @Test
     public void testLyricsAsterisk() throws FileNotFoundException, UnableToParseException {
-        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/lyricsAsterisk.abc")).useDelimiter("\\Z").next();
-        ABC actual = ABCParser.parse(abcFile);
+        ABC actual = helperGetActual("lyricsAsterisk");
         
         List<Integer> starts = Arrays.asList(0, 3, 5, 8, 11, 13, 15);
         List<Integer> ends =   Arrays.asList(2, 4, 7, 10, 12, 14, 17);
@@ -273,9 +255,8 @@ public class ABCParserTest {
     // input: has lyrics, with a barline that is not ignored.
     @Test
     public void testLyricsBarline() throws FileNotFoundException, UnableToParseException {
-        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/lyricsBarline.abc")).useDelimiter("\\Z").next();
-        ABC actual = ABCParser.parse(abcFile);
-        
+        ABC actual = helperGetActual("lyricsBarline");
+
         List<Integer> starts = Arrays.asList(0, 3, 7, 10);
         List<Integer> ends =   Arrays.asList(2, 6, 9, 14);
         String line = "ly-ric-al bear";
@@ -289,8 +270,7 @@ public class ABCParserTest {
     // input: has lyrics, with a barline that is ignored.
     @Test
     public void testLyricsBarlineIgnored() throws FileNotFoundException, UnableToParseException {
-        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/lyricsBarlineIgnored.abc")).useDelimiter("\\Z").next();
-        ABC actual = ABCParser.parse(abcFile);
+        ABC actual = helperGetActual("lyricsBarlineIgnored");
 
         List<Integer> starts = Arrays.asList(0, 3, 7, 10, 13);
         List<Integer> ends =   Arrays.asList(2, 6, 9, 12, 17);
@@ -301,47 +281,40 @@ public class ABCParserTest {
         ABC expected = getExpectedLyricsTesting("lyricsBarlineIgnored", music);
         assertEquals(expected, actual);
     }
+   
+    private Music createNote(double d, Pitch pitch) {
+    	return new Note(d, pitch, Instrument.PIANO, Optional.empty());
+    }
     
     // input: lyrics contain all sorts of hyphens and breaks
-    // output: Together, Note
-    @Test
-    public void testLyricsMulti() throws FileNotFoundException, UnableToParseException {
-        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/lyricsMulti.abc")).useDelimiter("\\Z").next();
-        ABC actual = ABCParser.parse(abcFile);
-
-        Music m1 = new Note(1, new Pitch('C'), Instrument.PIANO, Optional.empty());
-        Music m2 = new Note(1, new Pitch('E'), Instrument.PIANO, Optional.empty());
-        Music m3 = new Note(1, new Pitch('G'), Instrument.PIANO, Optional.empty());
-
-        Music GnoLyric = new Note(1, new Pitch('G'), Instrument.PIANO, Optional.empty());
-
-        Music G = new Note(1, new Pitch('G'), Instrument.PIANO, Optional.of(new Lyric("Gee")));
-        Music E = new Note(1, new Pitch('E'), Instrument.PIANO, Optional.of(new Lyric("Gee")));
-        Music C = new Note(1, new Pitch('C'), Instrument.PIANO, Optional.of(new Lyric("Cee")));
-        
-        Music rest = new Rest(1);
-        
-        Music Cchord = new Note(1, new Pitch('C'), Instrument.PIANO, Optional.of(new Lyric("chord")));
-        Music Echord = new Note(1, new Pitch('E'), Instrument.PIANO, Optional.of(new Lyric("chord")));
-
-        Music CE = new Together(Cchord, E);
-        Music EC = new Together(Echord, C);
-
-        // TODO: Changed this; please return back
-        Music part1 = concatChain(Arrays.asList(C, CE, GnoLyric, G, rest ));
-        Music part2 = concatChain(Arrays.asList(C, CE, GnoLyric, G, rest));
-
-        final Map<String, Music> parts = new HashMap<>();
-        parts.put("1", part1);
-        parts.put("2", part2);
-
-        final Map<Character, Object> fields = new HashMap<>();
-        fields.put('T', "voices");
-        fields.put('K', "Cm");
-        
-        ABC expected = new ABC(parts, fields);
-        
-        assertEquals(new Together(new Together(m1, m2), m3), actual.getMusic());
+    public void testOctaveUp() throws FileNotFoundException, UnableToParseException {
+    	final String title = "testOctaveUp";
+    	Music n1 = createNote(1./4, new Pitch('C').transpose(Pitch.OCTAVE));
+    	Music n2 = createNote(1, new Pitch('C').transpose(Pitch.OCTAVE).transpose(Pitch.OCTAVE));
+    	Music n3 = createNote(1, new Pitch('C').transpose(Pitch.OCTAVE).transpose(Pitch.OCTAVE).transpose(Pitch.OCTAVE));
+    	Music n4 = createNote(1./2, new Pitch('C').transpose(Pitch.OCTAVE).transpose(Pitch.OCTAVE));
+    	Music n5 = createNote(1./4, new Pitch('C').transpose(Pitch.OCTAVE).transpose(Pitch.OCTAVE));
+    	
+    	List<Music> musics = Arrays.asList(n1, n2, n3, n4, new Together(n1, n5));
+    	Music music = concatChain(musics);
+        ABC actual = helperGetActual(title);
+        ABC expected = getExpectedLyricsTesting(title, music);
+        assertEquals(expected, actual);
+    }
+    // input: lyrics contain all sorts of hyphens and breaks
+    public void testOctaveDown() throws FileNotFoundException, UnableToParseException {
+    	final String title = "testOctaveDown";
+    	Music n1 = createNote(1, new Pitch('C'));
+    	Music n2 = createNote(1, new Pitch('C').transpose(-Pitch.OCTAVE));
+    	Music n3 = createNote(1./2, new Pitch('C').transpose(-Pitch.OCTAVE));
+    	Music n4 = createNote(1, new Pitch('C').transpose(-Pitch.OCTAVE).transpose(-Pitch.OCTAVE));
+    	Music n5 = createNote(1, new Pitch('C').transpose(-Pitch.OCTAVE).transpose(-Pitch.OCTAVE).transpose(-Pitch.OCTAVE));
+    	
+    	List<Music> musics = Arrays.asList(n1, n2, n3, n4, new Together(n1, n5));
+    	Music music = concatChain(musics);
+    	
+        ABC actual = helperGetActual(title);
+        ABC expected = getExpectedLyricsTesting(title, music);
         assertEquals(expected, actual);
     }
     

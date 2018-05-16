@@ -68,6 +68,13 @@ public class LyricGenerator {
             assert !isSuffix(symbol, prev);
             String syllable = format(symbol);
             int endIndex = beginIndex + syllable.length();
+            System.out.println(syllable);
+            System.out.println(line);
+            System.out.println(beginIndex);
+            System.out.println(endIndex);
+            System.out.println(lyricalElements);
+
+
             assert syllable.equals(line.substring(beginIndex, endIndex));
         }
         assert hold >= 0;

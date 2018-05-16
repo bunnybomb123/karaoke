@@ -528,6 +528,11 @@ public class ABCParser {
 //            ((HashMap<Character, Object>)currentHeaderInfo.get('V')).put('C', parseTree.children().get(0).text());
             break;
         }
+        
+        case COMMENT: {
+            // Do nothing
+            break;
+        }
         default:
             throw new AssertionError("should never get here");
         }

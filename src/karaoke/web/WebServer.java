@@ -123,7 +123,9 @@ public class WebServer {
         try (
             Scanner scan = new Scanner(new File("sample-abc/" + abcFile))
         ) {
+            System.err.println("hi");
             ABC song = ABCParser.parse(scan.useDelimiter("\\A").next());
+            System.err.println("bye");
             int position = jukebox.addSong(song);
             if (position == 0)
                 out.println("Next song is " + song);

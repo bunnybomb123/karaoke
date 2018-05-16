@@ -81,7 +81,7 @@ middle_of_body_field ::= field_voice;
 lyric ::= "w:" lyrical_element*;
 lyrical_element ::= " "+ | "-" | "_" | "*" | "|" | lyric_text;
 // lyric_text should be defined appropriately
-lyric_text ::= ("\\-" | [^ -_*|%\n\r])+;
+lyric_text ::= ("\-" | [^ -_*|%\n\r])+;
 
 ////////////////////////////////////////////////////
 // General

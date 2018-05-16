@@ -272,8 +272,7 @@ public class ABCParser {
      * @param lyricGenerator lyric generator for each note
      * @return Music for this musical element
      */
-    private static Music makeMusic(ParseTree<ABCGrammar> musicalElement, AccidentalMap accidentalMap, LyricGenerator lyricGenerator) {
-        
+    private static Music makeMusic(ParseTree<ABCGrammar> musicalElement, AccidentalMap accidentalMap, LyricGenerator lyricGenerator) throws UnableToParseException {
         // musical_element ::= note_element | rest_element | tuplet_element;
         switch (musicalElement.name()) {
         
@@ -445,225 +444,18 @@ public class ABCParser {
             return new Note(duration, Pitch.MIDDLE_C,Instrument.PIANO,Optional.of(new Lyric("")));
         }
         
+        default: {
+            throw new UnableToParseException("Couldn't parse the musical element.");
+        }
+        
         }
         
         
-        
-        
-        
+
         
     }
     
-    private static Music makeMusic(ParseTree<ABCGrammar> parseTree, Map<Character, Object> header, Map<String,Integer> accidentalMap, String voice) {
-        switch (parseTree.name()) {
-        case ABC_LINE: {
-            
-            Music currentMusic = makeMusic(parseTree.children().get(0), header, accidentalMap,lyricMap, voice);
-            int lyricsPresent = 0;
-            
-            // Instrumental Lyric Generator
-            LyricGenerator lyricGenerator = new LyricGenerator(voice);
-            // If the last element is a lyric, then we don't need to go through the last child of the parseTree,
-            // And we need to add all the elements of the parseTree to the 
-            if (parseTree.children().get(parseTree.children().size()-2).name().equals(ABCGrammar.LYRIC)) {
-                lyricsPresent = 1;
-                lyricGenerator = new LyricGenerator(parseTree.children().get(parseTree.children().size()-1));
-            }
-            // Go through each parseTree element, and for each, make a concat with 
-            for (ParseTree<ABCGrammar> t : parseTree.children().subList(1, parseTree.children().size() - lyricsPresent)) {
-                // Check to make sure it's not a non-musical element
-                if (t.children().get(0).name().equals(ABCGrammar.NOTE_ELEMENT) | t.children().get(0).name().equals(ABCGrammar.REST_ELEMENT) | t.children().get(0).name().equals(ABCGrammar.TUPLET_ELEMENT) ) {
-                    Music newMusic = makeMusic(t, header, accidentalMap);
-                    currentMusic = new Concat(currentMusic, newMusic);
-                }
-                
-            }
-            return currentMusic;
-        }
-        
-        case ELEMENT: {
-            return makeMusic(parseTree.children().get(0), header, accidentalMap, voice);
-        }
-        
-        // In this case, we need to just 
-        case NOTE_ELEMENT: { //note_element ::= note | chord;
-            // 
-            return makeMusic(parseTree.children().get(0), header, accidentalMap);
-        }
-        
-        // In this case, we need to make a new note to return to the user
-        case NOTE: { // note ::= pitch note_length?;
-            // pitch ::= accidental? basenote octave?;
-            Pitch newPitch = Pitch.MIDDLE_C;
-            String note = "";
-            ParseTree<ABCGrammar> pitch = parseTree.children().get(0);
-            for (ParseTree<ABCGrammar> t : pitch.children()) {
-                System.out.println(t.name());
-//                String accidental = "";
-                int accidentalNumber = 0;
-                boolean accidentalChange = false;
-                switch (t.name()) {
-                
-                case ACCIDENTAL: { // accidental ::= "^" | "^^" | "_" | "__" | "=";
-                    String accidental = t.text();
-                    accidentalChange = true;
-                    switch (accidental) {
-                    case "^": {
-                        accidentalNumber = 1;
-                        break;
-                    }
-                    case "^^": {
-                        accidentalNumber = 2;
-                        break;
-                    }
-                    case "_": {
-                        accidentalNumber = -1;
-                        break;
-                    }
-                    case "__": {
-                        accidentalNumber = -2;
-                        break;
-                    }
-                    case "=": {
-                        accidentalNumber = 0;
-                        break;
-                    }
-                    default:
-                        break;
-                    }
-                    
-                }
-                case BASENOTE: { // basenote ::= "C" | "D" | "E" | "F" | "G" | "A" | "B" | "c" | "d" | "e" | "f" | "g" | "a" | "b";
-                    note = t.text();
-                    System.out.println("Hello there");
-                    System.out.println(t.text());
-                    break;
-                }
-                case OCTAVE: { // octave ::= "'"+ | ","+
-                    note = note + t.text();
-                    break;
-                }
-                default:
-                    break;
-                }
-                if (accidentalChange) {
-                    accidentalMap.put(note, accidentalNumber);
-                }
-//                Lyric nextLyric = LyricGenerator.next();
-                System.out.println("Note Below: ");
-                System.out.println(note);
-                
-                newPitch = Pitch.parsePitch(note).transpose(accidentalMap.getOrDefault(note, 0));
-            }
-            // If the duration of the note is being modified, then go here:
-            double duration = 1.0;
-            if (parseTree.children().size() > 1) {
-                ParseTree<ABCGrammar> noteLength = parseTree.children().get(1);
-                assert noteLength.name().equals(ABCGrammar.NOTE_LENGTH);
-                System.out.println("It's hereeeex");
-                System.out.println(noteLength.text());
-                double numerator;
-                double denominator;
-                
-                if (noteLength.text().contains("/")) {
-                    int index = noteLength.text().indexOf("/");
-                    if (noteLength.text().substring(0, index).length() != 0) {
-                        numerator = Integer.parseInt(noteLength.text().substring(0, index));
-                    } else {
-                        numerator = 1;
-                    }
-                    if (noteLength.text().substring(index, noteLength.text().length()).length() != 0) {
-                        denominator = Integer.parseInt(noteLength.text().substring(index, noteLength.text().length()));
-                    } else {
-                        denominator = 2;
-                    }
-                    duration = duration * numerator / denominator;
-                    
-                } else if (noteLength.text().length() > 0){
-                    duration = duration * Integer.parseInt(noteLength.text());
-                }
-            }
-            
-            
-            // Change the lyric constructor to have a non-blank voice
-            Note newNote = new Note(duration, newPitch, Instrument.PIANO, Optional.of(new Lyric("")));
-            return newNote;
-        }
-        
-        // In this case, we need to go through each note present, add create concats of each of these elements
-        case CHORD: { // chord ::= "[" note+ "]";
-
-        }
-        
-        
-        default: {
-            System.out.println("Thing that failed: ");
-            System.out.println(parseTree.name());
-            throw new AssertionError("Shouldn't get here.");
-        }
-            
-        }
-        
-    }
-    
-    /**
-     * For each voice part present in the abc file's ParseTree, creates an AST representation of the music associated with
-     * that voice part. 
-     * 
-     * @param parseTree parsetree representation of an abc file
-     * @param header copy of the header info, which also stores the currently used voice
-     * @return map which maps voices, represented by strings, to their Music AST representations
-     */
-    private static Map<String, Music> makeAbstractSyntaxTree(final ParseTree<ABCGrammar> parseTree, Map<String, Music> currentMusic, Map<Character, Object> header) {
-        
-        
-        
-        String currentVoice = "";
-        
-        switch (parseTree.name()) {
-        
-        case ABC_BODY: { // abc_body ::= abc_line+;
-            
-            // Create the map of lyricGenerators
-            Map<String,LyricGenerator> lyricMap = new HashMap<>();
-            for (String voice : ((Set<String>)(header.get('V')))) {
-                lyricMap.put(voice, new LyricGenerator(voice));
-            }
-            
-            // Go through all the children of the body, and parse them into music
-            for (ParseTree<ABCGrammar> t : parseTree.children()) {
-                
-                // New accidentalMap required for each line
-                Map<String, Integer> accidentalMap = new HashMap<>();
-                
-                // If it's a voice section, then set the new voice to be this voice's text
-                if(t.children().get(0).name().equals(ABCGrammar.MIDDLE_OF_BODY_FIELD)) {
-                    currentVoice = t.children().get(0).children().get(0).children().get(0).text();
-                // If it's a comment, skip it
-                } else if(t.children().get(0).name().equals(ABCGrammar.COMMENT)) {
-                }
-                
-                // If it's not an entry, put the result into the map
-                else if (!currentMusic.containsKey(currentVoice)) {
-                    Music startMusic = makeMusic(t, header, accidentalMap,lyricMap, currentVoice);
-                    currentMusic.put(currentVoice, startMusic);
-                // If it's already in there, replace the current value with a Concat
-                } else {
-                    Music leftMusic = currentMusic.get(currentVoice);
-                    Music rightMusic = makeMusic(t, header, accidentalMap, lyricMap, currentVoice);
-                    Music combinedMusic = new Concat(leftMusic, rightMusic);
-                    currentMusic.put(currentVoice, combinedMusic);
-                }
-            }
-            return currentMusic;
-        } 
-        
-        default: {
-            throw new AssertionError("should never get here");
-        }
-
-        }
-    }
+   
     
     
     /**

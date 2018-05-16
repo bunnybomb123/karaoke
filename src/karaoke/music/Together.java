@@ -86,7 +86,7 @@ public class Together implements Music {
     public Music augment(double augmentationFactor) {
         Music newFirst = first.augment(augmentationFactor);
         Music newSecond = second.augment(augmentationFactor);
-        return new Together(newFirst,newSecond);
+        return new Together(newFirst, newSecond);
     }
     
     @Override

@@ -20,7 +20,7 @@ public class LyricGenerator {
     private Lyric previous = null;
     
     /* Abstraction function:
-     *  AF(voice, lyricalElements, line, index, beginIndex, hold, previous) =
+     *  AF(voice, lyricalElements, line, index, beginIndex, hold, chordSize, previous) =
      *      a lyric generator that generates Lyrics for the given voice part from the lyrical line
      *          specified by lyricalElements and with formatted representation line,
      *          where the syllable being sung by the next lyric (or the barline if at the 
@@ -32,7 +32,7 @@ public class LyricGenerator {
      *      previous is the last lyric returned by this generator.
      * 
      * Rep invariant:
-     *  fields are not null except previous
+     *  all fields except previous are not null
      *  if index < lyricalElements.size():
      *      symbol = lyricalElements.get(index) is either a syllable or a barline, and
      *      syllable = format(symbol) is equal to line.substring(beginIndex, beginIndex + syllable.length())
@@ -42,7 +42,6 @@ public class LyricGenerator {
      * Safety from rep exposure:
      *  defensive copying in instantiation of lyricalElements
      *  no other fields are passed in or returned by any methods
-     *  
      */
     
     /**

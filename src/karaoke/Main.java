@@ -1,7 +1,6 @@
 package karaoke;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -74,6 +73,10 @@ public class Main {
         System.exit(0);
     }
     
+    /**
+     * Add a song to the server's jukebox.
+     * @param abcFile song file to add
+     */
     private static void addSong(String abcFile) {
         try (
             Scanner response = new Scanner(new URL("http://localhost:8080/addSong/" + abcFile).openStream())
@@ -84,6 +87,9 @@ public class Main {
         }
     }
     
+    /**
+     * Play the next song on the server's jukebox.
+     */
     private static void play() {
         try (
             Scanner response = new Scanner(new URL("http://localhost:8080/play").openStream())
@@ -94,6 +100,9 @@ public class Main {
         }
     }
     
+    /**
+     * @return the server's public IP address
+     */
     private static String getPublicIPAddress() {
         try (
             Scanner response = new Scanner(new URL("http://bot.whatismyipaddress.com").openStream())

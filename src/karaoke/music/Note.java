@@ -62,12 +62,6 @@ public class Note implements Music {
     public Pitch pitch() {
         return pitch;
     }
-    
-    @Override 
-    public Music augment(double augmentationFactor) {
-        double newDuration = duration() * augmentationFactor;
-        return new Note(newDuration, pitch, instrument, lyric);
-    }
 
     /**
      * @return instrument that should play this note
@@ -104,6 +98,12 @@ public class Note implements Music {
         player.addNote(instrument, pitch, atBeat, duration);
         if (lyricConsumer != null && lyric.isPresent())
             player.addEvent(atBeat, beat -> lyricConsumer.accept(lyric.get()));
+    }
+    
+    @Override 
+    public Music augment(double augmentationFactor) {
+        double newDuration = duration() * augmentationFactor;
+        return new Note(newDuration, pitch, instrument, lyric);
     }
 
     @Override

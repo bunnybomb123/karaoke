@@ -31,7 +31,7 @@ public class Lyric {
      *  all fields are final and immutable
      *  
      * Thread safety argument:
-     *  This object and its field are all immutable, and there is no 
+     *  This object and its fields are all immutable, and there is no 
      *  beneficent mutation
      */
     

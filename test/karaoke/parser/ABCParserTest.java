@@ -278,6 +278,14 @@ public class ABCParserTest {
         ABC expected = getExpectedLyricsTesting("lyricsBarlineIgnored", music);
         assertEquals(expected, actual);
     }
+    
+    // Makes sure no errors are thrown when a relatively large file is parsed
+    // Idea is that if no error is thrown here, we can handle most cases
+    @Test
+    public void testParsingBigFile() throws FileNotFoundException, UnableToParseException {
+        ABC actual = helperGetActual("piece2");
+        System.out.println(actual);
+    }
    
     private Music createNote(double d, Pitch pitch) {
     	return new Note(d, pitch, Instrument.PIANO, Optional.empty());

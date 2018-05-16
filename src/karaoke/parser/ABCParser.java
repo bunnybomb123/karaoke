@@ -28,6 +28,7 @@ import karaoke.songs.ABC;
 import karaoke.songs.AccidentalMap;
 import karaoke.songs.Key;
 import karaoke.songs.Meter;
+import karaoke.songs.Tempo;
 
 public class ABCParser {
     
@@ -485,36 +486,35 @@ public class ABCParser {
             currentHeaderInfo.put('L', new Meter(toInt(fraction.get(0)), toInt(fraction.get(1))));
             break;
         }
-        case FIELD_KEY: {
+        case FIELD_KEY: { // field_key ::= "K:" key end_of_line;
             ParseTree<ABCGrammar> key = parseTree.children().get(0);
             String fullKey = key.text();
             fullKey = fullKey.replace('#', '$');
-            fullKey = fullKey.replaceAll("\\s+","");
+            fullKey = fullKey.replaceAll("\\s+", "");
             Key newKey = Key.valueOf(fullKey);
             currentHeaderInfo.put('K', newKey);
             break;
         }
-        case FIELD_METER: {
-            ParseTree<ABCGrammar> meter = parseTree.children().get(0);
-            // If the meter's text contains C|, then make the meter 2/2
-            // If the meter's text contains C, then make the mater 4/4
-            // Otherwise, it's a meter fraction node, in which case you should extract the numerator and denominator and make a meter from that 
-            // currentHeaderInfo.put('M', parseTree.children().get(0).text());
+        case FIELD_METER: { // meter ::= "C" | "C|" | meter_fraction;
+            List<ParseTree<ABCGrammar>> meter = parseTree.children();
+            if (meter.isEmpty())
+                currentHeaderInfo.put('M', new Meter(parseTree.text()));
+            else {
+                List<ParseTree<ABCGrammar>> meterFraction = meter.get(0).children();
+                currentHeaderInfo.put('M', new Meter(toInt(meterFraction.get(0)), toInt(meterFraction.get(1))));
+            }
             break;
         }
-        case FIELD_TEMPO:  {
-            ParseTree<ABCGrammar> meterFraction = parseTree.children().get(0);
-            int digit = Integer.parseInt(parseTree.children().get(1).text());
-            int numerator = Integer.parseInt(meterFraction.children().get(0).text());
-            int denominator = Integer.parseInt(meterFraction.children().get(1).text());
+        case FIELD_TEMPO:  { // tempo ::= meter_fraction "=" number;
+            List<ParseTree<ABCGrammar>> meterFraction = parseTree.children().get(0).children();
+            int tempo = toInt(parseTree.children().get(1));
+            int numerator = toInt(meterFraction.get(0));
+            int denominator = toInt(meterFraction.get(1));
             
-            // Tempo will be stored as the length of time needed to complete an entire measure. 
-            double measureLength = (double)denominator * (double) digit / (double)numerator;
-            
-            currentHeaderInfo.put('Q', measureLength);
+            currentHeaderInfo.put('Q', new Tempo(new Meter(numerator, denominator), tempo));
             break;
         }
-        case FIELD_VOICE: {
+        case FIELD_VOICE: { // field_voice ::= "V:" text end_of_line;
             // Voice will be stored as a Set of String objects, each representing a different voice
             // If there is no set of voices already in the currentHeading, set it to be a new dictionary.
             if (!currentHeaderInfo.containsKey('V')) {
@@ -522,7 +522,7 @@ public class ABCParser {
             }
             Set<String> currentVoices = ((Set<String>)currentHeaderInfo.get('V'));
             // Add the current voice's text into the set of voices.
-            currentVoices.add(parseTree.children().get(0).text());
+            currentVoices.add(parseTree.children().get(0).text().trim());
             
 //            ((HashMap<Character, Object>)currentHeaderInfo.get('V')).put('C', parseTree.children().get(0).text());
             break;

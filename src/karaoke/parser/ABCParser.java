@@ -15,7 +15,7 @@ import edu.mit.eecs.parserlib.UnableToParseException;
 import edu.mit.eecs.parserlib.Visualizer;
 import karaoke.lyrics.Lyric;
 import karaoke.lyrics.LyricGenerator;
-import karaoke.music.Concat;
+import karaoke.music.*;
 import karaoke.music.Instrument;
 import karaoke.music.Music;
 import karaoke.music.Note;
@@ -124,9 +124,9 @@ public class ABCParser {
         // Make a new dictionary from the header
         Map<Character, Object> headerCopy = new HashMap<>(abcHeaderInfo);
         headerCopy.put(CURRENT_VOICE_CHAR, "");
-        final Map<String, Music> abcMusicParts = new HashMap<>();
-        // populates abcMusicParts
-        makeAbstractSyntaxTree(abcBodyTree, abcMusicParts, headerCopy);
+        headerCopy.get('K');
+        AccidentalMap keySignature = ((Key)headerCopy.get('V')).getAccidentalMap();
+        final Map<String, Music> abcMusicParts = parseBody(abcBodyTree, keySignature);
         final ABC abc = new ABC(abcMusicParts, abcHeaderInfo);
         // System.out.println("AST " + abc);
         
@@ -186,8 +186,7 @@ public class ABCParser {
                 Music lengthNote = makeMusic(musicalElement.children().get(0), accidentalMap, lyricGenerator);
                 duration = lengthNote.duration();
            }
-            return rest(duration);
-            break;
+            return new Rest(duration);
         }
         
         case TUPLET_ELEMENT: {

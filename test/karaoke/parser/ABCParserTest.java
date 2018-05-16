@@ -159,6 +159,7 @@ public class ABCParserTest {
     	return Optional.of(new Lyric("", line, start, end));
     }
     
+    /* helper method to create notes objects to test lyrics*/
     private List<Music> createNotesForLyricsTesting(String line, List<Integer> starts, List<Integer> ends) {
     	List<Music> listMusics = new ArrayList<>();
     	
@@ -175,6 +176,20 @@ public class ABCParserTest {
     	return listMusics;
     }
     
+    /* helper method to get expected ABC file for lyrics testing */
+    private ABC getExpectedLyricsTesting(String title, Music music) {
+    	final Map<String, Music> parts = new HashMap<>();
+        parts.put("", music);
+        
+        final Map<Character, Object> fields = new HashMap<>();
+        fields.put('T', title);
+        fields.put('K', Key.valueOf("C"));
+        fields.put('X', 1);
+
+        ABC expected = new ABC(parts, fields);
+        return expected;
+    }
+    
     // input: has lyrics, hyphens only
     @Test
     public void testLyricsHyphen() throws FileNotFoundException, UnableToParseException {
@@ -187,15 +202,7 @@ public class ABCParserTest {
         List<Music> musics = createNotesForLyricsTesting(line, starts, ends);
         Music music = concatChain(musics);
         		
-        final Map<String, Music> parts = new HashMap<>();
-        parts.put("", music);
-        
-        final Map<Character, Object> fields = new HashMap<>();
-        fields.put('T', "lyricsSimple");
-        fields.put('K', Key.valueOf("Bm"));
-        fields.put('X', 1);
-
-        ABC expected = new ABC(parts, fields);
+        ABC expected = getExpectedLyricsTesting("lyricsSimple", music);
         assertEquals(expected, actual);
     }
 
@@ -231,19 +238,6 @@ public class ABCParserTest {
         assertEquals(expected, actual);
     }
     
-    /* package helper method to get expected ABC file for lyrics testing */
-    private ABC getExpectedLyricsTesting(String title, Music music) {
-    	final Map<String, Music> parts = new HashMap<>();
-        parts.put("", music);
-        
-        final Map<Character, Object> fields = new HashMap<>();
-        fields.put('T', title);
-        fields.put('K', Key.valueOf("C"));
-        fields.put('X', 1);
-
-        ABC expected = new ABC(parts, fields);
-        return expected;
-    }
     
     // input: has lyrics, with backslash hyphens.
     @Test
@@ -265,8 +259,8 @@ public class ABCParserTest {
     // input: lyrics contain all sorts of hyphens and breaks
     // output: Together, Note
     @Test
-    public void testLyricsParsing() throws FileNotFoundException, UnableToParseException {
-        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/testLyrics.abc")).useDelimiter("\\Z").next();
+    public void testLyricsMulti() throws FileNotFoundException, UnableToParseException {
+        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/lyricsMulti.abc")).useDelimiter("\\Z").next();
         ABC actual = ABCParser.parse(abcFile);
 
         Music m1 = new Note(1, new Pitch('C'), Instrument.PIANO, Optional.empty());

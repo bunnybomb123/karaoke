@@ -165,6 +165,8 @@ public class ABCParserTest {
     		int end = endsItr.next();
     		if (start == -1)
         		listMusics.add(new Note(1, new Pitch('C'), Instrument.PIANO, Optional.empty()));
+    		else if (start == -1)
+            listMusics.add(new Note(1, new Pitch('C'), Instrument.PIANO, Optional.of(new Lyric("",line))));
     		else
     			listMusics.add(new Note(1, new Pitch('C'), Instrument.PIANO, createOptionalLyric(line, start, end)));
     	}

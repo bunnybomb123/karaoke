@@ -62,6 +62,12 @@ public class Note implements Music {
     public Pitch pitch() {
         return pitch;
     }
+    
+    @Override 
+    public Music augment(double augmentationFactor) {
+        double newDuration = duration() * augmentationFactor;
+        return new Note(newDuration, pitch, instrument, lyric);
+    }
 
     /**
      * @return instrument that should play this note

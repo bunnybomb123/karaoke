@@ -81,6 +81,15 @@ public class Concat implements Music {
         first.load(player, atBeat, lyricConsumer);
         second.load(player, atBeat + first.duration(), lyricConsumer);
     }
+    
+    @Override 
+    public Music augment(double augmentationFactor) {
+        Music newFirst = first.augment(augmentationFactor);
+        Music newSecond = second.augment(augmentationFactor);
+        return new Concat(newFirst, newSecond);
+    }
+    
+    
 
     @Override
     public int hashCode() {

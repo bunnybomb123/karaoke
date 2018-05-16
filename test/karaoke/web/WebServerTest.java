@@ -27,17 +27,13 @@ public class WebServerTest {
     /*
      * Testing Strategy for WebServer.java:
      * 
-     * Strategy for WebServer constructor:
-     * Partitions: 
-     * port number: valid port number, invalid port number, used port number
-     * Input files: valid file, invalid file
-     * Number of input files: 0, 1, 2+ 
+     * constructor:
+     * 	Partitions: 
+     * 		port number: valid port number, invalid port number, used port number
+     * 	Input files: valid file, invalid file
+     * 	Number of input files: 0, 1, 2+ 
      * 
-     * 
-     * 
-     * 
-     * 
-     * 
+     * Cover all parts
      */
     
     private int PORT_NUMBER = 8080;
@@ -50,27 +46,23 @@ public class WebServerTest {
     @Test
     public void testStartServerNoError() throws IOException {
         // Tests to make sure 
-        karaoke.web.WebServer server = new karaoke.web.WebServer(PORT_NUMBER);
-        
+        new karaoke.web.WebServer(PORT_NUMBER);
     }
     
     @Test
     public void testStartTwoServersSamePort() throws IOException {
         // Tests to make sure an error is thrown when two servers listen on the same port
-        
-        karaoke.web.WebServer server = new karaoke.web.WebServer(PORT_NUMBER);
+        new karaoke.web.WebServer(PORT_NUMBER);
         try {
             // Should fail here
-            karaoke.web.WebServer secondServer = new karaoke.web.WebServer(PORT_NUMBER);
-            assert false;
-        } catch (IOException e) {
-            
-        }
+            new karaoke.web.WebServer(PORT_NUMBER);
+            fail();
+        } catch (IOException e) {}
     }
         
-    
     @Test
     public void testPlayFile() {
+    	// Manual Test:
         // Start the server
         // Send the request to load with multiple files
         // Send the play request
@@ -82,6 +74,4 @@ public class WebServerTest {
     @Test public void testPlayInvalidFile() {
         
     }
-    
-    
 }

@@ -1,7 +1,5 @@
 package karaoke.music;
 
-import static karaoke.music.Pitch.OCTAVE;
-
 /**
  * Pitch is an immutable type representing the frequency of a musical note.
  * Standard music notation represents pitches by letters: A, B, C, ..., G.
@@ -86,11 +84,10 @@ public class Pitch {
             return parsePitch(symbol.substring(1)).transpose(-1);
         else if (symbol.length() != 1)
             throw new IllegalArgumentException("can't understand " + symbol);
-        else if (symbol.toLowerCase().equals(symbol))
-            // TODO: CHECK TO SEE IF THIS IS CORRECT (Don't know if being a lower
-            return new Pitch(symbol.toUpperCase().charAt(0)).transpose(OCTAVE);
-        else
+        else if (Character.isUpperCase(symbol.charAt(0)))
             return new Pitch(symbol.charAt(0));
+        else
+            return new Pitch(symbol.toUpperCase().charAt(0)).transpose(OCTAVE);
     }
 
     /**
@@ -110,6 +107,13 @@ public class Pitch {
      */
     public int difference(Pitch that) {
         return this.value - that.value;
+    }
+    
+    /**
+     * @return base note of this pitch
+     */
+    public String note() {
+        return value >= 0 ? VALUE_TO_STRING[value % OCTAVE] : VALUE_TO_STRING[(value % OCTAVE + OCTAVE) % OCTAVE];
     }
 
     @Override

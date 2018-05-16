@@ -27,9 +27,9 @@ abc ::= abc_header abc_body;
     mode_minor ::= "m";
     
     meter ::= "C" | "C|" | meter_fraction;
-    meter_fraction ::= digit+ "/" digit+;
+    meter_fraction ::= number "/" number;
     
-    tempo ::= meter_fraction "=" digit+;
+    tempo ::= meter_fraction "=" number;
 }
 
 ////////////////////////////////////////////////////
@@ -41,7 +41,9 @@ abc ::= abc_header abc_body;
 abc_body ::= abc_line+;
 abc_line ::= element+ end_of_line (lyric end_of_line)? | middle_of_body_field | comment;
 
-element ::= note_element | rest_element | tuplet_element | barline | nth_repeat | space_or_tab;
+element ::= musical_element | barline | nth_repeat | space_or_tab;
+
+musical_element ::= note_element | rest_element | tuplet_element;
 
 // notes
 note_element ::= note | chord;
@@ -49,8 +51,8 @@ note_element ::= note | chord;
 note ::= pitch note_length?;
 pitch ::= accidental? basenote octave?;
 octave ::= "'"+ | ","+;
-note_length ::= (digit+)? ("/" (digit+)?)?;
-note_length_strict ::= digit+ "/" digit+;
+note_length ::= number? ("/" number?)?;
+note_length_strict ::= number "/" number;
 
 // "^" is sharp, "_" is flat, and "=" is neutral
 accidental ::= "^" | "^^" | "_" | "__" | "=";
@@ -90,6 +92,7 @@ comment_text ::= [^\n\r]*;
 end_of_line ::= comment | newline;
 
 text ::= [^%\n\r]*;
+number ::= digit+;
 digit ::= [0-9];
 newline ::= "\n" | "\r" "\n"?;
 space_or_tab ::= " " | "\t";

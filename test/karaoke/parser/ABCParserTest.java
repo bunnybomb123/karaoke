@@ -72,7 +72,7 @@ public class ABCParserTest {
     @Test
     public void testFurElise() throws FileNotFoundException, UnableToParseException {
         ABC actual = helperGetActual("fur_elise");
-        SequencePlayer.load(actual, null).playUntilFinished();
+//        SequencePlayer.load(actual, null).playUntilFinished();
     }
     
     
@@ -80,7 +80,7 @@ public class ABCParserTest {
     @Test
     public void testSample1() throws FileNotFoundException, UnableToParseException {
         ABC actual = helperGetActual("sample1");
-
+        SequencePlayer.load(actual, null).playUntilFinished();
         Music m1 = new Note(2, new Pitch('C').transpose(-Pitch.OCTAVE), Instrument.PIANO, Optional.of(new Lyric("")));
         Music m2 = new Note(2, new Pitch('C'), Instrument.PIANO, Optional.empty());
         Music m3 = new Note(1, new Pitch('C').transpose(2*Pitch.OCTAVE), Instrument.PIANO, Optional.empty());
@@ -102,7 +102,7 @@ public class ABCParserTest {
     @Test
     public void testSample2() throws FileNotFoundException, UnableToParseException {
         ABC actual = helperGetActual("sample2");
-        SequencePlayer.load(actual, null).playUntilFinished();
+//        SequencePlayer.load(actual, null).playUntilFinished();
         Music m1 = new Note(1, new Pitch('C'), Instrument.PIANO, Optional.empty());
         Music m2 = new Note(1, new Pitch('E'), Instrument.PIANO, Optional.empty());
         Music music = new Together(m1, m2);

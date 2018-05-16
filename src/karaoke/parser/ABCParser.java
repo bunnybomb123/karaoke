@@ -414,7 +414,7 @@ public class ABCParser {
         case NOTE_LENGTH:
         case NOTE_LENGTH_STRICT:
             int numerator = 1;
-            int denominator = 2;
+            int denominator = 1;
             for (final ParseTree<ABCGrammar> component : fraction.children())
                 switch (component.name()) {
                 case NUMERATOR:

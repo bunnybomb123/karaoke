@@ -36,6 +36,9 @@ import karaoke.songs.Key;
 public class ABCParser {
     
     private static final char CURRENT_VOICE_CHAR = '.';
+    private static final int DUPLET_NUM = 2;
+    private static final int TRIPLET_NUM = 3;
+    private static final int QUADRUPLET_NUM = 4;
     
     /*
      * Abstraction Function:
@@ -286,7 +289,38 @@ public class ABCParser {
         }
         
         case TUPLET_ELEMENT: {
+            ParseTree<ABCGrammar> tuplet = musicalElement.children().get(0);
+            int numNotes = Integer.parseInt(tuplet.children().get(0).text());
+            double augmentationFactor = 1.0;
+            switch (numNotes) {
+            case DUPLET_NUM: {
+                augmentationFactor = 3.0 / 2.0;
+                break;
+            }
+            case TRIPLET_NUM: {
+                augmentationFactor = 2.0 / 3.0;
+                
+                break;
+            }
+            case QUADRUPLET_NUM: {
+                augmentationFactor = 3.0 / 4.0;
+
+                break;
+            } 
+            default: {
+                break;
+            }
             
+            }
+            
+            Music currentMusic = makeMusic(musicalElement.children().get(1), accidentalMap, lyricGenerator);
+            for (ParseTree<ABCGrammar> t : musicalElement.children().subList(2, musicalElement.children().size()+1)) {
+                Music newMusic = makeMusic(musicalElement.children().get(1), accidentalMap, lyricGenerator);
+                currentMusic = new Concat(currentMusic, newMusic);
+            }
+            return currentMusic.augment(augmentationFactor);
+            
+           
             
             break;
         }

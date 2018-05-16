@@ -1,17 +1,14 @@
 package karaoke.parser;
 
-import static org.junit.Assert.assertEquals;
 import static karaoke.music.Music.concat;
-import static karaoke.music.Music.empty;
-import static karaoke.music.Music.note;
-import static karaoke.music.Music.rest;
-import static karaoke.music.Music.together;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +29,8 @@ import karaoke.music.Together;
 import karaoke.playback.SequencePlayer;
 import karaoke.songs.ABC;
 import karaoke.songs.Key;
+import karaoke.songs.Meter;
+import karaoke.songs.Tempo;
 
 /**
  * Test that ABCParser creates the correct ADT.
@@ -333,7 +332,33 @@ public class ABCParserTest {
         assertEquals(expected, actual);
     }
     
-    
+    // input: tests that all headers can be correctly parsed
+    @Test
+    public void testHeaders() throws FileNotFoundException, UnableToParseException {
+    	final String title = "testHeaders";
+    	Music n1 = createNote(1, new Pitch('C'));
+    	Music n2 = createNote(1, new Pitch('E').transpose(-Pitch.OCTAVE));
+    	
+    	Map<Character, Object> fields = new HashMap<>();
+    	Map<String, Music> parts = new HashMap<>();
+    	parts.put("1", n1);
+    	parts.put("2", n2);
+    	
+    	fields.put('T', "testHeaders");
+        fields.put('K', Key.valueOf("Cbm"));
+        fields.put('X', 1);
+        fields.put('M', new Meter("C"));
+        fields.put('L', new Meter(1, 2));
+        fields.put('C', "Chris Chang");
+        fields.put('Q', new Tempo(new Meter(1,2), 150));
+        fields.put('V', new HashSet<>(Arrays.asList("1", "2")));
+        
+    	
+        ABC actual = helperGetActual(title);
+        ABC expected = new ABC(parts, fields);
+
+        assertEquals(expected, actual);
+    }    
     
     /* concats a bunch of musics into one music */
     private Music concatChain(List<Music> musics) {

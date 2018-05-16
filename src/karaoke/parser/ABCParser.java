@@ -459,6 +459,9 @@ public class ABCParser {
         switch (noteLength.name()) {
         case NOTE_LENGTH_STRICT:
         case NOTE_LENGTH:
+        case NUMERATOR:
+        case DENOMINATOR:
+        case NUMBER:
             
         }
     }

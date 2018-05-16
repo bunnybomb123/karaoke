@@ -287,11 +287,13 @@ public class ABCParserTest {
         System.out.println(actual);
     }
    
+    /* creates a note with empty lyric */
     private Music createNote(double d, Pitch pitch) {
     	return new Note(d, pitch, Instrument.PIANO, Optional.empty());
     }
     
     // input: lyrics contain all sorts of hyphens and breaks
+    @Test
     public void testOctaveUp() throws FileNotFoundException, UnableToParseException {
     	final String title = "testOctaveUp";
     	Music n1 = createNote(1./4, new Pitch('C').transpose(Pitch.OCTAVE));
@@ -306,7 +308,9 @@ public class ABCParserTest {
         ABC expected = getExpectedLyricsTesting(title, music);
         assertEquals(expected, actual);
     }
+    
     // input: lyrics contain all sorts of hyphens and breaks
+    @Test
     public void testOctaveDown() throws FileNotFoundException, UnableToParseException {
     	final String title = "testOctaveDown";
     	Music n1 = createNote(1, new Pitch('C'));
@@ -322,6 +326,8 @@ public class ABCParserTest {
         ABC expected = getExpectedLyricsTesting(title, music);
         assertEquals(expected, actual);
     }
+    
+    
     
     /* concats a bunch of musics into one music */
     private Music concatChain(List<Music> musics) {

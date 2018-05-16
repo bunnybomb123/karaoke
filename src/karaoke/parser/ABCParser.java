@@ -283,6 +283,8 @@ public class ABCParser {
         }
         
         case REST_ELEMENT: { // rest_element ::= "z" note_length?;
+            final 
+            return rest(getDecimalValue(musicalElement.children().get(0)))
             double duration = 1.0;
             if (musicalElement.children().size() > 0) {
                 Music lengthNote = makeMusic(musicalElement.children().get(0), accidentalMap, lyricGenerator);
@@ -455,14 +457,21 @@ public class ABCParser {
         
     }
     
-    private static double getNoteLength(ParseTree<ABCGrammar> noteLength) {
-        switch (noteLength.name()) {
-        case NOTE_LENGTH_STRICT:
+    private static double getDecimalValue(ParseTree<ABCGrammar> fraction) throws UnableToParseException {
+        switch (fraction.name()) {
+        case METER_FRACTION:
         case NOTE_LENGTH:
+        case NOTE_LENGTH_STRICT:
+            double result = 1;
+            for (final ParseTree<ABCGrammar> component : fraction.children())
+                result *= getDecimalValue(component);
+            return result;
         case NUMERATOR:
+            return Integer.parseInt(fraction.text());
         case DENOMINATOR:
-        case NUMBER:
-            
+            return 1.0 / Integer.parseInt(fraction.text());
+        default:
+            throw new UnableToParseException("note_length or note_length_strict is malformed");
         }
     }
     

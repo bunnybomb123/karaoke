@@ -61,7 +61,7 @@ public class ABC {
         this.title = (String) fields.get('T');
         this.keySignature = (Key) fields.get('K');
         this.composer = (String) fields.getOrDefault('C', "Unknown");
-        this.voices = Collections.unmodifiableSet(parts.keySet());
+        this.voices = parts.keySet();
 
         final Meter defaultMeter = new Meter(4, 4);
         this.meter = (Meter) fields.getOrDefault('M', defaultMeter);
@@ -84,6 +84,8 @@ public class ABC {
     }
     
     /**
+     * Gets the music associated with a voice part
+     * 
      * @param voice name of voice part, or "" for music without a voice part
      * @return the Music associated with the specified voice part
      */
@@ -92,18 +94,28 @@ public class ABC {
     }
     
     /**
+     * Gets the index number of the piece
+     * 
      * @return this piece's index number
      */
     public int getIndexNumber() {
         return indexNumber;
     }
 
-    /** @return this piece's composer */
+    /**
+     *  Gets the composer of the piece
+     *  
+     *  @return this piece's composer 
+     */
     public String getTitle() {
         return title;
     }
 
-    /** @return this piece's key signature */
+    /**
+     * Gets the key signature of the piece
+     * 
+     *  @return this piece's key signature 
+     */
     public Key getKeySignature() {
         return keySignature;
     }
@@ -113,28 +125,47 @@ public class ABC {
         return composer;
     }
     
-    /** @return this piece's voices */
+    /**
+     * Gets the voices associated with a piece
+     * 
+     *  @return this piece's voices 
+     */
     public Set<String> getVoices() {
-        return voices;
+        return new HashSet<String>(voices);
     }
 
-    /** @return this piece's meter */
+    /** 
+     * Get the meter associated with the piece
+     * 
+     * @return this piece's meter 
+     */
     public Meter getMeter() {
         return meter;
     }
     
-    /** @return this piece's default note length as a meter fraction */
+    /** 
+     * Gets the default note of the piece
+     * 
+     * @return this piece's default note length as a meter fraction 
+     */
     public Meter getDefaultNote() {
         return defaultNote;
     }
     
-    /** @return this piece's tempo */
+    /** 
+     * Gets the tempo of the piece
+     * 
+     * @return this piece's tempo 
+     */
     public Tempo getTempo() {
         return tempo;
     }
 
-    /** @return the # of beats per minute in this piece, based on the
-     * default note */
+    /** 
+     * Gets the number of beats per minute of the piece
+     * 
+     * @return the # of beats per minute in this piece, based on the default note 
+     */
     public int getBeatsPerMinute() {
         return beatsPerMinute;
     }
@@ -149,8 +180,13 @@ public class ABC {
         return that instanceof ABC && sameValue((ABC) that);
     }
 
-    // returns true if that ABC object has same value as this;
-    // for use in equals()
+
+    /**
+     * Determines if two ABC's have equivalent fields
+     * 
+     * @param that object to compare this object to
+     * @return boolean indicating whether or not this object has equivalent fields to the other object
+     */
     private boolean sameValue(ABC that) {
         return parts.equals(that.parts)
                 && music.equals(that.music) 

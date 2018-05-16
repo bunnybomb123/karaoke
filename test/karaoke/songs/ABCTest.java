@@ -10,8 +10,14 @@ import java.util.Optional;
 
 import org.junit.Test;
 
-import karaoke.music.*;
-import karaoke.lyrics.*;
+import karaoke.lyrics.Lyric;
+import karaoke.music.Concat;
+import karaoke.music.Instrument;
+import karaoke.music.Music;
+import karaoke.music.Note;
+import karaoke.music.Pitch;
+import karaoke.music.Rest;
+import karaoke.music.Together;
 
 public class ABCTest {
 
@@ -36,15 +42,15 @@ public class ABCTest {
     }
     
     /* helper to check all ABC fields */
-    private void helper(Map<Character, Object> expected, ABC actual) {
-    	assertEquals(expected.get('T'), actual.getTitle());
-    	assertEquals(expected.get('Q'), actual.getTempo());
-    	assertEquals(expected.get('K'), actual.getKeySignature());
-    	assertEquals(expected.get('M'), actual.getMeter());
-    	assertEquals(expected.get('L'), actual.getDefaultNote());
-    	assertEquals(expected.get('V'), actual.getVoices());
-    	assertEquals(expected.get('C'), actual.getComposer());
-    	assertEquals(expected.get('X'), actual.getIndexNumber());
+    private static void helper(Map<Character, Object> expected, ABC actual) {
+        assertEquals(expected.get('T'), actual.getTitle());
+        assertEquals(expected.get('Q'), actual.getTempo());
+        assertEquals(expected.get('K'), actual.getKeySignature());
+        assertEquals(expected.get('M'), actual.getMeter());
+        assertEquals(expected.get('L'), actual.getDefaultNote());
+        assertEquals(expected.get('V'), actual.getVoices());
+        assertEquals(expected.get('C'), actual.getComposer());
+        assertEquals(expected.get('X'), actual.getIndexNumber());
     }
     
     // M, L, and Q are omitted, V and C are given
@@ -52,9 +58,9 @@ public class ABCTest {
     // Contains music objects of lengths 0, (0,1)
     @Test
     public void testABCMissingOptionalFields() {
-    	final Map<String, Music> parts = new HashMap<>();
-    	Music musicOne = new Rest(0);
-    	Music musicTwo = new Note(0.5, Pitch.MIDDLE_C,Instrument.PIANO,Optional.of(new Lyric("","")));
+        final Map<String, Music> parts = new HashMap<>();
+        Music musicOne = new Rest(0);
+        Music musicTwo = new Note(0.5, Pitch.MIDDLE_C,Instrument.PIANO,Optional.of(new Lyric("","")));
         parts.put("1", musicOne);
         parts.put("2", musicTwo);
 
@@ -118,7 +124,7 @@ public class ABCTest {
 //        expected.put('X', 1);
         try {
             // Should fail here
-            ABC actual = new ABC(parts, expected);
+            new ABC(parts, expected);
             assert false;
         } catch (Exception e) {
             
@@ -138,7 +144,7 @@ public class ABCTest {
         expected.put('X', 1);
         try {
             // Should fail here
-            ABC actual = new ABC(parts, expected);
+            new ABC(parts, expected);
             assert false;
         } catch (IllegalArgumentException e) {
             
@@ -159,7 +165,7 @@ public class ABCTest {
         expected.put('X', 1);
         try {
             // Should fail here
-            ABC actual = new ABC(parts, expected);
+            new ABC(parts, expected);
             assert false;
         } catch (Exception e) {
             

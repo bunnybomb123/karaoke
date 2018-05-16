@@ -9,56 +9,58 @@ import java.util.Scanner;
 
 import org.junit.Test;
 
-
+/**
+ * Test WebServer
+ * @category no_didit
+ */
 public class WebServerTest {
     
     /*
      * Testing Strategy for WebServer.java:
-     * Functions: port, start, stop, WebServer (Constructor)
-     * inputs: port
-     * outputs: 
-     * 
-     * constructor:
-     * 	Partitions: 
-     * 		port number: valid port number, invalid port number, used port number
-     * 	Input files: valid file, invalid file
-     * 	Number of input files: 0, 1, 2+ 
-     * 
-     * Cover all parts
+     *  
+     *  start: success, BindException
+     *  
+     *  add song requests: next song, queue, fail
+     *  
+     *  play requests: success, fail because empty, fail because busy
      */
-    
-    private static int PORT_NUMBER = 8080;
     
     @Test(expected=AssertionError.class)
     public void testAssertionsEnabled() {
         assert false; // make sure assertions are enabled with VM argument: -ea
     }
     
+    // start: success
     @Test
     public void testStartServerNoError() throws IOException {
         // Tests to make sure 
-        WebServer server = new WebServer(PORT_NUMBER);
+        final int port = 8080;
+        WebServer server = new WebServer(port);
         server.start();
         server.stop();
     }
     
+    // start: BindException
     @Test(expected=BindException.class)
     public void testStartTwoServersSamePort() throws IOException {
         // Tests to make sure an error is thrown when two servers listen on the same port
-        WebServer server = new WebServer(PORT_NUMBER);
+        final int port = 8081;
+        WebServer server = new WebServer(port);
         server.start();
         try {
             // Should fail here
-            new WebServer(PORT_NUMBER).start();
+            new WebServer(port).start();
             fail();
         } finally {
             server.stop();
         }
     }
     
+    // play requests: fail because empty
     @Test
     public void testPlayEmptyRequest() throws IOException {
-        WebServer server = new WebServer(PORT_NUMBER);
+        final int port = 8082;
+        WebServer server = new WebServer(port);
         server.start();
         try {
             checkResponse(server, "/play", "Jukebox is empty");
@@ -67,32 +69,33 @@ public class WebServerTest {
         }
     }
     
+    // add song requests: next song, queue; play requests: success, fail because busy
     @Test
     public void testPlaySongsRequest() throws IOException {
-        WebServer server = new WebServer(PORT_NUMBER);
+        final int port = 8083;
+        WebServer server = new WebServer(port);
         server.start();
         try {
-            checkResponse(server, "/addSong/sample1.abc", "Next song is sample 1 by Unknown");
-            checkResponse(server, "/play", "Now playing sample 1 by unknown");
+            checkResponse(server, "/addSong/fur_elise.abc", "Next song is Bagatelle No.25 in A, WoO.59 by Ludwig van Beethoven");
+            checkResponse(server, "/addSong/scale.abc", "Added Simple scale by Unknown at position 1 in queue");
+            checkResponse(server, "/play", "Now playing Bagatelle No.25 in A, WoO.59 by Ludwig van Beethoven");
+            checkResponse(server, "/play", "Jukebox is already playing Bagatelle No.25 in A, WoO.59 by Ludwig van Beethoven");
         } finally {
             server.stop();
         }
     }
-        
-    @Test
-    public void testPlayFile() {
-    	// Manual Test:
-        // Start the server
-        // Send the request to load with multiple files
-        // Send the play request
-        // Wait a certain amount of time
-        // Make sure it ends
-        // Make sure it printed all the correct lyrics
-    }
     
+    // add song requests: fail
     @Test
-    public void testPlayInvalidFile() {
-        
+    public void testPlayInvalidFile() throws IOException {
+        final int port = 8084;
+        WebServer server = new WebServer(port);
+        server.start();
+        try {
+            checkResponse(server, "/addSong/bad.abc", "bad.abc not found");
+        } finally {
+            server.stop();
+        }
     }
     
     /**
@@ -103,7 +106,7 @@ public class WebServerTest {
      * @throws IOException if request fails to send
      */
     private static void checkResponse(WebServer server, String request, String expected) throws IOException {
-        Scanner response = new Scanner(new URL("http://localhost:" + PORT_NUMBER + request).openStream());
+        Scanner response = new Scanner(new URL("http://localhost:" + server.port() + request).openStream());
         String actual = response.useDelimiter("\\A").next();
         response.close();
         assert actual.contains(expected);

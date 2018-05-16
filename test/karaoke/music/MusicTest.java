@@ -32,7 +32,7 @@ public class MusicTest {
     }
     
     // helper function for testing expectedness of Music
-    private void play(Music music) {
+    private static void play(Music music) {
         final int beatsPerMinute = 50;
         final int ticksPerBeat = 64;
         SequencePlayer player;

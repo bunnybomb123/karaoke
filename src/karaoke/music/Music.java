@@ -55,6 +55,14 @@ public interface Music {
         return new Together(first, second);
     }
     
+    /**
+     * Augments a music object by scaling the duration, recursively
+     * 
+     * @param augmentationFactor factor by which to augment the duration
+     * @return a new music object which has been augmented by the given factor
+     */
+    public Music augment(double augmentationFactor);
+    
     /*
      * Datatype Definition
      * Music = Rest(duration: double)

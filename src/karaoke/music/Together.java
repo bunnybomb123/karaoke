@@ -82,6 +82,13 @@ public class Together implements Music {
         second.load(player, atBeat, lyricConsumer);
     }
     
+    @Override 
+    public Music augment(double augmentationFactor) {
+        Music newFirst = first.augment(augmentationFactor);
+        Music newSecond = second.augment(augmentationFactor);
+        return new Together(newFirst,newSecond);
+    }
+    
     @Override
     public int hashCode() {
         return Objects.hash(first, second);

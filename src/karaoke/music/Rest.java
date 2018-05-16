@@ -60,6 +60,13 @@ public class Rest implements Music {
     public void load(SequencePlayer player, double atBeat, Consumer<Lyric> lyricConsumer) {
         return;
     }
+    
+    @Override 
+    public Music augment(double augmentationFactor) {
+        double newDuration = duration() * augmentationFactor;
+        return new Rest(newDuration);
+    }
+    
 
     @Override
     public int hashCode() {

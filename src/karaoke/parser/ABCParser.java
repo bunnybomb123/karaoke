@@ -324,7 +324,6 @@ public class ABCParser {
             
            
             
-            break;
         }
         
         case CHORD: {

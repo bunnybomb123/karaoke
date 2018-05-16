@@ -68,6 +68,12 @@ public class ABCParserTest {
         return actual;
     }
     
+    @Test
+    public void testFurElise() throws FileNotFoundException, UnableToParseException {
+        ABC actual = helperGetActual("fur_elise");
+        SequencePlayer.load(actual, null).playUntilFinished();
+    }
+    
     
     // output: Note, Concat, transposed notes
     @Test

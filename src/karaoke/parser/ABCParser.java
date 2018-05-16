@@ -413,27 +413,24 @@ public class ABCParser {
         case METER_FRACTION:
         case NOTE_LENGTH:
         case NOTE_LENGTH_STRICT:
-            double result = 1;
+            int numerator = 1;
+            int denominator = 2;
             for (final ParseTree<ABCGrammar> component : fraction.children())
-                result *= toDouble(component);
-            return result;
-        case NUMERATOR:
-            return toInt(fraction);
-        case DENOMINATOR:
-            return 1.0 / toInt(fraction);
+                switch (component.name()) {
+                case NUMERATOR:
+                    numerator = toInt(component);
+                    break;
+                case DENOMINATOR:
+                    denominator = toInt(component);
+                    break;
+                default:
+                    throw new UnableToParseException("fraction is malformed");
+                }
+            return (double) numerator / denominator;
         default:
-            throw new UnableToParseException("note_length or note_length_strict is malformed");
+            throw new UnableToParseException("cannot parse to double");
         }
     }
-    
-  
-        
-        
-
-        
-    
-   
-    
     
     /**
      * Extracts the information stored in a ParseTree representation of the header of an abc file
@@ -495,8 +492,9 @@ public class ABCParser {
             currentHeaderInfo.put('K', newKey);
             break;
         }
-        case FIELD_METER: { // meter ::= "C" | "C|" | meter_fraction;
-            List<ParseTree<ABCGrammar>> meter = parseTree.children();
+        case FIELD_METER: { // field_meter ::= "M:" meter end_of_line;
+            // meter ::= "C" | "C|" | meter_fraction;
+            List<ParseTree<ABCGrammar>> meter = parseTree.children().get(0).children();
             if (meter.isEmpty())
                 currentHeaderInfo.put('M', new Meter(parseTree.text()));
             else {
@@ -505,13 +503,15 @@ public class ABCParser {
             }
             break;
         }
-        case FIELD_TEMPO:  { // tempo ::= meter_fraction "=" number;
-            List<ParseTree<ABCGrammar>> meterFraction = parseTree.children().get(0).children();
-            int tempo = toInt(parseTree.children().get(1));
+        case FIELD_TEMPO:  { // field_tempo ::= "Q:" tempo end_of_line;
+            List<ParseTree<ABCGrammar>> tempo = parseTree.children().get(0).children();
+            // tempo ::= meter_fraction "=" number;
+            List<ParseTree<ABCGrammar>> meterFraction = tempo.get(0).children();
+            int beatsPerMinute = toInt(tempo.get(1));
             int numerator = toInt(meterFraction.get(0));
             int denominator = toInt(meterFraction.get(1));
             
-            currentHeaderInfo.put('Q', new Tempo(new Meter(numerator, denominator), tempo));
+            currentHeaderInfo.put('Q', new Tempo(new Meter(numerator, denominator), beatsPerMinute));
             break;
         }
         case FIELD_VOICE: { // field_voice ::= "V:" text end_of_line;

@@ -3,7 +3,26 @@ package karaoke.songs;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * an enum representing a key signature. 
+ */
 public enum Key {
+	
+	/* Abstraction function
+	 *  AF(keySignature) = a key where mapping a Pitch to whether it's sharp
+	 *  	(positive number) or flat (negative number), and its magnitude of sharpness
+	 *  	or flatness.
+	 * 
+	 * Rep invariant
+	 * 	keySignature is not null
+	 * 
+	 * Safety from rep exposure
+	 * 	all passed-in parameters are immutable
+	 * 
+	 * Thread safety 
+	 * 	all fields are immutable
+	 */
+	
     Fbm(-11),
     Cbm(-10),
     Gbm(-9),
@@ -42,10 +61,11 @@ public enum Key {
         }
         for (int i = 0; i < -num; i++) {
             String flat = flats[i % flats.length];
-            keySignature.put(flat, keySignature.getOrDefault(flat, 0) + 1);
+            keySignature.put(flat, keySignature.getOrDefault(flat, 0) - 1);
         }
     }
     
+    /** @return the AccidentalMap associated with this keySignature */
     public AccidentalMap getAccidentalMap() {
         return new AccidentalMap(keySignature);
     }

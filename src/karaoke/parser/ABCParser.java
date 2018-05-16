@@ -144,7 +144,7 @@ public class ABCParser {
     
     /**
      * Given a nonterminal musical_element, return the Music for this musical element.
-     * @param element nonterminal musical_element
+     * @param element nonterminal musical_element or a descendant
      * @param accidentalMap key signature, potentially with additional accidentals
      * @param lyricGenerator lyric generator for each note
      * @return Music for this musical element

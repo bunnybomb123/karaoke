@@ -68,12 +68,12 @@ public class ABCParserTest {
         return actual;
     }
     
-    @Test
-    public void testFurElise() throws FileNotFoundException, UnableToParseException {
-        ABC actual = helperGetActual("fur_elise");
-        SequencePlayer.load(actual, null).playUntilFinished();
-    }
-    
+//    @Test
+//    public void testFurElise() throws FileNotFoundException, UnableToParseException {
+//        ABC actual = helperGetActual("fur_elise");
+//        SequencePlayer.load(actual, null).playUntilFinished();
+//    }
+//    
     
     // output: Note, Concat, transposed notes
     @Test
@@ -352,7 +352,6 @@ public class ABCParserTest {
         fields.put('C', "Chris Chang");
         fields.put('Q', new Tempo(new Meter(1,2), 150));
         fields.put('V', new HashSet<>(Arrays.asList("1", "2")));
-        
     	
         ABC actual = helperGetActual(title);
         ABC expected = new ABC(parts, fields);
@@ -362,9 +361,10 @@ public class ABCParserTest {
     
     /* concats a bunch of musics into one music */
     private Music concatChain(List<Music> musics) {
-        Music growing = new Rest(0); 
-        for (Music music : musics)
-            growing = new Concat(growing, music);
+        Iterator<Music> musicsItr = musics.iterator();
+        Music growing = musicsItr.next();
+        while (musicsItr.hasNext())
+            growing = new Concat(growing, musicsItr.next());
         return growing;
     }
 }

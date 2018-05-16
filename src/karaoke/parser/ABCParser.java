@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -57,11 +58,11 @@ public class ABCParser {
         ABC, ABC_HEADER, FIELD_NUMBER, FIELD_TITLE, OTHER_FIELDS, 
         FIELD_COMPOSER, FIELD_DEFAULT_LENGTH, FIELD_METER, FIELD_TEMPO, 
         FIELD_VOICE, FIELD_KEY, KEY, KEYNOTE, KEY_ACCIDENTAL, MODE_MINOR, 
-        METER, METER_FRACTION, TEMPO, ABC_BODY, ABC_LINE, ELEMENT, 
+        METER, METER_FRACTION, TEMPO, ABC_BODY, ABC_LINE, ELEMENT, MUSICAL_ELEMENT, 
         NOTE_ELEMENT, NOTE, PITCH, OCTAVE, NOTE_LENGTH, NOTE_LENGTH_STRICT, 
         ACCIDENTAL, BASENOTE, REST_ELEMENT, TUPLET_ELEMENT, TUPLET_SPEC, 
         CHORD, BARLINE, NTH_REPEAT, LYRIC, LYRICAL_ELEMENT, LYRIC_TEXT, 
-        COMMENT, COMMENT_TEXT, END_OF_LINE, TEXT, DIGIT, NEWLINE, 
+        COMMENT, COMMENT_TEXT, END_OF_LINE, TEXT, NUMBER, DIGIT, NEWLINE, 
         SPACE_OR_TAB, MIDDLE_OF_BODY_FIELD,
     }
     
@@ -139,7 +140,27 @@ public class ABCParser {
      * @return map from voice parts to Music
      */
     private static Map<String, Music> parseBody(ParseTree<ABCGrammar> abcBody, AccidentalMap keySignature) {
-        throw new UnsupportedOperationException();
+        
+        String voice = "";
+        Map<String, Music> savedParts = new HashMap<>();
+        Map<String, Music> newParts = new HashMap<>();
+        Map<String, Music> parts = newParts; // map to modify
+        Map<String, LyricGenerator> lyricGenerators = new HashMap<>();
+        
+        for (ParseTree<ABCGrammar> abcLine : abcBody.children()) {
+            List<ParseTree<ABCGrammar>> elements = abcLine.children();
+            ParseTree<ABCGrammar> first = elements.get(0);
+            if (first.name() == ABCGrammar.ELEMENT) {
+                if (!lyricGenerators.containsKey(voice))
+                    lyricGenerators.put(voice, new LyricGenerator(voice));
+                
+                LyricGenerator lyricGenerator = lyricGenerators.get(voice);
+                
+                
+            }
+            else if (first.name() == ABCGrammar.MIDDLE_OF_BODY_FIELD)
+                voice = first.children().get(0).children().get(1).text().trim();
+        }
     }
     
     /**

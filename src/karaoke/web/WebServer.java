@@ -107,12 +107,20 @@ public class WebServer {
         server.createContext("/htmlWaitReload", this::handleHtmlWaitReload);
     }
 
-    // checks that rep invariant is maintained
+    /**
+     * Checks to make sure the rep invariants are satisfied
+     */
     private void checkRep() {
         assert server != null;
         assert jukebox != null;
     }
 
+    /**
+     * HTTP handler that adds a song to our current list of songs to play
+     * 
+     * @param exchange http exchange currently in progress
+     * @throws IOException thrown if there is a network problem 
+     */
     private void handleAddSong(HttpExchange exchange) throws IOException {
         exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=utf-8");
         PrintWriter out = getPrintWriter(exchange);
@@ -120,30 +128,6 @@ public class WebServer {
         final String path = exchange.getRequestURI().getPath();
         final String base = exchange.getHttpContext().getPath();
         final String abcFile = path.length() > base.length() ? path.substring(base.length() + 1) : "";
-        /*
-        final Scanner scan;
-        
-        try {
-            scan = new Scanner(new File("sample-abc/" + abcFile));
-        } catch (FileNotFoundException e) {
-            out.println(abcFile + " not found");
-            exchange.close();
-            return;
-        }
-        
-        String songFile = scan.useDelimiter("\\A").next();
-        final ABC song;
-        
-        try {
-            song = ABCParser.parse(songFile);
-        } catch (Exception e) {
-            System.out.println("hi");
-            out.println("Unable to parse " + abcFile);
-            scan.close();
-            exchange.close();
-            e.printStackTrace();
-            return;
-        }*/
         
         try (
             Scanner scan = new Scanner(new File("sample-abc/" + abcFile))
@@ -162,6 +146,12 @@ public class WebServer {
         exchange.close();
     }
     
+    /**
+     * HTTP handler that plays the next song from our current list of songs to play
+     * 
+     * @param exchange http exchange currently in progress
+     * @throws IOException thrown if there is a network problem
+     */
     private void handlePlay(HttpExchange exchange) throws IOException {
         exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=utf-8");
         PrintWriter out = getPrintWriter(exchange);
@@ -336,6 +326,7 @@ public class WebServer {
     /**
      * given an HttpExchange, return a PrintWriter that prints to 
      * this exchange
+     * 
      * @param exchange
      * @return out
      * @throws IOException
@@ -363,13 +354,19 @@ public class WebServer {
         return out;
     }
     
-    /** @return the port on which this server is listening for connections */
+    /** 
+     * Gets the port on which the server is listening for connections
+     * 
+     * @return the port on which this server is listening for connections 
+     */
     public int port() {
         checkRep();
         return server.getAddress().getPort();
     }
     
-    /** Start this server in a new background thread. */
+    /** 
+     * Starts this server in a new background thread.
+     */
     public void start() {
         checkRep();
         System.err.println("Server will listen on " + server.getAddress());
@@ -377,7 +374,9 @@ public class WebServer {
         checkRep();
     }
     
-    /** Stop this server. Once stopped, this server cannot be restarted. */
+    /** 
+     * Stops this server. Once stopped, this server cannot be restarted. 
+     */
     public void stop() {
         checkRep();
         System.err.println("Server will stop");

@@ -27,7 +27,7 @@ public class ABC {
      * 
      * Safety from rep exposure:
      *  defensive copying in instantiation of parts
-     *  voices is an unmodifiable set, so it is safe to pass to clients
+     *  voices is defensively copied when returned to users
      *  all other fields private, final, and of immutable data types
      * 
      * Thread safety argument:
@@ -78,7 +78,11 @@ public class ABC {
         this.beatsPerMinute = (int) (tempo.beatsPerMinute() * tempo.beatLength() / defaultNote.value());
     }
     
-    /** @return a summary representation of this abc piece */
+    /**
+     * Return a summary of the header for the piece, containing the title and composer 
+     * 
+     * @return a summary representation of this abc piece 
+     */
     public String getInfo() {
         return title + " by " + composer;
     }

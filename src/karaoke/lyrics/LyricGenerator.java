@@ -16,7 +16,8 @@ public class LyricGenerator {
     private int index;
     private int beginIndex;
     private int hold;
-    private Lyric previous;
+    private int chordSize = 1;
+    private Lyric previous = null;
     
     /* Abstraction function:
      *  AF(voice, lyricalElements, line, index, beginIndex, hold, previous) =
@@ -26,7 +27,9 @@ public class LyricGenerator {
      *          end of a measure) is represented by lyricalElements.get(index) and found 
      *          in the formatted lyrical line as line.substring(beginIndex, beginIndex + 
      *          syllable.length()), unless hold > 0 in which case the previous syllable 
-     *          should be held for hold more notes; and previous is the last lyric returned by this generator
+     *          should be held for hold more notes.
+     *      chordSize is the size of the next chord in the music sequence, default 1.
+     *      previous is the last lyric returned by this generator.
      * 
      * Rep invariant:
      *  fields are not null except previous
@@ -34,6 +37,7 @@ public class LyricGenerator {
      *      symbol = lyricalElements.get(index) is either a syllable or a barline, and
      *      syllable = format(symbol) is equal to line.substring(beginIndex, beginIndex + syllable.length())
      *  hold >= 0
+     *  chordSize >= 1
      * 
      * Safety from rep exposure:
      *  defensive copying in instantiation of lyricalElements
@@ -46,7 +50,6 @@ public class LyricGenerator {
      */
     public LyricGenerator(String voice) {
         this.voice = voice;
-        this.previous = null;
         loadNoLyrics();
         checkRep();
     }
@@ -67,6 +70,7 @@ public class LyricGenerator {
             assert syllable.equals(line.substring(beginIndex, endIndex));
         }
         assert hold >= 0;
+        assert chordSize >= 1;
     }
     
     /**
@@ -117,6 +121,11 @@ public class LyricGenerator {
             return Optional.empty();
         }
         
+        if (chordSize > 1) {
+            hold += chordSize - 1;
+            chordSize = 1;
+        }
+        
         final Lyric lyric;
         
         if (line.isEmpty())
@@ -132,6 +141,15 @@ public class LyricGenerator {
             previous = lyric;
             return Optional.of(lyric);
         }
+    }
+    
+    /**
+     * Notify the LyricGenerator that the next lyric should be generated
+     * for a chord of size size.
+     * @param size size of chord
+     */
+    public void setChordSize(int size) {
+        chordSize = size;
     }
     
     /**

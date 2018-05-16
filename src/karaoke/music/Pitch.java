@@ -18,12 +18,20 @@ public class Pitch {
     private final int value;
 
     /*
-     * Rep invariant: true.
-     *
      * Abstraction function AF(value):
      *   AF(0),...,AF(11) map to middle C, C-sharp, D, ..., A, A-sharp, B.
      *   AF(i+12n) maps to n octaves above middle AF(i)
      *   AF(i-12n) maps to n octaves below middle AF(i)
+     *   
+     * Rep invariant:
+     *     true
+     * 
+     * Safety from rep exposure:
+     *      all fields private, final, and immutable
+     * 
+     * Thread safety argument:
+     *      All fields immutable, and there is no beneficient mutation
+     * 
      */
 
     private static final int[] SCALE = {

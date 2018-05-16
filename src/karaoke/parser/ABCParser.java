@@ -270,82 +270,71 @@ public class ABCParser {
      * @param lyricGenerator lyric generator for each note
      * @return Music for this musical element
      */
-    private static Music makeMusic(ParseTree<ABCGrammar> musicalElement, AccidentalMap accidentalMap, LyricGenerator lyricGenerator) throws UnableToParseException {
+    private static Music makeMusic(ParseTree<ABCGrammar> element, AccidentalMap accidentalMap, LyricGenerator lyricGenerator) throws UnableToParseException {
         // musical_element ::= note_element | rest_element | tuplet_element;
 
-        switch (musicalElement.name()) {
+        switch (element.name()) {
         
         case MUSICAL_ELEMENT: { // musical_element ::= note_element | rest_element | tuplet_element;
-            return makeMusic(musicalElement.children().get(0), accidentalMap, lyricGenerator);
+            return makeMusic(element.children().get(0), accidentalMap, lyricGenerator);
         }
         
         case NOTE_ELEMENT: { // note_element ::= note | chord;
-            return makeMusic(musicalElement.children().get(0), accidentalMap, lyricGenerator);
+            return makeMusic(element.children().get(0), accidentalMap, lyricGenerator);
         }
         
         case REST_ELEMENT: { // rest_element ::= "z" note_length?;
-            final 
-            return rest(getDecimalValue(musicalElement.children().get(0)))
-            double duration = 1.0;
-            if (musicalElement.children().size() > 0) {
-                Music lengthNote = makeMusic(musicalElement.children().get(0), accidentalMap, lyricGenerator);
-                duration = lengthNote.duration();
-           }
-            return new Rest(duration);
+            final List<ParseTree<ABCGrammar>> children = element.children();
+            return children.isEmpty() ? rest(1) : rest(getDecimalValue(children.get(0)));
         }
         
-        case TUPLET_ELEMENT: {
-            ParseTree<ABCGrammar> tuplet = musicalElement.children().get(0);
-            int numNotes = Integer.parseInt(tuplet.children().get(0).text());
-            double augmentationFactor = 1.0;
-            switch (numNotes) {
-            case DUPLET_NUM: {
-                augmentationFactor = 3.0 / 2.0;
+        case TUPLET_ELEMENT: { // tuplet_element ::= tuplet_spec note_element+;
+            final int duplet = 2;
+            final int triplet = 3;
+            final int quadruplet = 4;
+            final double dupletFactor = 3./2;
+            final double tripletFactor = 2./3;
+            final double quadrupletFactor = 3./4;
+            
+            final List<ParseTree<ABCGrammar>> tuplet = element.children();
+            // tuplet_spec ::= "(" number;
+            final int tupletSpec = Integer.parseInt(tuplet.get(0).children().get(0).text());
+            final double augmentationFactor;
+            switch (tupletSpec) {
+            case duplet:
+                augmentationFactor = dupletFactor;
                 break;
-            }
-            case TRIPLET_NUM: {
-                augmentationFactor = 2.0 / 3.0;
-                
+            case triplet:
+                augmentationFactor = tripletFactor;
                 break;
-            }
-            case QUADRUPLET_NUM: {
-                augmentationFactor = 3.0 / 4.0;
-
+            case quadruplet:
+                augmentationFactor = quadrupletFactor;
                 break;
-            } 
-            default: {
-                break;
+            default:
+                throw new UnableToParseException("tuplet_element is malformed");
             }
             
-            }
-            
-            Music currentMusic = makeMusic(musicalElement.children().get(1), accidentalMap, lyricGenerator);
-            for (ParseTree<ABCGrammar> t : musicalElement.children().subList(2, musicalElement.children().size()+1)) {
-                Music newMusic = makeMusic(musicalElement.children().get(1), accidentalMap, lyricGenerator);
-                currentMusic = new Concat(currentMusic, newMusic);
-            }
-            return currentMusic.augment(augmentationFactor);
-            
-           
-            
+            Music music = makeMusic(tuplet.get(1), accidentalMap, lyricGenerator).augment(augmentationFactor);
+            for (final ParseTree<ABCGrammar> noteElement : tuplet.subList(2, tuplet.size()))
+                music = concat(music, makeMusic(noteElement, accidentalMap, lyricGenerator).augment(augmentationFactor));
+            return music;
         }
         
-        case CHORD: {
-            lyricGenerator.setChordSize(musicalElement.children().size());
-            Music currentMusic = makeMusic(musicalElement.children().get(0), accidentalMap, lyricGenerator);
+        case CHORD: { // chord ::= "[" note+ "]";
+            final List<ParseTree<ABCGrammar>> chord = element.children();
+            lyricGenerator.setChordSize(chord.size());
+            Music music = makeMusic(chord.get(0), accidentalMap, lyricGenerator);
             // For each of the other children, create a together object with the notes in it
-            for (ParseTree<ABCGrammar> t : musicalElement.children().subList(1, musicalElement.children().size())) {
-                Music newNote = makeMusic(t, accidentalMap, lyricGenerator);
-                currentMusic = new Together(currentMusic, newNote);
-            }
-            return currentMusic;
+            for (final ParseTree<ABCGrammar> note : chord.subList(1, chord.size()))
+                music = together(music, makeMusic(note, accidentalMap, lyricGenerator));
+            return music;
         }
         
         case NOTE: { // note ::= pitch note_length?;
             // pitch ::= accidental? basenote octave?;
             Pitch newPitch = Pitch.MIDDLE_C;
             String note = "";
-            ParseTree<ABCGrammar> pitch = musicalElement.children().get(0);
+            ParseTree<ABCGrammar> pitch = element.children().get(0);
             int accidentalNumber = 0;
             boolean accidentalChange = false;
             for (ParseTree<ABCGrammar> t : pitch.children()) {
@@ -411,8 +400,8 @@ public class ABCParser {
             }
             // If the duration of the note is being modified, then go here:
             double duration = 1.0;
-            if (musicalElement.children().size() > 1) {
-                ParseTree<ABCGrammar> noteLength = musicalElement.children().get(1);
+            if (element.children().size() > 1) {
+                ParseTree<ABCGrammar> noteLength = element.children().get(1);
                 assert noteLength.name().equals(ABCGrammar.NOTE_LENGTH);
                 Music lengthNote = makeMusic(noteLength,accidentalMap,lyricGenerator);
                 duration = lengthNote.duration();
@@ -424,37 +413,10 @@ public class ABCParser {
             return newNote;
         }
         
-        case NOTE_LENGTH: {
-            
-            double numerator;
-            double denominator;
-            double duration = 1.0;
-            if (musicalElement.text().contains("/")) {
-                int index = musicalElement.text().indexOf("/");
-                if (musicalElement.text().substring(0, index).length() != 0) {
-                    numerator = Integer.parseInt(musicalElement.text().substring(0, index));
-                } else {
-                    numerator = 1;
-                }
-                if (musicalElement.text().substring(index, musicalElement.text().length()).length() != 0) {
-                    denominator = Integer.parseInt(musicalElement.text().substring(index, musicalElement.text().length()));
-                } else {
-                    denominator = 2;
-                }
-                duration = duration * numerator / denominator;
-                
-            } else if (musicalElement.text().length() > 0){
-                duration = duration * Integer.parseInt(musicalElement.text());
-            }
-            return new Note(duration, Pitch.MIDDLE_C,Instrument.PIANO,Optional.of(new Lyric("")));
-        }
-        
         default: {
-            throw new UnableToParseException("Couldn't parse the musical element.");
+            throw new UnableToParseException("musical_element is malformed");
         }
         }
- 
-        
     }
     
     private static double getDecimalValue(ParseTree<ABCGrammar> fraction) throws UnableToParseException {

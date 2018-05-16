@@ -42,6 +42,7 @@ public class LyricGenerator {
      * Safety from rep exposure:
      *  defensive copying in instantiation of lyricalElements
      *  no other fields are passed in or returned by any methods
+     *  
      */
     
     /**

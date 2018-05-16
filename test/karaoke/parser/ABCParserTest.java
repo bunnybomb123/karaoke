@@ -63,16 +63,6 @@ public class ABCParserTest {
         assert false; // make sure assertions are enabled with VM argument: -ea
     }
     
-    @Test
-    public void testBadAbcFile() throws FileNotFoundException {
-        @SuppressWarnings("resource") 
-        String abcFile = new Scanner(new File("sample-abc/bad.abc")).useDelimiter("\\Z").next();
-        try {
-            ABCParser.parse(abcFile);
-            fail("should not get here");
-        } catch (UnableToParseException e) {}
-    }
-    
     // output: Note, Concat, transposed notes
     @Test
     public void testSample1() throws FileNotFoundException, UnableToParseException {
@@ -196,7 +186,7 @@ public class ABCParserTest {
     @Test
     public void testLyricsTilde() throws FileNotFoundException, UnableToParseException {
         ABC actual = ABCParser.parse("lyricsTilde");
-        
+
         List<Integer> starts = Arrays.asList(0, 8);
         List<Integer> ends = Arrays.asList(7, 10);
         String line = "ly ric  al";
@@ -211,7 +201,7 @@ public class ABCParserTest {
     @Test
     public void testLyricsUnderscore() throws FileNotFoundException, UnableToParseException {
         ABC actual = helperGetActual("lyricsUnderscore");
-        
+
         List<Integer> starts = Arrays.asList(0, 3, -1, -1, 9, -1);
         List<Integer> ends =   Arrays.asList(2, 8, -1, -1, 12, -1);
         String line = "ly-ric__ al_";
@@ -226,7 +216,7 @@ public class ABCParserTest {
     @Test
     public void testLyricsBackslashHyphen() throws FileNotFoundException, UnableToParseException {
         ABC actual = helperGetActual("lyricsBackslashHyphen");
-        
+
         List<Integer> starts = Arrays.asList(0, 7);
         List<Integer> ends =   Arrays.asList(6, 16);
         String line = "ly-ric ly-ri-cal";
@@ -241,7 +231,7 @@ public class ABCParserTest {
     @Test
     public void testLyricsAsterisk() throws FileNotFoundException, UnableToParseException {
         ABC actual = helperGetActual("lyricsAsterisk");
-        
+
         List<Integer> starts = Arrays.asList(0, 3, 5, 8, 11, 13, 15);
         List<Integer> ends =   Arrays.asList(2, 4, 7, 10, 12, 14, 17);
         String line = "ly * al ly * al";

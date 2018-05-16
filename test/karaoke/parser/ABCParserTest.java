@@ -74,6 +74,12 @@ public class ABCParserTest {
         SequencePlayer.load(actual, lyric -> System.out.println(lyric.toPlainText())).playUntilFinished();
     }
     
+    @Test
+    public void testWaxiesDargleTwo() throws FileNotFoundException, UnableToParseException {
+        ABC actual = helperGetActual("waxies_dargle_2");
+        SequencePlayer.load(actual, lyric -> System.out.println(lyric.toPlainText())).playUntilFinished();
+    }
+    
     // output: Note, Concat, transposed notes
     @Test
     public void testSample1() throws FileNotFoundException, UnableToParseException {
@@ -358,6 +364,8 @@ public class ABCParserTest {
 
         assertEquals(expected, actual);
     }    
+    
+    
     
     /* concats a bunch of musics into one music */
     private Music concatChain(List<Music> musics) {

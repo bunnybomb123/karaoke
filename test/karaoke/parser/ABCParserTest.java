@@ -167,15 +167,18 @@ public class ABCParserTest {
     	while (startsItr.hasNext()) {
     		int start = startsItr.next();
     		int end = endsItr.next();
-    		listMusics.add(new Note(1, new Pitch('C'), Instrument.PIANO, createOptionalLyric(line, start, end)));
+    		if (start == -1)
+        		listMusics.add(new Note(1, new Pitch('C'), Instrument.PIANO, Optional.empty()));
+    		else
+    			listMusics.add(new Note(1, new Pitch('C'), Instrument.PIANO, createOptionalLyric(line, start, end)));
     	}
     	return listMusics;
     }
     
     // input: has lyrics, hyphens only
     @Test
-    public void testLyricsSimple() throws FileNotFoundException, UnableToParseException {
-        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/lyricsSimple.abc")).useDelimiter("\\Z").next();
+    public void testLyricsHyphen() throws FileNotFoundException, UnableToParseException {
+        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/lyricsHyphen.abc")).useDelimiter("\\Z").next();
         ABC actual = ABCParser.parse(abcFile);
         
         List<Integer> starts = Arrays.asList(0, 3, 7);
@@ -189,13 +192,75 @@ public class ABCParserTest {
         
         final Map<Character, Object> fields = new HashMap<>();
         fields.put('T', "lyricsSimple");
-        fields.put('K', Key.valueOf("Cm"));
+        fields.put('K', Key.valueOf("Bm"));
         fields.put('X', 1);
 
         ABC expected = new ABC(parts, fields);
         assertEquals(expected, actual);
     }
 
+    // input: has lyrics, with tildes
+    @Test
+    public void testLyricsTilde() throws FileNotFoundException, UnableToParseException {
+        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/lyricsTilde.abc")).useDelimiter("\\Z").next();
+        ABC actual = ABCParser.parse(abcFile);
+        
+        List<Integer> starts = Arrays.asList(0, 8);
+        List<Integer> ends = Arrays.asList(7, 10);
+        String line = "ly ric  al";
+        List<Music> musics = createNotesForLyricsTesting(line, starts, ends);
+        Music music = concatChain(musics);
+        		
+        ABC expected = getExpectedLyricsTesting("lyricsTilde", music);
+        assertEquals(expected, actual);
+    }
+    
+    // input: has lyrics, with underscores, Key is minor, with accidental
+    @Test
+    public void testLyricsUnderscore() throws FileNotFoundException, UnableToParseException {
+        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/lyricsTilde.abc")).useDelimiter("\\Z").next();
+        ABC actual = ABCParser.parse(abcFile);
+        
+        List<Integer> starts = Arrays.asList(0, 3, -1, -1, 9, -1);
+        List<Integer> ends =   Arrays.asList(2, 8, -1, -1, 12, -1);
+        String line = "ly-ric__ al_";
+        List<Music> musics = createNotesForLyricsTesting(line, starts, ends);
+        Music music = concatChain(musics);
+        		
+        ABC expected = getExpectedLyricsTesting("lyricsUnderscore", music);
+        assertEquals(expected, actual);
+    }
+    
+    /* package helper method to get expected ABC file for lyrics testing */
+    private ABC getExpectedLyricsTesting(String title, Music music) {
+    	final Map<String, Music> parts = new HashMap<>();
+        parts.put("", music);
+        
+        final Map<Character, Object> fields = new HashMap<>();
+        fields.put('T', title);
+        fields.put('K', Key.valueOf("C"));
+        fields.put('X', 1);
+
+        ABC expected = new ABC(parts, fields);
+        return expected;
+    }
+    
+    // input: has lyrics, with backslash hyphens.
+    @Test
+    public void testLyricsBackslashHyphen() throws FileNotFoundException, UnableToParseException {
+        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/lyricsBackslashHyphen.abc")).useDelimiter("\\Z").next();
+        ABC actual = ABCParser.parse(abcFile);
+        
+        List<Integer> starts = Arrays.asList(0, 7);
+        List<Integer> ends =   Arrays.asList(6, 16);
+        String line = "ly-ric ly-ri-cal";
+        List<Music> musics = createNotesForLyricsTesting(line, starts, ends);
+        Music music = concatChain(musics);
+        		
+        ABC expected = getExpectedLyricsTesting("lyricsBackslashHyphen", music);
+        assertEquals(expected, actual);
+    }
+    
     
     // input: lyrics contain all sorts of hyphens and breaks
     // output: Together, Note

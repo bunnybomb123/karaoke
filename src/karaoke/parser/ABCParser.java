@@ -1,6 +1,5 @@
 package karaoke.parser;
 
-import static karaoke.music.Pitch.OCTAVE;
 import static karaoke.music.Music.empty;
 import static karaoke.music.Music.rest;
 import static karaoke.music.Music.note;
@@ -71,8 +70,8 @@ public class ABCParser {
         FIELD_VOICE, FIELD_KEY, KEY, KEYNOTE, KEY_ACCIDENTAL, MODE_MINOR, 
         METER, METER_FRACTION, TEMPO, ABC_BODY, ABC_LINE, ELEMENT, MUSICAL_ELEMENT, 
         NOTE_ELEMENT, NOTE, PITCH, OCTAVE, NOTE_LENGTH, NOTE_LENGTH_STRICT, 
-        ACCIDENTAL, BASENOTE, REST_ELEMENT, TUPLET_ELEMENT, TUPLET_SPEC, 
-        CHORD, BARLINE, NTH_REPEAT, LYRIC, LYRICAL_ELEMENT, LYRIC_TEXT, 
+        NUMERATOR, DENOMINATOR, ACCIDENTAL, BASENOTE, REST_ELEMENT, TUPLET_ELEMENT,
+        TUPLET_SPEC, CHORD, BARLINE, NTH_REPEAT, LYRIC, LYRICAL_ELEMENT, LYRIC_TEXT, 
         COMMENT, COMMENT_TEXT, END_OF_LINE, TEXT, NUMBER, DIGIT, NEWLINE, 
         SPACE_OR_TAB, MIDDLE_OF_BODY_FIELD,
     }
@@ -175,11 +174,10 @@ public class ABCParser {
                 switch (last.name()) {
                 case LYRIC: // lyric ::= "w:" lyrical_element*;
                     elements = line.subList(0, line.size() - 3);
-                    final List<ParseTree<ABCGrammar>> lyric = last.children();
-                    final List<String> lyricalElements = lyric.subList(1, lyric.size())
-                                                              .stream()
-                                                              .map(ParseTree::text)
-                                                              .collect(Collectors.toList());
+                    final List<String> lyricalElements = last.children()
+                                                             .stream()
+                                                             .map(ParseTree::text)
+                                                             .collect(Collectors.toList());
                     lyricGenerator.loadLyrics(lyricalElements);
                     break;
                 case ELEMENT:
@@ -240,7 +238,7 @@ public class ABCParser {
                 break;
             case MIDDLE_OF_BODY_FIELD: // middle_of_body_field ::= field_voice;
                 // field_voice ::= "V:" text end_of_line;
-                voice = first.children().get(0).children().get(1).text().trim();
+                voice = first.children().get(0).children().get(0).text().trim();
                 break;
             case COMMENT: // comment ::= space_or_tab* "%" comment_text newline;
                 break;
@@ -274,13 +272,18 @@ public class ABCParser {
      */
     private static Music makeMusic(ParseTree<ABCGrammar> musicalElement, AccidentalMap accidentalMap, LyricGenerator lyricGenerator) throws UnableToParseException {
         // musical_element ::= note_element | rest_element | tuplet_element;
+
         switch (musicalElement.name()) {
         
-        case NOTE_ELEMENT: {
+        case MUSICAL_ELEMENT: { // musical_element ::= note_element | rest_element | tuplet_element;
             return makeMusic(musicalElement.children().get(0), accidentalMap, lyricGenerator);
         }
         
-        case REST_ELEMENT: {
+        case NOTE_ELEMENT: { // note_element ::= note | chord;
+            return makeMusic(musicalElement.children().get(0), accidentalMap, lyricGenerator);
+        }
+        
+        case REST_ELEMENT: { // rest_element ::= "z" note_length?;
             double duration = 1.0;
             if (musicalElement.children().size() > 0) {
                 Music lengthNote = makeMusic(musicalElement.children().get(0), accidentalMap, lyricGenerator);
@@ -447,13 +450,31 @@ public class ABCParser {
         default: {
             throw new UnableToParseException("Couldn't parse the musical element.");
         }
-        
         }
+ 
+        
+    }
+    
+    
+    
+    
+    
+    private static double getNoteLength(ParseTree<ABCGrammar> noteLength) {
+        switch (noteLength.name()) {
+        case NOTE_LENGTH_STRICT:
+        case NOTE_LENGTH:
+        case NUMERATOR:
+        case DENOMINATOR:
+        case NUMBER:
+            
+        }
+    }
+    
+  
         
         
 
         
-    }
     
    
     

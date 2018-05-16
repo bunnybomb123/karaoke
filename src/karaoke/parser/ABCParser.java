@@ -1,26 +1,28 @@
 package karaoke.parser;
 
-import karaoke.lyrics.*;
-import karaoke.music.*;
-import karaoke.songs.ABC;
-import karaoke.songs.Key;
-import karaoke.songs.Meter;
-
-import java.util.Map;
-import java.util.Optional;
-import java.util.HashMap;
-import java.util.Set;
-import java.util.HashSet;
-import java.awt.Label;
-import java.beans.Expression;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-import edu.mit.eecs.parserlib.Visualizer;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
 import edu.mit.eecs.parserlib.ParseTree;
 import edu.mit.eecs.parserlib.Parser;
 import edu.mit.eecs.parserlib.UnableToParseException;
+import edu.mit.eecs.parserlib.Visualizer;
+import karaoke.lyrics.Lyric;
+import karaoke.lyrics.LyricGenerator;
+import karaoke.music.Concat;
+import karaoke.music.Instrument;
+import karaoke.music.Music;
+import karaoke.music.Note;
+import karaoke.music.Pitch;
+import karaoke.music.Together;
+import karaoke.songs.ABC;
+import karaoke.songs.AccidentalMap;
+import karaoke.songs.Key;
 //import org.apache.commons.io.FileUtils;
 public class ABCParser {
     
@@ -128,6 +130,27 @@ public class ABCParser {
         // System.out.println("AST " + abc);
         
         return abc;
+    }
+    
+    /**
+     * Given a nonterminal abc_body and a key signature, return the Music for each voice part in a map.
+     * @param abcBody nonterminal abc_body
+     * @param accidentalMap key signature
+     * @return map from voice parts to Music
+     */
+    private static Map<String, Music> parseBody(ParseTree<ABCGrammar> abcBody, AccidentalMap keySignature) {
+        throw new UnsupportedOperationException();
+    }
+    
+    /**
+     * Given a nonterminal musical_element, return the Music for this musical element.
+     * @param element nonterminal musical_element
+     * @param accidentalMap key signature, potentially with additional accidentals
+     * @param lyricGenerator lyric generator for each note
+     * @return Music for this musical element
+     */
+    private static Music makeMusic(ParseTree<ABCGrammar> musicalElement, AccidentalMap accidentalMap, LyricGenerator lyricGenerator) {
+        throw new UnsupportedOperationException();
     }
     
     private static Music makeMusic(ParseTree<ABCGrammar> parseTree, Map<Character, Object> header, Map<String,Integer> accidentalMap, String voice) {

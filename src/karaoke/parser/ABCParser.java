@@ -482,8 +482,7 @@ public class ABCParser {
         case FIELD_DEFAULT_LENGTH: { // field_default_length ::= "L:" note_length_strict end_of_line;
             // note_length_strict ::= numerator "/" denominator;
             List<ParseTree<ABCGrammar>> fraction = parseTree.children().get(0).children();
-            currentHeaderInfo.put('L', new Meter(toInt(fraction.get(0)),
-                    toInt(fraction.get(1).text()));
+            currentHeaderInfo.put('L', new Meter(toInt(fraction.get(0)), toInt(fraction.get(1))));
             break;
         }
         case FIELD_KEY: {

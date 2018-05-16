@@ -26,6 +26,8 @@ public class WebServerTest {
     
     /*
      * Testing Strategy for WebServer.java:
+     * inputs: port
+     * outputs: 
      * 
      * constructor:
      * 	Partitions: 
@@ -58,6 +60,11 @@ public class WebServerTest {
             new karaoke.web.WebServer(PORT_NUMBER);
             fail();
         } catch (IOException e) {}
+    }
+    
+    @Test
+    public void testThingsAboutWebServerOooohAhhhhhFlashy() throws IOException {
+        assert true;
     }
         
     @Test

@@ -296,7 +296,7 @@ public class ABCParserTest {
     // Idea is that if no error is thrown here, we can handle most cases
     @Test
     public void testParsingBigFile() throws FileNotFoundException, UnableToParseException {
-        ABC actual = helperGetActual("piece2");
+        ABC actual = helperGetActual("imYours");
         System.out.println(actual);
     }
    

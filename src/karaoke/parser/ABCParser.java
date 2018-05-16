@@ -288,7 +288,7 @@ public class ABCParser {
         
         case REST_ELEMENT: { // rest_element ::= "z" note_length?;
             final List<ParseTree<ABCGrammar>> children = element.children();
-            System.out.println(children);
+//            System.out.println(children);
             return children.isEmpty() ? rest(1) : rest(toDouble(children.get(0)));
         }
         

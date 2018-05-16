@@ -237,8 +237,7 @@ public class ABCParserTest {
         ABC expected = getExpectedLyricsTesting("lyricsUnderscore", music);
         assertEquals(expected, actual);
     }
-    
-    
+        
     // input: has lyrics, with backslash hyphens.
     @Test
     public void testLyricsBackslashHyphen() throws FileNotFoundException, UnableToParseException {
@@ -255,6 +254,53 @@ public class ABCParserTest {
         assertEquals(expected, actual);
     }
     
+    // input: has lyrics, with asterisks.
+    @Test
+    public void testLyricsAsterisk() throws FileNotFoundException, UnableToParseException {
+        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/lyricsAsterisk.abc")).useDelimiter("\\Z").next();
+        ABC actual = ABCParser.parse(abcFile);
+        
+        List<Integer> starts = Arrays.asList(0, 7);
+        List<Integer> ends =   Arrays.asList(6, 16);
+        String line = "ly-ric ly-ri-cal";
+        List<Music> musics = createNotesForLyricsTesting(line, starts, ends);
+        Music music = concatChain(musics);
+        		
+        ABC expected = getExpectedLyricsTesting("lyricsAsterisk", music);
+        assertEquals(expected, actual);
+    }
+    
+    // input: has lyrics, with a barline that is not ignored.
+    @Test
+    public void testLyricsBarline() throws FileNotFoundException, UnableToParseException {
+        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/lyricsBarline.abc")).useDelimiter("\\Z").next();
+        ABC actual = ABCParser.parse(abcFile);
+        
+        List<Integer> starts = Arrays.asList(0, 7);
+        List<Integer> ends =   Arrays.asList(6, 16);
+        String line = "ly-ric ly-ri-cal";
+        List<Music> musics = createNotesForLyricsTesting(line, starts, ends);
+        Music music = concatChain(musics);
+        		
+        ABC expected = getExpectedLyricsTesting("lyricsBarline", music);
+        assertEquals(expected, actual);
+    }
+    
+    // input: has lyrics, with a barline that is ignored.
+    @Test
+    public void testLyricsBarlineIgnored() throws FileNotFoundException, UnableToParseException {
+        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/lyricsBarlineIgnored.abc")).useDelimiter("\\Z").next();
+        ABC actual = ABCParser.parse(abcFile);
+        
+        List<Integer> starts = Arrays.asList(0, 7);
+        List<Integer> ends =   Arrays.asList(6, 16);
+        String line = "ly-ric ly-ri-cal";
+        List<Music> musics = createNotesForLyricsTesting(line, starts, ends);
+        Music music = concatChain(musics);
+        		
+        ABC expected = getExpectedLyricsTesting("lyricsBarlineIgnored", music);
+        assertEquals(expected, actual);
+    }
     
     // input: lyrics contain all sorts of hyphens and breaks
     // output: Together, Note

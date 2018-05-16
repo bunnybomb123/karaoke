@@ -7,7 +7,7 @@ import karaoke.lyrics.Lyric;
 import karaoke.playback.SequencePlayer;
 
 /**
- * Music represents a piece of music played by multiple instruments.
+ * Music represents an immutable piece of music played by multiple instruments.
  */
 public interface Music {
     
@@ -54,14 +54,6 @@ public interface Music {
     public static Music together(Music first, Music second) {
         return new Together(first, second);
     }
-    
-    /**
-     * Augments a music object by scaling the duration, recursively
-     * 
-     * @param augmentationFactor factor by which to augment the duration
-     * @return a new music object which has been augmented by the given factor
-     */
-    public Music augment(double augmentationFactor);
     
     /*
      * Datatype Definition
@@ -121,5 +113,13 @@ public interface Music {
      * @param lyricConsumer function called when new lyrics are played, or null to ignore lyrics
      */
     public void load(SequencePlayer player, double atBeat, Consumer<Lyric> lyricConsumer);
+    
+    /**
+     * Augments a piece of music by scaling its duration, recursively.
+     * 
+     * @param augmentationFactor factor by which to augment the duration
+     * @return a new Music which has been augmented by the given factor
+     */
+    public Music augment(double augmentationFactor);
 
 }

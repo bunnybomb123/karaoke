@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 import edu.mit.eecs.parserlib.ParseTree;
 import edu.mit.eecs.parserlib.Parser;
 import edu.mit.eecs.parserlib.UnableToParseException;
-import edu.mit.eecs.parserlib.Visualizer;
 import karaoke.lyrics.LyricGenerator;
 import karaoke.music.Instrument;
 import karaoke.music.Music;
@@ -30,48 +29,21 @@ import karaoke.songs.Key;
 import karaoke.songs.Meter;
 import karaoke.songs.Tempo;
 
+/**
+ * ABCParser is a static class used to parse ABC songs from .abc files.
+ */
 public class ABCParser {
-    
-    private static final char CURRENT_VOICE_CHAR = '.';
-    private static final int DUPLET_NUM = 2;
-    private static final int TRIPLET_NUM = 3;
-    private static final int QUADRUPLET_NUM = 4;
-    
-    /*
-     * Abstraction Function:
-     * AF() = a function that maps the contents of an abc file into an ABC object. 
-     * Rep Invariant:
-     * true
-     * Safety from Rep Exposure:
-     * There are no fields, so nothing can be mutated.
-     * Thread Safety: 
-     * parse is a static method, which is threadsafe.
-     */
-    
-    /**
-     * Main method. Parses and then reprints an example expression.
-     * 
-     * @param args command line arguments, not used
-     * @throws UnableToParseException if example expression can't be parsed
-     */
-    public static void main(final String[] args) throws UnableToParseException {
-        final String input = "foo_bar.png|baz-qux.jpg";
-        System.out.println(input);
-        final ABC abc = ABCParser.parse(input);
-        System.out.println(abc);
-    }
     
     // the nonterminals of the grammar
     private static enum ABCGrammar {
         ABC, ABC_HEADER, FIELD_NUMBER, FIELD_TITLE, OTHER_FIELDS, 
         FIELD_COMPOSER, FIELD_DEFAULT_LENGTH, FIELD_METER, FIELD_TEMPO, 
         FIELD_VOICE, FIELD_KEY, KEY, KEYNOTE, KEY_ACCIDENTAL, MODE_MINOR, 
-        METER, METER_FRACTION, TEMPO, ABC_BODY, ABC_LINE, ELEMENT, MUSICAL_ELEMENT, 
-        NOTE_ELEMENT, NOTE, PITCH, OCTAVE, NOTE_LENGTH, NOTE_LENGTH_STRICT, 
+        METER, METER_FRACTION, TEMPO, ABC_BODY, ABC_LINE, ELEMENT, MIDDLE_OF_BODY_FIELD,
+        MUSICAL_ELEMENT, NOTE_ELEMENT, NOTE, PITCH, OCTAVE, NOTE_LENGTH, NOTE_LENGTH_STRICT, 
         NUMERATOR, DENOMINATOR, ACCIDENTAL, BASENOTE, REST_ELEMENT, TUPLET_ELEMENT,
         TUPLET_SPEC, CHORD, BARLINE, NTH_REPEAT, LYRIC, LYRICAL_ELEMENT, LYRIC_TEXT, 
-        COMMENT, COMMENT_TEXT, END_OF_LINE, TEXT, NUMBER, DIGIT, NEWLINE, 
-        SPACE_OR_TAB, MIDDLE_OF_BODY_FIELD,
+        COMMENT, COMMENT_TEXT, END_OF_LINE, TEXT, NUMBER, DIGIT, NEWLINE, SPACE_OR_TAB,
     }
     
 
@@ -104,7 +76,7 @@ public class ABCParser {
      * Parse the contents of an abc formatted string, and create an ABC object from these contents.
      * 
      * @param string string in abc format which will have its contents parsed
-     * @return ABC the object representing the parsed abc string
+     * @return ABC the ABC song representing the parsed abc string
      * @throws UnableToParseException exception raised if the parser can't parse the given string
      */
     public static ABC parse(final String string) throws UnableToParseException {
@@ -117,8 +89,6 @@ public class ABCParser {
         ParseTree<ABCGrammar> abcBodyTree = parseTree.children().get(1);
         assert abcHeaderTree.name().equals(ABCGrammar.ABC_HEADER);
         assert abcBodyTree.name().equals(ABCGrammar.ABC_BODY);
-        
-        // Visualizer.showInBrowser(abcBodyTree);
 
         // display the parse tree in various ways, for debugging only
         // System.out.println("parse tree " + parseTree);
@@ -127,13 +97,10 @@ public class ABCParser {
         // make an AST from the parse tree
         final Map<Character, Object> abcHeader = new HashMap<Character, Object>();
         getHeaderInfo(abcHeaderTree,abcHeader);
-//        System.out.println("parse tree " + parseTree);
-//         Visualizer.showInBrowser(parseTree);
-        // Make a new dictionary from the header
-        final AccidentalMap keySignature = ((Key)abcHeader.get('K')).getAccidentalMap();
+        
+        final AccidentalMap keySignature = ((Key) abcHeader.get('K')).getAccidentalMap();
         final Map<String, Music> abcBody = parseBody(abcBodyTree, keySignature);
         final ABC abc = new ABC(abcBody, abcHeader);
-        // System.out.println("AST " + abc);
         
         return abc;
     }
@@ -168,10 +135,11 @@ public class ABCParser {
                 
                 final List<ParseTree<ABCGrammar>> elements;
                 
-                final ParseTree<ABCGrammar> last = line.get(line.size() - 2);
+                final int lastIndex = line.size() - 1;
+                final ParseTree<ABCGrammar> last = line.get(lastIndex - 1);
                 switch (last.name()) {
                 case LYRIC: // lyric ::= "w:" lyrical_element*;
-                    elements = line.subList(0, line.size() - 3);
+                    elements = line.subList(0, lastIndex - 2);
                     final List<String> lyricalElements = last.children()
                                                              .stream()
                                                              .map(ParseTree::text)
@@ -179,7 +147,7 @@ public class ABCParser {
                     lyricGenerator.loadLyrics(lyricalElements);
                     break;
                 case ELEMENT:
-                    elements = line.subList(0, line.size() - 1);
+                    elements = line.subList(0, lastIndex);
                     lyricGenerator.loadNoLyrics();
                     break;
                 default:
@@ -273,9 +241,9 @@ public class ABCParser {
      * @param lyricGenerator lyric generator for each note
      * @return Music for this musical element
      */
-    private static Music makeMusic(ParseTree<ABCGrammar> element, AccidentalMap accidentalMap, LyricGenerator lyricGenerator) throws UnableToParseException {
-        // musical_element ::= note_element | rest_element | tuplet_element;
-
+    private static Music makeMusic(ParseTree<ABCGrammar> element, AccidentalMap accidentalMap,
+            LyricGenerator lyricGenerator) throws UnableToParseException {
+        
         switch (element.name()) {
         
         case MUSICAL_ELEMENT: { // musical_element ::= note_element | rest_element | tuplet_element;
@@ -288,7 +256,6 @@ public class ABCParser {
         
         case REST_ELEMENT: { // rest_element ::= "z" note_length?;
             final List<ParseTree<ABCGrammar>> children = element.children();
-//            System.out.println(children);
             return children.isEmpty() ? rest(1) : rest(toDouble(children.get(0)));
         }
         
@@ -328,7 +295,6 @@ public class ABCParser {
             final List<ParseTree<ABCGrammar>> chord = element.children();
             lyricGenerator.setChordSize(chord.size());
             Music music = makeMusic(chord.get(0), accidentalMap, lyricGenerator);
-            // For each of the other children, create a together object with the notes in it
             for (final ParseTree<ABCGrammar> note : chord.subList(1, chord.size()))
                 music = together(music, makeMusic(note, accidentalMap, lyricGenerator));
             return music;
@@ -439,27 +405,16 @@ public class ABCParser {
      * @param parseTree constructed according to the grammar in Abc.g
      * @param currentHeaderInfo map containing information from the fields that have already been extracted from this abc file's header
      */
-    private static void getHeaderInfo(final ParseTree<ABCGrammar> parseTree, Map<Character, Object> currentHeaderInfo) {
-//        System.out.println(parseTree.children());
+    private static void getHeaderInfo(final ParseTree<ABCGrammar> parseTree,
+            Map<Character, Object> currentHeaderInfo) throws UnableToParseException {
+        
         switch (parseTree.name()) {
         
-        case ABC_HEADER: // abc_header ::= field_number comment* field_title other_fields* field_key;
-            { // Go through all of the children, and call the method on those
-                ParseTree<ABCGrammar> fieldNumberParsed = parseTree.children().get(0);
-                String currentStringDigits = "";
-                for (int i = 0; i < fieldNumberParsed.children().size() - 1; i++) {
-                    currentStringDigits = currentStringDigits +  fieldNumberParsed.children().get(i).text();
-                }
-//                System.out.println(currentStringDigits);
-                int fieldNumber = Integer.parseInt(currentStringDigits);
-                currentHeaderInfo.put('X', fieldNumber);
-                for (ParseTree<ABCGrammar> t : parseTree.children().subList(1, parseTree.children().size())) {
-//                    System.out.println("Name of child");
-//                    System.out.println(t.name());
-                    getHeaderInfo(t, currentHeaderInfo);
-                }
-                break;
-            }
+        case ABC_HEADER: { // abc_header ::= field_number comment* field_title other_fields* field_key;
+            for (ParseTree<ABCGrammar> t : parseTree.children())
+                getHeaderInfo(t, currentHeaderInfo);
+            break;
+        }
         
         case FIELD_NUMBER: { // field_number ::= "X:" number end_of_line;
             currentHeaderInfo.put('X', toInt(parseTree.children().get(0)));
@@ -516,16 +471,12 @@ public class ABCParser {
             break;
         }
         case FIELD_VOICE: { // field_voice ::= "V:" text end_of_line;
-            // Voice will be stored as a Set of String objects, each representing a different voice
-            // If there is no set of voices already in the currentHeading, set it to be a new dictionary.
             if (!currentHeaderInfo.containsKey('V')) {
                 currentHeaderInfo.put('V', new HashSet<String>());
             }
             Set<String> currentVoices = ((Set<String>)currentHeaderInfo.get('V'));
             // Add the current voice's text into the set of voices.
             currentVoices.add(parseTree.children().get(0).text().trim());
-            
-//            ((HashMap<Character, Object>)currentHeaderInfo.get('V')).put('C', parseTree.children().get(0).text());
             break;
         }
         
@@ -534,7 +485,7 @@ public class ABCParser {
             break;
         }
         default:
-            throw new AssertionError("should never get here");
+            throw new UnableToParseException("header is malformed");
         }
 
     }

@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 
 /**
  * MusicLanguage defines static methods for constructing and manipulating Music expressions.
+ * Unused, but included for fun.
  */
 public class MusicLanguage {
 
@@ -111,7 +112,15 @@ public class MusicLanguage {
     // Generic functions
     ////////////////////////////////////////////////////
 
-    // compose : (T->U) x (U->V) -> (T->V)
+    /**
+     * Compose a function f o g.
+     * @param <T> data type of input to f
+     * @param <U> data type of output of f and input to g
+     * @param <V> data type of output of g
+     * @param f first function
+     * @param g second function
+     * @return the function f o g
+     */
     public static <T,U,V> Function<T,V> compose(Function<T,U> f, Function<U,V> g) {
         return new Function<T,V>(){
             public V apply(T t) {
@@ -137,10 +146,23 @@ public class MusicLanguage {
         //return m.accept(new TransposeVisitor(semitonesUp));
     }
 
+    /**
+     * Delay all notes by a given delay.
+     * @param m music
+     * @param delay delay in beats
+     * @return the music played after the delay
+     */
     public static Music delay(Music m, double delay) {
         return concat(rest(delay), m);
     }
 
+    /**
+     * Make a round from a piece of music.
+     * @param m music
+     * @param delay delay between entrances
+     * @param times number of entrances
+     * @return music representing a round
+     */
     public static Music round(Music m, double delay, int times) {
         // to implement Round using Canon, we should call Canon and pass 
         // in the identity function as the argument
@@ -153,6 +175,13 @@ public class MusicLanguage {
         }
     }
 
+    /**
+     * Repeat a piece of music, applying a function to it every repeat.
+     * @param m music
+     * @param times number of repeats
+     * @param f function to apply every repeat
+     * @return the repeated music
+     */
     public static Music repeat(Music m, int times, Function<Music, Music> f) {
         if (times == 0) {
             return empty();

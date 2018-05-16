@@ -6,18 +6,23 @@ import java.util.Map;
 import karaoke.music.Pitch;
 
 /**
- * a map that keeps track of which notes are currently sharped or flatted
+ * An AccidentalMap is a map of pitches to accidentals that is instantiated with a particular key signature
+ * and can be updated to accommodate new accidentals.
  */
 public class AccidentalMap {
-	
-	/* Abstraction function
-	 * 
-	 * Rep invariant
-	 * 
-	 * Safety from rep exposure
-	 * 
-	 * Thread safety 
-	 */
+    
+    /* Abstraction function
+     *  AF(keySignature, accidentals) = the accidental map for keySignature, updated to include mappings
+     *      for the accidentals in accidentals
+     * 
+     * Rep invariant
+     *  fields are not null
+     * 
+     * Safety from rep exposure
+     *  all fields are private and final
+     *  no fields are returned
+     *  defensive copying in instantiation of keySignature
+     */
     
     private final Map<String, Integer> keySignature;
     private final Map<Pitch, Integer> accidentals = new HashMap<>();
@@ -28,6 +33,15 @@ public class AccidentalMap {
      */
     public AccidentalMap(Map<String, Integer> keySignature) {
         this.keySignature = new HashMap<>(keySignature);
+        checkRep();
+    }
+    
+    /*
+     * Check rep invariant.
+     */
+    private void checkRep() {
+        assert keySignature != null;
+        assert accidentals != null;
     }
     
     /**
@@ -37,6 +51,7 @@ public class AccidentalMap {
      */
     public void put(Pitch pitch, int accidental) {
         accidentals.put(pitch, accidental);
+        checkRep();
     }
     
     /**
@@ -56,6 +71,7 @@ public class AccidentalMap {
      */
     public void refresh() {
         accidentals.clear();
+        checkRep();
     }
     
 }

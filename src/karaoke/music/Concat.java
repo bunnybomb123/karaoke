@@ -88,8 +88,6 @@ public class Concat implements Music {
         Music newSecond = second.augment(augmentationFactor);
         return new Concat(newFirst, newSecond);
     }
-    
-    
 
     @Override
     public int hashCode() {

@@ -16,18 +16,24 @@ import karaoke.music.Together;
 public class ABC {
     
     /* Abstraction function
-     *  AF(parts, music, title, keySignature, meter, beatsPerMinute, defaultNote, composer) =
+     *  AF(parts, music, indexNumber, title, keySignature, composer, voices, meter, defaultNote, tempo, beatsPerMinute) =
      *      an ABC file representing the Music music, with each voice mapped to a part by parts,
-     *      with key signature keySignature, meter meter, beats per minute beatsPerMinute,
-     *      default note length defaultNote, and composer composer.
+     *      with index number indexNumber, title title, key signature keySignature, composer composer,
+     *      voices ranging across the set voices, meter meter, default note length defaultNote, tempo tempo, and
+     *      beats per minute (where beats are default note lengths) beatsPerMinute
      *      
      * Rep invariant:
      *  all fields not null
-     *  parts contains at least 1 key
+     *  voices.equals(parts.keySet())
+     *  there is at least one voice
      * 
      * Safety from rep exposure:
+<<<<<<< HEAD
      *  defensive copying in instantiation of parts
      *  voices is defensively copied when returned to users
+=======
+     *  defensive copying in instantiation of parts and voices
+>>>>>>> 70207e4eb9ef7824e56bc626c6e612aeac81eebc
      *  all other fields private, final, and of immutable data types
      * 
      * Thread safety argument:
@@ -47,12 +53,12 @@ public class ABC {
     private final int beatsPerMinute;
     
     /**
-     * creates a new ABC file
+     * Creates a new ABC song.
      * 
      * @param parts Musical representation of the ABC file, split up into voice parts
      *              "" is a key reserved for music without a voice part
-     * @param fields other fields in the ABC file header. must include
-     *      a 'T' field (for title) and a 'K' field (for key signature)
+     * @param fields fields in the ABC file header, must include an 'X' field (for index number),
+     *              a 'T' field (for title), and a 'K' field (for key signature)
      */
     public ABC(Map<String, Music> parts, Map<Character, Object> fields) {
         this.parts = Collections.unmodifiableMap(new HashMap<>(parts));
@@ -76,18 +82,42 @@ public class ABC {
         this.tempo = (Tempo) fields.getOrDefault('Q', new Tempo(defaultNote, defaultTempo));
 
         this.beatsPerMinute = (int) (tempo.beatsPerMinute() * tempo.beatLength() / defaultNote.value());
+        
+        checkRep();
+    }
+    
+
+    /*
+     * Check rep invariant.
+     */
+    private void checkRep() {
+        assert parts != null;
+        assert music != null;
+        assert title != null;
+        assert keySignature != null;
+        assert composer != null;
+        assert voices != null;
+        assert meter != null;
+        assert defaultNote != null;
+        assert tempo != null;
+        assert voices.equals(parts.keySet());
+        assert !voices.isEmpty();
     }
     
     /**
-     * Return a summary of the header for the piece, containing the title and composer 
+     * Gets a summary representation of this piece
      * 
-     * @return a summary representation of this abc piece 
+     * @return a summary representation of this piece
      */
     public String getInfo() {
         return title + " by " + composer;
     }
     
-    /** @return the Music associated with this abc piece */
+    /**
+     * Gets the music associated with the whole piece
+     * 
+     * @return the music associated with this piece
+     */
     public Music getMusic() {
         return music;
     }
@@ -129,7 +159,11 @@ public class ABC {
         return keySignature;
     }
     
-    /** @return this piece's composer */
+    /**
+     * Gets the composer of the piece
+     * 
+     *  @return this piece's composer 
+     */
     public String getComposer() {
         return composer;
     }
@@ -182,9 +216,9 @@ public class ABC {
     @Override
     public String toString() {
         return title + " by " + composer + "\nmusic: " + music + "\nmeter: " + meter
-        		+ "\ntempo: " + tempo + "\ndefaultNote: " + defaultNote + "\nindexNumber: "
-        		+ indexNumber + "\nvoices: "+ voices + "\nkeySignature: "+ keySignature  
-        		+ "\nbeatsPerMinute: "+ beatsPerMinute; 
+                + "\ntempo: " + tempo + "\ndefaultNote: " + defaultNote + "\nindexNumber: "
+                + indexNumber + "\nvoices: "+ voices + "\nkeySignature: "+ keySignature  
+                + "\nbeatsPerMinute: "+ beatsPerMinute; 
     }
 
     @Override
@@ -200,17 +234,16 @@ public class ABC {
      * @return boolean indicating whether or not this object has equivalent fields to the other object
      */
     private boolean sameValue(ABC that) {
-    	return true
-//        		  && parts.equals(that.parts)
+        return parts.equals(that.parts)
                 && music.equals(that.music) 
-//                && indexNumber == that.indexNumber
-//                && title.equals(that.title)
+                && indexNumber == that.indexNumber
+                && title.equals(that.title)
                 && keySignature.equals(that.keySignature)
                 && composer.equals(that.composer)
-//                && voices.equals(that.voices)
-//                && meter.equals(that.meter)
-//                && defaultNote.equals(that.defaultNote)
-//                && tempo.equals(that.tempo)
+                && voices.equals(that.voices)
+                && meter.equals(that.meter)
+                && defaultNote.equals(that.defaultNote)
+                && tempo.equals(that.tempo)
                 && beatsPerMinute == that.beatsPerMinute;
     }
 

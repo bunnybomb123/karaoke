@@ -1,6 +1,11 @@
 package karaoke.parser;
 
 import static org.junit.Assert.assertEquals;
+import static karaoke.music.Music.concat;
+import static karaoke.music.Music.empty;
+import static karaoke.music.Music.note;
+import static karaoke.music.Music.rest;
+import static karaoke.music.Music.together;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -69,11 +74,11 @@ public class ABCParserTest {
     public void testSample1() throws FileNotFoundException, UnableToParseException {
         ABC actual = helperGetActual("sample1");
 
-        Music m1 = new Note(2, new Pitch('C').transpose(-Pitch.OCTAVE), Instrument.PIANO, Optional.empty());
+        Music m1 = new Note(2, new Pitch('C').transpose(-Pitch.OCTAVE), Instrument.PIANO, Optional.of(new Lyric("")));
         Music m2 = new Note(2, new Pitch('C'), Instrument.PIANO, Optional.empty());
-        Music m3 = new Note(1, new Pitch('C').transpose(Pitch.OCTAVE), Instrument.PIANO, Optional.empty());
-        Music m4 = new Note(1, new Pitch('C').transpose(2*Pitch.OCTAVE), Instrument.PIANO, Optional.empty());
-        Music music = new Concat(m1, new Concat(m2, new Concat(m3, m4)));
+        Music m3 = new Note(1, new Pitch('C').transpose(2*Pitch.OCTAVE), Instrument.PIANO, Optional.empty());
+        Music m4 = new Note(1, new Pitch('C').transpose(3*Pitch.OCTAVE), Instrument.PIANO, Optional.empty());
+        Music music = concat(concat(concat(m1, m2), m3), m4);
         
         final Map<String, Music> parts = new HashMap<>();
         parts.put("", music);

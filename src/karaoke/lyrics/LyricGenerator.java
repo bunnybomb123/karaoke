@@ -101,9 +101,7 @@ public class LyricGenerator {
         line = formattedLine.toString();
         
         index = 0;
-        removeSuffix();
-        
-        beginIndex = 0;
+        beginIndex = removeSuffix().length();
         hold = 0;
         previous = null;
         checkRep();

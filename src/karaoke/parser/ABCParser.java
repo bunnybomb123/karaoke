@@ -1,9 +1,9 @@
 package karaoke.parser;
 
-import static karaoke.music.Music.empty;
-import static karaoke.music.Music.rest;
-import static karaoke.music.Music.note;
 import static karaoke.music.Music.concat;
+import static karaoke.music.Music.empty;
+import static karaoke.music.Music.note;
+import static karaoke.music.Music.rest;
 import static karaoke.music.Music.together;
 
 import java.io.File;
@@ -20,17 +20,14 @@ import edu.mit.eecs.parserlib.ParseTree;
 import edu.mit.eecs.parserlib.Parser;
 import edu.mit.eecs.parserlib.UnableToParseException;
 import edu.mit.eecs.parserlib.Visualizer;
-import karaoke.lyrics.Lyric;
 import karaoke.lyrics.LyricGenerator;
-import karaoke.music.*;
 import karaoke.music.Instrument;
 import karaoke.music.Music;
-import karaoke.music.Note;
 import karaoke.music.Pitch;
-import karaoke.music.Together;
 import karaoke.songs.ABC;
 import karaoke.songs.AccidentalMap;
 import karaoke.songs.Key;
+import karaoke.songs.Meter;
 
 public class ABCParser {
     
@@ -290,7 +287,7 @@ public class ABCParser {
         
         case REST_ELEMENT: { // rest_element ::= "z" note_length?;
             final List<ParseTree<ABCGrammar>> children = element.children();
-            return children.isEmpty() ? rest(1) : rest(getDecimalValue(children.get(0)));
+            return children.isEmpty() ? rest(1) : rest(toDouble(children.get(0)));
         }
         
         case TUPLET_ELEMENT: { // tuplet_element ::= tuplet_spec note_element+;
@@ -395,7 +392,7 @@ public class ABCParser {
             }
             pitch = pitch.transpose(accidentalMap.get(pitch));
             
-            final double duration = children.size() == 1 ? 1 : getDecimalValue(children.get(1));
+            final double duration = children.size() == 1 ? 1 : toDouble(children.get(1));
             
             return note(duration, pitch, Instrument.PIANO, lyricGenerator.next());
         }
@@ -406,19 +403,23 @@ public class ABCParser {
         }
     }
     
-    private static double getDecimalValue(ParseTree<ABCGrammar> fraction) throws UnableToParseException {
+    private static int toInt(ParseTree<ABCGrammar> number) {
+        return Integer.parseInt(number.text());
+    }
+    
+    private static double toDouble(ParseTree<ABCGrammar> fraction) throws UnableToParseException {
         switch (fraction.name()) {
         case METER_FRACTION:
         case NOTE_LENGTH:
         case NOTE_LENGTH_STRICT:
             double result = 1;
             for (final ParseTree<ABCGrammar> component : fraction.children())
-                result *= getDecimalValue(component);
+                result *= toDouble(component);
             return result;
         case NUMERATOR:
-            return Integer.parseInt(fraction.text());
+            return toInt(fraction);
         case DENOMINATOR:
-            return 1.0 / Integer.parseInt(fraction.text());
+            return 1.0 / toInt(fraction);
         default:
             throw new UnableToParseException("note_length or note_length_strict is malformed");
         }
@@ -443,7 +444,7 @@ public class ABCParser {
 //        System.out.println(parseTree.children());
         switch (parseTree.name()) {
         
-        case ABC_HEADER: //abc_header ::= field_number comment* field_title other_fields* field_key;
+        case ABC_HEADER: // abc_header ::= field_number comment* field_title other_fields* field_key;
             { // Go through all of the children, and call the method on those
                 ParseTree<ABCGrammar> fieldNumberParsed = parseTree.children().get(0);
                 String currentStringDigits = "";
@@ -459,30 +460,30 @@ public class ABCParser {
                     getHeaderInfo(t, currentHeaderInfo);
                 }
                 break;
-            }    
+            }
         
-        case FIELD_NUMBER: { // Get the digit, and assign it to the "X" field in the map
-            currentHeaderInfo.put('X', Integer.parseInt(parseTree.children().get(0).text()));
+        case FIELD_NUMBER: { // field_number ::= "X:" number end_of_line;
+            currentHeaderInfo.put('X', toInt(parseTree.children().get(0)));
             break;
         }
-        case FIELD_TITLE: { // Get the title text, and assign it to the "T" field in the map
-//            System.out.println("Made it here");
-//            System.out.println(parseTree.children());
-            currentHeaderInfo.put('T', parseTree.children().get(0).text());
+        case FIELD_TITLE: { // field_title ::= "T:" text end_of_line;
+            currentHeaderInfo.put('T', parseTree.children().get(0).text().trim());
             break;
         }
-        case OTHER_FIELDS: { // Go through all the children, and populate the header info with the information obtained from each. 
+        case OTHER_FIELDS: { // other_fields ::= field_composer | field_default_length | field_meter | field_tempo | field_voice | comment;
             getHeaderInfo(parseTree.children().get(0),currentHeaderInfo);
             break;
         }
  
-        case FIELD_COMPOSER: { // Go through all the children
-            currentHeaderInfo.put('C', parseTree.children().get(0).text());
+        case FIELD_COMPOSER: { // field_composer ::= "C:" text end_of_line;
+            currentHeaderInfo.put('C', parseTree.children().get(0).text().trim());
             break;
         }
-        case FIELD_DEFAULT_LENGTH: {
-            ParseTree<ABCGrammar> noteLengthStrict = parseTree.children().get(0);
-            currentHeaderInfo.put('L', parseTree.children().get(0).text());
+        case FIELD_DEFAULT_LENGTH: { // field_default_length ::= "L:" note_length_strict end_of_line;
+            // note_length_strict ::= numerator "/" denominator;
+            List<ParseTree<ABCGrammar>> fraction = parseTree.children().get(0).children();
+            currentHeaderInfo.put('L', new Meter(toInt(fraction.get(0)),
+                    toInt(fraction.get(1).text()));
             break;
         }
         case FIELD_KEY: {

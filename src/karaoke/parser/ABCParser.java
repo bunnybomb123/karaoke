@@ -495,11 +495,11 @@ public class ABCParser {
         }
         case FIELD_METER: { // field_meter ::= "M:" meter end_of_line;
             // meter ::= "C" | "C|" | meter_fraction;
-            List<ParseTree<ABCGrammar>> meter = parseTree.children().get(0).children();
-            if (meter.isEmpty())
-                currentHeaderInfo.put('M', new Meter(parseTree.text()));
+            ParseTree<ABCGrammar> meter = parseTree.children().get(0);
+            if (meter.children().isEmpty())
+                    currentHeaderInfo.put('M', new Meter(meter.text()));
             else {
-                List<ParseTree<ABCGrammar>> meterFraction = meter.get(0).children();
+                List<ParseTree<ABCGrammar>> meterFraction = meter.children().get(0).children();
                 currentHeaderInfo.put('M', new Meter(toInt(meterFraction.get(0)), toInt(meterFraction.get(1))));
             }
             break;

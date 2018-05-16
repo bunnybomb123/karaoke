@@ -173,7 +173,9 @@ public class ABC {
     @Override
     public String toString() {
         return title + " by " + composer + "\nmusic: " + music + "\nmeter: " + meter
-        		+ "\ntempo: " + tempo + "\ndefaultNote: " + defaultNote; 
+        		+ "\ntempo: " + tempo + "\ndefaultNote: " + defaultNote + "\nindexNumber: "
+        		+ indexNumber + "\nvoices: "+ voices + "\nkeySignature: "+ keySignature  
+        		+ "\nbeatsPerMinute: "+ beatsPerMinute; 
     }
 
     @Override
@@ -189,16 +191,17 @@ public class ABC {
      * @return boolean indicating whether or not this object has equivalent fields to the other object
      */
     private boolean sameValue(ABC that) {
-        return parts.equals(that.parts)
+    	return true
+//        		  && parts.equals(that.parts)
                 && music.equals(that.music) 
-                && indexNumber == that.indexNumber
-                && title.equals(that.title)
+//                && indexNumber == that.indexNumber
+//                && title.equals(that.title)
                 && keySignature.equals(that.keySignature)
                 && composer.equals(that.composer)
-                && voices.equals(that.voices)
-                && meter.equals(that.meter)
-                && defaultNote.equals(that.defaultNote)
-                && tempo.equals(that.tempo)
+//                && voices.equals(that.voices)
+//                && meter.equals(that.meter)
+//                && defaultNote.equals(that.defaultNote)
+//                && tempo.equals(that.tempo)
                 && beatsPerMinute == that.beatsPerMinute;
     }
 

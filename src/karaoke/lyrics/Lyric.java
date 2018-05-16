@@ -152,9 +152,9 @@ public class Lyric {
     
     @Override
     public String toString() {
-        return "voice:" + this.voice + "\nprefix:  "
-                + this.prefix + "syllable: " + this.syllable 
-                + "suffix:" + this.suffix + "\nisInstrumental: " 
+        return "voice:" + this.voice + "\n"
+                + this.prefix + " *" + this.syllable
+                + "* " + this.suffix + "\nisInstrumental: " 
                 + isInstrumental;
     }
 

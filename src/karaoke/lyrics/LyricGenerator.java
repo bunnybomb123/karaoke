@@ -67,13 +67,6 @@ public class LyricGenerator {
             assert !isSuffix(symbol, prev);
             String syllable = format(symbol);
             int endIndex = beginIndex + syllable.length();
-            System.out.println(syllable);
-            System.out.println(line);
-            System.out.println(beginIndex);
-            System.out.println(endIndex);
-            System.out.println(lyricalElements);
-
-
             assert syllable.equals(line.substring(beginIndex, endIndex));
         }
         assert hold >= 0;
@@ -100,10 +93,12 @@ public class LyricGenerator {
      *          according to Abc grammar
      */
     public void loadLyrics(List<String> lyricalLine) {
-        lyricalElements = new ArrayList<>(lyricalLine);
+        // remove leading space
+        lyricalElements = new ArrayList<>(lyricalLine.get(0).trim().isEmpty() ?
+                lyricalLine.subList(1, lyricalLine.size()) : lyricalLine);
         
         StringBuffer formattedLine = new StringBuffer();
-        lyricalLine.stream().map(LyricGenerator::format).forEach(formattedLine::append);
+        lyricalElements.stream().map(LyricGenerator::format).forEach(formattedLine::append);
         line = formattedLine.toString();
         
         index = 0;

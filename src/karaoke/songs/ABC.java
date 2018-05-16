@@ -61,6 +61,10 @@ public class ABC {
      *              a 'T' field (for title), and a 'K' field (for key signature)
      */
     public ABC(Map<String, Music> parts, Map<Character, Object> fields) {
+        if (!fields.containsKey('X') | !fields.containsKey('T') | !fields.containsKey('K')) {
+            throw new IllegalArgumentException("Need to specify a title, index number, and key.");
+        }
+        
         this.parts = Collections.unmodifiableMap(new HashMap<>(parts));
         this.music = parts.values().stream().reduce((part1, part2) -> new Together(part1, part2)).get();
         this.indexNumber = (Integer) fields.get('X');

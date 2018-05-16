@@ -260,9 +260,9 @@ public class ABCParserTest {
         @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/lyricsAsterisk.abc")).useDelimiter("\\Z").next();
         ABC actual = ABCParser.parse(abcFile);
         
-        List<Integer> starts = Arrays.asList(0, 7);
-        List<Integer> ends =   Arrays.asList(6, 16);
-        String line = "ly-ric ly-ri-cal";
+        List<Integer> starts = Arrays.asList(0, 3, 5, 8, 11, 13, 15);
+        List<Integer> ends =   Arrays.asList(2, 4, 7, 10, 12, 14, 17);
+        String line = "ly * al ly * al";
         List<Music> musics = createNotesForLyricsTesting(line, starts, ends);
         Music music = concatChain(musics);
         		

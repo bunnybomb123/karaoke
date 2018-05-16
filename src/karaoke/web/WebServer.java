@@ -111,7 +111,7 @@ public class WebServer {
         assert server != null;
         assert jukebox != null;
     }
-    
+
     private void handleAddSong(HttpExchange exchange) throws IOException {
         exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=utf-8");
         PrintWriter out = getPrintWriter(exchange);

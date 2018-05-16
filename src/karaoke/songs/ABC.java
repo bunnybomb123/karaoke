@@ -172,7 +172,8 @@ public class ABC {
     
     @Override
     public String toString() {
-        return title + " by " + composer;
+        return title + " by " + composer + "\nmusic: " + music + "\nmeter: " + meter
+        		+ "\ntempo: " + tempo + "\ndefaultNote: " + defaultNote; 
     }
 
     @Override

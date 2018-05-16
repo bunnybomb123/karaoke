@@ -189,13 +189,36 @@ public class ABCParserTest {
         
         final Map<Character, Object> fields = new HashMap<>();
         fields.put('T', "lyricsSimple");
-        fields.put('K', Key.valueOf("Cm"));
+        fields.put('K', Key.valueOf("Bm"));
         fields.put('X', 1);
 
         ABC expected = new ABC(parts, fields);
         assertEquals(expected, actual);
     }
 
+    // input: has lyrics, with tildes
+    @Test
+    public void testLyricsTilde() throws FileNotFoundException, UnableToParseException {
+        @SuppressWarnings("resource") String abcFile = new Scanner(new File("sample-abc/lyricsTilde.abc")).useDelimiter("\\Z").next();
+        ABC actual = ABCParser.parse(abcFile);
+        
+        List<Integer> starts = Arrays.asList(0, 8);
+        List<Integer> ends = Arrays.asList(7, 10);
+        String line = "ly ric  al";
+        List<Music> musics = createNotesForLyricsTesting(line, starts, ends);
+        Music music = concatChain(musics);
+        		
+        final Map<String, Music> parts = new HashMap<>();
+        parts.put("", music);
+        
+        final Map<Character, Object> fields = new HashMap<>();
+        fields.put('T', "lyricsTilde");
+        fields.put('K', Key.valueOf("C#"));
+        fields.put('X', 1);
+
+        ABC expected = new ABC(parts, fields);
+        assertEquals(expected, actual);
+    }
     
     // input: lyrics contain all sorts of hyphens and breaks
     // output: Together, Note

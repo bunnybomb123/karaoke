@@ -125,22 +125,18 @@ public class ABCParser {
         // Visualizer.showInBrowser(parseTree);
 
         // make an AST from the parse tree
-        final Map<Character, Object> abcHeaderInfo = new HashMap<Character, Object>();
-        getHeaderInfo(abcHeaderTree,abcHeaderInfo);
+        final Map<Character, Object> abcHeader = new HashMap<Character, Object>();
+        getHeaderInfo(abcHeaderTree,abcHeader);
 //        System.out.println("parse tree " + parseTree);
 //         Visualizer.showInBrowser(parseTree);
         // Make a new dictionary from the header
-        Map<Character, Object> headerCopy = new HashMap<>(abcHeaderInfo);
-        headerCopy.put(CURRENT_VOICE_CHAR, "");
-        headerCopy.get('K');
-        AccidentalMap keySignature = ((Key)headerCopy.get('V')).getAccidentalMap();
-        final Map<String, Music> abcMusicParts = parseBody(abcBodyTree, keySignature);
-        final ABC abc = new ABC(abcMusicParts, abcHeaderInfo);
+        final AccidentalMap keySignature = ((Key)abcHeader.get('K')).getAccidentalMap();
+        final Map<String, Music> abcBody = parseBody(abcBodyTree, keySignature);
+        final ABC abc = new ABC(abcBody, abcHeader);
         // System.out.println("AST " + abc);
         
         return abc;
     }
-    
 
     /**
      * Given a nonterminal abc_body and a key signature, return the complete music score.
@@ -148,15 +144,19 @@ public class ABCParser {
      * @param accidentalMap key signature
      * @return complete music score as a map from voice part to Music
      */
-    private static Map<String, Music> parseBody(ParseTree<ABCGrammar> abcBody,
-            AccidentalMap keySignature) throws UnableToParseException {
+    private static Map<String, Music> parseBody(final ParseTree<ABCGrammar> abcBody,
+            final AccidentalMap keySignature) throws UnableToParseException {
         String voice = "";
         final Map<String, Music> savedParts = new HashMap<>();
         final Map<String, Music> newParts = new HashMap<>();
-        Map<String, Map<String, Music>> partMap = new HashMap<>(); // map to modify for each voice part
+        // version of music score that is currently being modified for each voice part,
+        // either savedParts or newParts
+        Map<String, Map<String, Music>> partMap = new HashMap<>();
         final Map<String, LyricGenerator> lyricGenerators = new HashMap<>();
         
-        for (ParseTree<ABCGrammar> abcLine : abcBody.children()) {
+        // abc_body ::= abc_line+;
+        for (final ParseTree<ABCGrammar> abcLine : abcBody.children()) {
+            // abc_line ::= element+ end_of_line (lyric end_of_line)? | middle_of_body_field | comment;
             final List<ParseTree<ABCGrammar>> line = abcLine.children();
             final ParseTree<ABCGrammar> first = line.get(0);
             switch (first.name()) {
@@ -170,13 +170,13 @@ public class ABCParser {
                 
                 final ParseTree<ABCGrammar> last = line.get(line.size() - 2);
                 switch (last.name()) {
-                case LYRIC:
+                case LYRIC: // lyric ::= "w:" lyrical_element*;
                     elements = line.subList(0, line.size() - 3);
-                    List<ParseTree<ABCGrammar>> lyric = last.children();
-                    List<String> lyricalElements = lyric.subList(1, lyric.size())
-                                                        .stream()
-                                                        .map(ParseTree::text)
-                                                        .collect(Collectors.toList());
+                    final List<ParseTree<ABCGrammar>> lyric = last.children();
+                    final List<String> lyricalElements = lyric.subList(1, lyric.size())
+                                                              .stream()
+                                                              .map(ParseTree::text)
+                                                              .collect(Collectors.toList());
                     lyricGenerator.loadLyrics(lyricalElements);
                     break;
                 case ELEMENT:
@@ -187,15 +187,16 @@ public class ABCParser {
                     throw new UnableToParseException("abc_line is malformed");
                 }
                 
-                for (ParseTree<ABCGrammar> genericElement : elements) {
-                    ParseTree<ABCGrammar> element = genericElement.children().get(0);
+                for (final ParseTree<ABCGrammar> genericElement : elements) {
+                    // element ::= musical_element | barline | nth_repeat | space_or_tab;
+                    final ParseTree<ABCGrammar> element = genericElement.children().get(0);
                     switch (element.name()) {
-                    case MUSICAL_ELEMENT:
-                        Music music = makeMusic(element, keySignature, lyricGenerator);
-                        Map<String, Music> parts = partMap.getOrDefault(voice, newParts);
+                    case MUSICAL_ELEMENT: // musical_element ::= note_element | rest_element | tuplet_element;
+                        final Music music = makeMusic(element, keySignature, lyricGenerator);
+                        final Map<String, Music> parts = partMap.getOrDefault(voice, newParts);
                         addMusic(parts, voice, music);
                         break;
-                    case BARLINE:
+                    case BARLINE: // barline ::= "|" | "||" | "[|" | "|]" | ":|" | "|:";
                         keySignature.refresh();
                         lyricGenerator.loadNextMeasure();
                         switch (element.text()) {
@@ -215,7 +216,7 @@ public class ABCParser {
                             throw new UnableToParseException("barline is malformed");
                         }
                         break;
-                    case NTH_REPEAT:
+                    case NTH_REPEAT: // nth_repeat ::= "[1" | "[2";
                         switch (element.text()) {
                         case "[1":
                             addMusic(savedParts, voice, newParts.getOrDefault(voice, empty()));
@@ -227,17 +228,18 @@ public class ABCParser {
                             throw new UnableToParseException("nth_repeat is malformed");
                         }
                         break;
-                    case SPACE_OR_TAB:
+                    case SPACE_OR_TAB: // space_or_tab ::= " " | "\t";
                         break;
                     default:
                         throw new UnableToParseException("element is malformed");
                     }
                 }
                 break;
-            case MIDDLE_OF_BODY_FIELD:
+            case MIDDLE_OF_BODY_FIELD: // middle_of_body_field ::= field_voice;
+                // field_voice ::= "V:" text end_of_line;
                 voice = first.children().get(0).children().get(1).text().trim();
                 break;
-            case COMMENT:
+            case COMMENT: // comment ::= space_or_tab* "%" comment_text newline;
                 break;
             default:
                 throw new UnableToParseException("abc_line is malformed");

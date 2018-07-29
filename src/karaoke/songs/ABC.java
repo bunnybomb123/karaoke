@@ -28,12 +28,7 @@ public class ABC {
      *  there is at least one voice
      * 
      * Safety from rep exposure:
-<<<<<<< HEAD
-     *  defensive copying in instantiation of parts
-     *  voices is defensively copied when returned to users
-=======
      *  defensive copying in instantiation of parts and voices
->>>>>>> 70207e4eb9ef7824e56bc626c6e612aeac81eebc
      *  all other fields private, final, and of immutable data types
      * 
      * Thread safety argument:

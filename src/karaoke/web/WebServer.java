@@ -49,6 +49,8 @@ public class WebServer {
     //
     // Thread safety argument:
     //  Each exchange:HttpExchange is confined to a single thread
+    //  jukebox:Jukebox is threadsafe
+    //  server:HttpServer is confined and not used in any handle methods
     //  
     
     /**
